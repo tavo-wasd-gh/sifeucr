@@ -20,6 +20,35 @@
       .letter {
         text-align: justify;
       }
+      .firma {
+        width: 18em;
+        height: 12em;
+      }
+      .firma img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .ruler {
+        width: 18em;
+        border-bottom: 1px solid black;
+      }
+      .firmas {
+        padding: 1in 0;
+      }
+      .firma span {
+        margin: 0;
+        padding: 0;
+      }
+      @media print {
+        .firmas {
+          page-break-before: always;
+        }
+        .firma {
+          page-break-inside: avoid;
+        }
+      }
     </style>
   </head>
   <body>
@@ -36,7 +65,18 @@
       <p>La contratación de este servicio tiene por motivo: {{ .JustifiacionServicio }}.</p>
       <p>La contratación será realizada bajo la normativa nacional e institucional de la Universidad de Costa Rica, velando por el correcto cumplimiento de los deberes y derechos de ambas partes involucradas. </p>
     </div>
-    <br>
-    <b>Firmas presidencia/tesorería</b>
+    <div class="firmas">
+      <b>Firmas presidencia/tesorería</b><br><br>
+      {{ range $index, $emisor := .Emisores }}
+      <div class="firma">
+        {{ if eq $index 0 }}
+        <img src="{{ $emisor.Firma }}" alt="Firma de {{ $emisor.Nombre }}" />
+        {{ end }}
+      </div>
+      <div class="ruler"></div>
+      <span>{{ $emisor.Nombre }}</span><br>
+      <span>{{ $emisor.Asociacion }}</span><br><br>
+      {{ end }}
+    </div>
   </body>
 </html>
