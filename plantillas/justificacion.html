@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justificación</title>
+    <style>
+      body {
+        padding: 1in;
+        font-family: Times, serif;
+        font-size: 14pt;
+        line-height: 1.5;
+      }
+      .right {
+        text-align: right;
+      }
+      .underline {
+        text-decoration: underline;
+      }
+      .letter {
+        text-align: justify;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="right">
+      <p>Fecha: {{ .Emision }}</p>
+    </div>
+    <b> Contraloría Estudiantil <br> Secretaría de Finanzas <br> Federación de Estudiantes de la Universidad de Costa Rica <br>
+    </b>
+    <p>Estimadas representaciones estudiantiles</p>
+    <div class="letter">
+      <p>Por medio de la presente, la <b>{{ .Emisor }}</b>, solicita la contratación de un servicio por concepto de {{ .Descripcion }} por llevarse a cabo el {{ .Ejecucion }}. Se contrata a la entidad proveedora <b>{{ .ProveedorNombre }}</b>, con cédula física/jurídica <b>{{ .ProveedorCedula }}</b>, quien {{ .JustifiacionProveedor }}. </p>
+      <p>El costo del servicio es de <span class="underline">{{ .ServicioTotal }}</span> colones, y será distribuido de la siguiente manera: </p>
+      <p>{{ .DistribucionAcordada }}</p>
+      <p>La contratación de este servicio tiene por motivo: {{ .JustifiacionServicio }}.</p>
+      <p>La contratación será realizada bajo la normativa nacional e institucional de la Universidad de Costa Rica, velando por el correcto cumplimiento de los deberes y derechos de ambas partes involucradas. </p>
+    </div>
+    <br>
+    <b>Firmas presidencia/tesorería</b>
+  </body>
+</html>

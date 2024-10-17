@@ -1,0 +1,24 @@
+<div class="sidebar">
+  <ul>
+    {{ $menuItems := (slice
+      (dict "icon" "bxs-home"                    "label" "Inicio"      "url" "/")
+      (dict "icon" "bxs-objects-vertical-bottom" "label" "Cuentas"     "url" "#")
+      (dict "icon" "bxs-pencil"                  "label" "Solicitudes" "url" "#")
+      (dict "icon" "bxs-calculator"              "label" "Ajustes"     "url" "#")
+    ) }}
+    {{ range $menuItems }}
+      {{ $isActive := eq .url $.Page.RelPermalink }}
+      <li class="{{ if $isActive }}active{{ end }}">
+        <a href="{{ .url }}">
+          <i class="bx {{ .icon }}"></i>
+          <span class="nav-item">{{ .label }}</span>
+        </a>
+      </li>
+    {{ end }}
+  </ul>
+  <div class="sidebar-bottom">
+    <div class="sidebar-logo">
+      <span>{{ .Site.Title }}</span>
+    </div>
+  </div>
+</div>

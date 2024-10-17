@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proforma Invoice</title>
+    <style>
+      body {
+        font-family: Times, serif;
+        padding: 0.8in;
+        font-size: 14pt;
+      }
+      p {
+        margin: 0.15em auto;
+      }
+      .centered {
+        text-align: center;
+      }
+      .two-column {
+        display: flex;
+        justify-content: space-between;
+      }
+      .column-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .column-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.5em 0;
+      }
+      th,
+      td {
+        border: 1px solid #000;
+        padding: 0.2em 0.8em;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      td {
+        text-align: center;
+      }
+      .logo {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 120px;
+        margin: 0.8in;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDIwMDEwOTA0Ly9FTiIKICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgdmVyc2lvbj0iMS4wIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiB3aWR0aD0iMTA4MC4wMDAwMDBwdCIgaGVpZ2h0PSIxMDgwLjAwMDAwMHB0IiB2aWV3Qm94PSIwIDAgMTA4MC4wMDAwMDAgMTA4MC4wMDAwMDAiCiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0Ij4KPG1ldGFkYXRhPgpDcmVhdGVkIGJ5IHBvdHJhY2UgMS4xNiwgd3JpdHRlbiBieSBQZXRlciBTZWxpbmdlciAyMDAxLTIwMTkKPC9tZXRhZGF0YT4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsMTA4MC4wMDAwMDApIHNjYWxlKDAuMTAwMDAwLC0wLjEwMDAwMCkiCmZpbGw9IiMwMDAwMDAiIHN0cm9rZT0ibm9uZSI+CjxwYXRoIGQ9Ik0zOTYyIDEwMjgwIGMtMzUzIC0yMSAtNzYxIC0xMDUgLTEwOTQgLTIyNCAtNDg3IC0xNzQgLTkwMCAtNDIwCi0xMjY1IC03NTMgLTg0IC03NyAtOTEgLTg2IC04MyAtMTA4IDEwIC0yNSAyNTkwIC0yNjg4IDI1OTggLTI2ODEgNSA1IDcxCjM3NjAgNjYgMzc2NSAtNyA4IC05NyA5IC0yMjIgMXoiLz4KPHBhdGggZD0iTTQ4NDQgMTAyMDkgYy00IC02IC0zMSAtNzQxIC02MCAtMTYzMyAtMjkgLTg5MiAtNTQgLTE2NzIgLTU2IC0xNzM1CmwtNCAtMTEzIDQ1IDYgYzEzNCAxOSAzMjkgMjYgNDY5IDE2IDEzMSAtOCAzMTYgLTMxIDM3NiAtNDYgMjMgLTUgNDAgMTEgMTUzNAoxMzk2IGw3NDkgNjk1IC0yMSAzMCBjLTM1IDUxIC0yNTYgMjczIC0zNjEgMzY0IC02NzUgNTgzIC0xNTgwIDk1NSAtMjQ3NQoxMDE2IC00NyAzIC0xMDggOCAtMTM3IDExIC0zNCAzIC01NCAxIC01OSAtN3oiLz4KPHBhdGggZD0iTTczOTUgNzMzNiBjLTUzNCAtNTE2IC05NzEgLTk0MSAtOTczIC05NDUgLTEgLTQgNDEgLTQzIDk0IC04NyAyNDAKLTE5NCA0NDEgLTQ5NyA1NTMgLTgzMSBsMjggLTgxIDYgMjE2IGM0IDEyMCA3IDQyNCA3IDY3NyBsMCA0NjAgMTA5NSAtMyBjNzIwCi0zIDEwOTUgMCAxMDk1IDYgMCAxOCAtNzAgMjE0IC0xMTIgMzEyIC0xNjEgMzgxIC00NTQgODI3IC03MzggMTEyNCBsLTg2IDg5Ci05NjkgLTkzN3oiLz4KPHBhdGggZD0iTTE1ODMgNzk5MyBjLTcgLTIgLTQ4IC00NiAtOTEgLTk2IC00NDYgLTUyMyAtNzIyIC0xMTQzIC03OTcgLTE3OTIKLTE2IC0xNDEgLTIwIC01MDEgLTYgLTUyNCA4IC0xMiAxOTIgLTEwIDEyNDIgMTMgNjc5IDE0IDEyNTAgMjYgMTI3MCAyNiAzNiAwCjM2IDAgNDggNTggMjEgMTA1IDEwMyAyNTIgMjE3IDM4NiAzMyAzOCA2NSA3NiA3MiA4NiAxMiAxNiAtODcgMTEzIC05NTMgOTM0Ci01MzEgNTA0IC05NzEgOTE2IC05NzggOTE1IC03IDAgLTE4IC0zIC0yNCAtNnoiLz4KPHBhdGggZD0iTTQ5NTUgNjU1MCBjLTI0OCAtMjIgLTQ1NCAtNzUgLTY0NSAtMTY2IC0zOTQgLTE4OSAtNjcxIC00OTEgLTg2NgotOTQ1IC00MyAtMTAxIC01NyAtMjAwIC01NyAtMzk0IC0xIC0zMzQgNzQgLTYwMCAyMzggLTg0NiAxNDUgLTIxNyAzNjEgLTM5MQo2MzggLTUxMiAyMTUgLTk0IDY4MyAtMjAxIDEwNTMgLTI0MSAxNjYgLTE4IDE5NiAtMjYgMjk3IC03OCAxMDAgLTUyIDE3NgotMTI4IDIyMyAtMjI0IDMyIC02NCAzNyAtODUgNDEgLTE2NiA0IC03OCAyIC0xMDQgLTE3IC0xNTggLTU2IC0xNjkgLTE3OAotMjc1IC0zNjAgLTMxNiAtMzggLTkgLTcwIC0yMSAtNzAgLTI3IDAgLTExIDI0NiAtNDg1IDI1OSAtNDk5IDUgLTUgMTExOAoxNTY1IDExNTQgMTYyOCAxMiAyMCAtNzAgMTcyIC0xNDcgMjc1IC0xMzUgMTc5IC0zMDUgMzEzIC01NDAgNDI0IC0zMDkgMTQ3Ci01MDggMjAyIC04NzggMjQ0IC0yODEgMzIgLTQyNyA2OSAtNTcwIDE0MyAtMTQ2IDc2IC0yMDMgMTU1IC0yMjggMzIyIC0zOAoyNTMgMTA2IDQ0MiA0MTAgNTM3IDY2IDIxIDkzIDI0IDIzNSAyMyAxNzMgLTEgMjIxIC0xMCAzOTYgLTc0IDY4IC0yNCAxMDAKLTQzIDE0OCAtODcgNzcgLTcwIDE2NCAtMjAxIDIyNyAtMzQzIDI3IC02MCA1NCAtMTEwIDYxIC0xMTAgMTYgMCA5NjIgMjg2Cjk3MCAyOTQgMTEgMTAgLTU4IDIxMCAtMTEzIDMyNiAtODcgMTgyIC0xODggMzI1IC0zMzMgNDcxIC0yMjUgMjI0IC00NTIgMzUzCi03NjYgNDM0IC03MiAxOCAtMTgwIDQwIC0yNDAgNDkgLTE0MSAxOSAtMzkyIDI3IC01MjAgMTZ6Ii8+CjxwYXRoIGQ9Ik03MjkzIDYwMTMgYzQgLTMwMiA3IC04MDEgNyAtMTExMCBsMCAtNTYzIDU3MiAwIDU3MSAwIC02IDU3MCAtNwo1NzAgMTA3NSAwIDEwNzUgMCAwIDU0MCAwIDU0MCAtMTY0NyAwIC0xNjQ2IDAgNiAtNTQ3eiIvPgo8cGF0aCBkPSJNMTMzIDQ3NTkgYzEwIC00MDggNzcgLTc4MiAyMTIgLTExODQgMzU0IC0xMDU0IDEwOTIgLTE4ODQgMjE1NQotMjQyNCAxOTYgLTk5IDQyMCAtMjAxIDQ0MyAtMjAxIDE1IDEgNTQgNTUgMzgwIDUyNiBsMjU3IDM3MiAtOTIgOTMgYy0yNzcKMjgwIC00NDkgNzEwIC00ODEgMTIwMSBsLTUgNjcgMzIgMTAgYzE3IDYgMjYzIDY5IDU0NiAxNDEgMjgzIDcyIDUzMyAxMzYgNTU0CjE0MSBsMzkgMTEgLTgxIDQzIGMtMzUwIDE4NyAtNjIzIDQ2MCAtNzY3IDc2OCAtNzYgMTYyIC0xMjUgMzY4IC0xMjUgNTIzIDAKNTUgLTQgNzQgLTE3IDg2IC0xNSAxMyAtOTIgMTYgLTUyOCAyMiAtOTY3IDEyIC0xODYxIDI1IC0yMTk0IDMyIGwtMzM0IDYgNgotMjMzeiIvPgo8cGF0aCBkPSJNOTE4OCA0NDEzIGw1IC0xNzYgLTg5NCA0IC04OTQgNCAtODYwIC0xMjMyIGMtNDczIC02NzggLTg2MiAtMTIzMwotODY1IC0xMjMyIC0zIDAgLTE5NCAzNDYgLTQyNSA3NzAgLTIzMCA0MjMgLTQyMyA3NjggLTQyNyA3NjcgLTE0IC01IC0xNjE5Ci0yMzYyIC0xNjE2IC0yMzczIDMgLTEyIDQ2OCAtNDI1IDQ3OCAtNDI0IDMgMCAyNTYgMzYyIDU2NCA4MDQgMzA3IDQ0MyA1NjEKODA1IDU2NSA4MDUgNCAwIDE4NiAtMzMzIDQwNiAtNzQxIDIyMCAtNDA3IDQwNSAtNzQxIDQxMCAtNzQyIDYgLTEgNDc0IDY3NAoxMDQwIDE1MDAgbDEwMzAgMTUwMiA3NDMgMCA3NDIgMSAwIC0xODEgYzAgLTE2OCAxIC0xODEgMTggLTE3NiAzNSAxMCAxMTQ1CjY0MiAxMTQ1IDY1MiAtMSA4IC0xMTQ3IDY0NCAtMTE2NCA2NDUgLTMgMCAtMyAtNzkgLTEgLTE3N3oiLz4KPHBhdGggZD0iTTc1MTAgMzI0NSBsLTIyMCAtMzE1IDAgLTcwOSBjMCAtMzkwIDMgLTcxNiA2IC03MjUgNiAtMTQgNjYgLTE2CjU3NSAtMTYgbDU2OSAwIDAgMjk4IGMwIDE2MyAtMyA2MzEgLTcgMTA0MCBsLTYgNzQyIC0zNDggMCAtMzQ4IDAgLTIyMSAtMzE1eiIvPgo8cGF0aCBkPSJNNDE2NSAzMjk0IGMtNSAtMSAtMjI0IC01MyAtNDg1IC0xMTQgLTI2MSAtNjIgLTQ3NiAtMTEzIC00NzggLTExNQotNSAtNCAzMCAtMTg1IDU1IC0yODAgNzUgLTI4NiAyMzYgLTU2NyA0MTggLTczMiA3NyAtNzAgMTExIC05MSAxMjQgLTc3IDggOAo1NjggODE0IDU4NCA4NDEgNSA3IC03IDMzIC0yOCA2MSAtNTAgNzAgLTExOSAyMjEgLTE1MCAzMjYgLTI4IDk5IC0yNiA5NCAtNDAKOTB6Ii8+CjxwYXRoIGQ9Ik00NjY1IDE3ODggYy03MSAtMTEwIC0xMzEgLTIwOCAtMTMzIC0yMTcgLTIgLTE1IDM0IC0yMyAyNjkgLTU5IDE1MAotMjMgMjc0IC00MCAyNzYgLTM4IDUgNSAtMjY4IDUxNiAtMjc2IDUxNiAtMyAwIC02NCAtOTEgLTEzNiAtMjAyeiIvPgo8L2c+Cjwvc3ZnPgo=" class="logo">
+    <p>
+    <b>FACTURA PROFORMA</b>
+    </p>
+    <p>{{ .Emision }}</p>
+    <br>
+    <p>
+    <b>Federación de Estudiantes de la Universidad de Costa Rica</b>
+    </p>
+    <p>Detrás del comedor estudiantil, UCR, San Pedro, San José</p>
+    <p>finanzas.feucr@ucr.ac.cr</p>
+    <p>2511-4301 / 2511-1934</p>
+    <br>
+    <hr>
+    <div class="centered">
+      <b>DATOS DEL PROVEEDOR</b>
+    </div>
+    <br>
+    <p>
+    <b>Entidad proveedora:</b>
+    {{ .ProveedorNombre }}
+    </p>
+    <br>
+    <div class="two-column">
+      <div class="column-left">
+        <div>
+          <p>
+          <b>Cédula:</b>
+          {{ .ProveedorCedula }}
+          </p>
+        </div>
+        <div>
+          <p>
+          <b>Dirección:</b>
+          {{ .ProveedorDireccion }}
+          </p>
+        </div>
+        <div>
+          <p>
+          <b>Correo electrónico:</b>
+          {{ .ProveedorCorreo }}
+          </p>
+        </div>
+        <div>
+          <p>
+          <b>Teléfono:</b>
+          {{ .ProveedorTelefono }}
+          </p>
+        </div>
+      </div>
+      <div class="column-right">
+        <div>
+          <p>
+          <b>Entidad Bancaria:</b>
+          {{ .ProveedorBanco }}
+          </p>
+        </div>
+        <div>
+          <p>
+          <b>Cuenta IBAN:</b>
+          {{ .ProveedorIBAN }}
+          </p>
+        </div>
+        <div>
+          <p>
+          <b>Régimen:</b>
+          {{ .ProveedorRegimen }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+    <div class="centered">
+      <p>
+      <b>DATOS DEL CLIENTE</b>
+      </p>
+    </div>
+    <br>
+    <p>
+    <b>Asociación / Consejo / Órgano:</b>
+    {{ .Emisor }}
+    </p>
+    <br>
+    <div class="two-column">
+      <div class="column-left">
+        <div>
+          <p>Cliente: Universidad de Costa Rica</p>
+        </div>
+        <div>
+          <p>Cédula: 4-0000-42149</p>
+        </div>
+        <div>
+          <p>Dirección: San Pedro, San José</p>
+        </div>
+        <div>
+          <p>Correo electrónico: finanzas.feucr@ucr.ac.cr</p>
+        </div>
+        <div>
+          <p>Teléfono: 2511-4301 / 2511-1934</p>
+        </div>
+      </div>
+      <div class="column-right">
+        <div>Fecha de ejecución del servicio:</div>
+        <div>
+          <p>{{ .Ejecucion }}</p>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+    <br>
+    <p>Observaciones: {{ .Observaciones }}
+    </p>
+    <br>
+    <table>
+      <thead>
+        <tr>
+          <th>CANTIDAD</th>
+          <th>DESCRIPCIÓN</th>
+          <th>UNIDAD</th>
+          <th>TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>{{ .Descripcion }}</td>
+          <td>{{ .ServicioUnidad }}</td>
+          <td>{{ .ServicioBruto }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="two-column">
+      <div class="column-left"></div>
+      <div class="column-right">
+        <div>
+          <p>SUBTOTAL: {{ .ServicioSubtotal }}
+          </p>
+        </div>
+        <div>
+          <p>IMPUESTO (2%): {{ .ServicioIVA }}
+          </p>
+        </div>
+        <div>
+          <p class="total">TOTAL: {{ .ServicioTotal }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <br>
+    <br>
+    <div class="centered">
+      <p>**ESTE DOCUMENTO NO POSEE VALOR TRIBUTARIO**</p>
+    </div>
+  </body>
+</html>

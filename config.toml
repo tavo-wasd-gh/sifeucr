@@ -1,0 +1,12 @@
+baseURL = 'https://example.org/'
+languageCode = 'es'
+title = 'SIFEUCR'
+
+theme = 'sifeucr'
+
+[params]
+  author = 'FEUCR'
+
+[markup.tableOfContents]
+startLevel = 1
+endLevel = 2
