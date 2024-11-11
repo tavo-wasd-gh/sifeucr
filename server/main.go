@@ -18,10 +18,11 @@ func main() {
 	)
 
 	if port == "" {
-		fatal(nil, "Error cargando credenciales")
+		fatal("Error cargando credenciales", nil)
 	}
 
-	http.HandleFunc("/api/documentos/", documentosHandler)
+	http.HandleFunc("/api/docs/", docsHandler)
+	http.HandleFunc("/api/dash/", docsHandler)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -29,7 +30,7 @@ func main() {
 	go func() {
 		msg("Servidor iniciado en el puerto " + port)
 		if err := http.ListenAndServe(":"+port, nil); err != nil {
-			fatal(err, "Error iniciando servidor")
+			fatal("Error iniciando servidor", err)
 		}
 	}()
 
@@ -38,15 +39,21 @@ func main() {
 	msg("Servidor detenido")
 }
 
-func msg(notice string) {
-	log.Println(notice)
+func msg(msg string) {
+	log.Println(msg)
 }
 
-func fatal(err error, notice string) {
+func fatal(notice string, err error) {
 	log.Fatalf("%s: %v", notice, err)
 }
 
-func documentosHandler(w http.ResponseWriter, r *http.Request) {
+func cors(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+}
+
+func docsHandler(w http.ResponseWriter, r *http.Request) {
 	cors(w)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -54,10 +61,4 @@ func documentosHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Lógica
-}
-
-func cors(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
 }

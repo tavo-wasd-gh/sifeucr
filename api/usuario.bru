@@ -1,0 +1,36 @@
+meta {
+  name: usuario
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/api/usuario/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 11501-
+}
+
+docs {
+  # Solicitar info del usuario
+  
+  ## Parte 1 del ID
+  
+  | ID      | Sede o recinto |
+  |---------|----------------|
+  | 11501-* | Rodrigo Facio  |
+  | 20110-* | SIUA            |
+  | 20201-* | San Ramón      |
+  | 20305-* | Grecia         |
+  | 30201-* | Paraíso        |
+  | 30501-* | Turrialba      |
+  | 50101-* | Liberia        |
+  | 50301-* | Santa Cruz     |
+  | 60101-* | Puntarenas     |
+  | 60701-* | Golfito        |
+  | 70101-* | Caribe         |
+  | 70201-* | Guápiles       |
+}

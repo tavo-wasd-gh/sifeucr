@@ -1,0 +1,15 @@
+meta {
+  name: solicitar-bienes
+  type: http
+  seq: 9
+}
+
+post {
+  url: http://localhost:8080/api/solicitar/:bienes
+  body: none
+  auth: none
+}
+
+params:path {
+  bienes: bienes
+}

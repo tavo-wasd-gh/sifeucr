@@ -1,0 +1,15 @@
+meta {
+  name: solicitar-suministros
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/solicitar/:suministros
+  body: none
+  auth: none
+}
+
+params:path {
+  suministros: suministros
+}
