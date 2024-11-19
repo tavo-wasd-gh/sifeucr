@@ -7,13 +7,8 @@ SRC = ${SRCDIR}/main.go \
 
 GO = go
 GOFILES = ${SRCDIR}/go.sum ${SRCDIR}/go.mod
-GOMODS = github.com/tavo-wasd-gh/gomail@v1.0.0 \
-	 github.com/joho/godotenv \
-	 github.com/lib/pq \
-	 github.com/aws/aws-sdk-go-v2/aws \
-	 github.com/aws/aws-sdk-go-v2/config \
-	 github.com/aws/aws-sdk-go-v2/credentials \
-	 github.com/aws/aws-sdk-go-v2/service/s3 \
+GOMODS = github.com/tavo-wasd-gh/gopdf \
+         github.com/tavo-wasd-gh/gocors \
 
 all: fmt ${BIN}
 
