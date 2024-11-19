@@ -51,3 +51,4 @@ clean-mods:
 clean-hugo:
 	rm -f .hugo_build.lock
 	rm -rf resources/
+	rm -rf public/

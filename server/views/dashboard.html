@@ -1,0 +1,200 @@
+<div id="overlay" class="overlay"></div>
+<div id="dialog" class="dialog">
+<button class="close-button" onclick="closeDialog()">
+  <i class='bx bx-x'></i>
+</button>
+  <div id="dialog-content" class="dialog-content">
+    <div class="spinner"></div>
+  </div>
+</div>
+<h1>Asociación de Estudiantes de Física y Meteorología</h1>
+<span>Acreditaciones:</span>
+<div style="background-color: seagreen" class="tag active">TEEU</div>
+<div style="background-color: seagreen" class="tag active">COES</div>
+<div class="tooltip">
+  <i class='bx bxs-info-circle' ></i>
+  <div class="tooltip-text">
+    Se necesitan estas acreditaciones para ejecutar presupuesto.
+  </div>
+</div>
+<div class="scrollable">
+  <div class="item">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">2024-1</span>
+        <span class="card-subtitle">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+      <!-- Servicios -->
+      <div class="card-item">
+        <div class="progress-bar">
+          <div class="progress" style="width: 10%;"></div>
+        </div>
+        <span class="label">Servicios</span>
+        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+      <!-- Suministros -->
+      <div class="card-item">
+        <div class="progress-bar">
+          <div class="progress" style="width: 30%;"></div>
+        </div>
+        <span class="label">Suministros</span>
+        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+      <!-- Bienes -->
+      <div class="card-item">
+        <div class="progress-bar">
+          <div class="progress" style="width: 100%;"></div>
+        </div>
+        <span class="label">Bienes</span>
+        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">2024-1</span>
+        <span class="card-subtitle">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+      <!-- Servicios -->
+      <div class="card-item">
+        <div class="progress-bar">
+          <div class="progress" style="width: 10%;"></div>
+        </div>
+        <span class="label">Servicios</span>
+        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+      <!-- Suministros -->
+      <div class="card-item">
+        <div class="progress-bar">
+          <div class="progress" style="width: 30%;"></div>
+        </div>
+        <span class="label">Suministros</span>
+        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+      <!-- Bienes -->
+      <div class="card-item">
+        <div class="progress-bar">
+          <div class="progress" style="width: 100%;"></div>
+        </div>
+        <span class="label">Bienes</span>
+        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="scrollable">
+  <div class="item">
+    <!-- Servicios -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Servicios</span>
+        <a href="#">
+          <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+        </a>
+      </div>
+      <div class="card-items">
+        <hr>
+        <div class="card-item"
+             hx-get="/hello"
+             hx-target="#dialog-content"
+             hx-swap="innerHTML"
+             onclick="showDialog()">
+          <div style="background-color: goldenrod" class="tag active">Firmado</div>
+          <div style="background-color: cornflowerblue" class="tag active">SF</div>
+          <div style="background-color: peru" class="tag active">COES</div>
+          <div style="background-color: seagreen" class="tag active">Recibido</div>
+          <br>
+          <span class="label">Servicio de alimentación</span>
+          <span class="label">Lidieth Aguilar</span>
+          <br>
+          <span class="value">₡265.000,00</span>
+        </div>
+        <hr>
+        <div class="card-item">
+          <div style="background-color: goldenrod" class="tag active">Firmado</div>
+          <div style="background-color: cornflowerblue" class="tag active">SF</div>
+          <div style="" class="tag">COES</div>
+          <div style="" class="tag">Recibido</div>
+          <br>
+          <span class="label">Servicio de alimentación</span>
+          <span class="label">Lidieth Aguilar</span>
+          <br>
+          <span class="value">₡265.000,00</span>
+        </div>
+        <hr>
+        <div class="card-item">
+          <div style="background-color: goldenrod" class="tag active">Firmado</div>
+          <div style="" class="tag">SF</div>
+          <div style="" class="tag">COES</div>
+          <div style="" class="tag">Recibido</div>
+          <br>
+          <span class="label">Servicio de alimentación</span>
+          <span class="label">Lidieth Aguilar</span>
+          <br>
+          <span class="value">₡265.000,00</span>
+        </div>
+        <hr>
+        <div class="card-item">
+          <div style="background-color: goldenrod" class="tag active">Firmado</div>
+          <div style="" class="tag">SF</div>
+          <div style="" class="tag">COES</div>
+          <div style="" class="tag">Recibido</div>
+          <br>
+          <span class="label">Servicio de alimentación</span>
+          <span class="label">Lidieth Aguilar</span>
+          <br>
+          <span class="value">₡265.000,00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="item">
+    <!-- Suministros -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Suministros</span>
+        <a href="#">
+          <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+        </a>
+      </div>
+      <div class="card-items">
+        <hr>
+        <div class="card-item">
+          <div style="background-color: goldenrod" class="tag active">Firmado</div>
+          <div style="background-color: cornflowerblue" class="tag active">SF</div>
+          <div style="background-color: peru" class="tag active">COES</div>
+          <div style="background-color: seagreen" class="tag active">Recibido</div>
+          <br>
+          <span class="label">Servicio de alimentación</span>
+          <span class="label">Lidieth Aguilar</span>
+          <br>
+          <span class="value">₡265.000,00</span>
+        </div>
+        <hr>
+        <div class="card-item">
+          <div style="background-color: goldenrod" class="tag active">Firmado</div>
+          <div style="" class="tag">SF</div>
+          <div style="" class="tag">COES</div>
+          <div style="" class="tag">Recibido</div>
+          <br>
+          <span class="label">Servicio de alimentación</span>
+          <span class="label">Lidieth Aguilar</span>
+          <br>
+          <span class="value">₡265.000,00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="item">
+    <!-- Bienes -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Bienes</span>
+        <a href="#">
+          <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

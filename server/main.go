@@ -1,64 +1,88 @@
 package main
 
 import (
-	"log"
+	"bytes"
+	"fmt"
+	"html/template"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
+	"time"
+	"strings"
 
-	"github.com/joho/godotenv"
+	"github.com/tavo-wasd-gh/gocors"
 )
 
 func main() {
-	godotenv.Load()
-
-	var (
-		port = os.Getenv("PORT")
-	)
-
-	if port == "" {
-		fatal("Error cargando credenciales", nil)
-	}
-
-	http.HandleFunc("/api/docs/", docsHandler)
-	http.HandleFunc("/api/dash/", docsHandler)
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		msg("Servidor iniciado en el puerto " + port)
-		if err := http.ListenAndServe(":"+port, nil); err != nil {
-			fatal("Error iniciando servidor", err)
-		}
-	}()
-
-	<-stop
-
-	msg("Servidor detenido")
+	http.HandleFunc("/hello", HandleHelloWorld)
+	http.HandleFunc("/dash/", HandleDashboard)
+	http.Handle("/", http.FileServer(http.Dir("public")))
+	http.ListenAndServe(":8080", nil)
 }
 
-func msg(msg string) {
-	log.Println(msg)
-}
-
-func fatal(notice string, err error) {
-	log.Fatalf("%s: %v", notice, err)
-}
-
-func cors(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
-}
-
-func docsHandler(w http.ResponseWriter, r *http.Request) {
-	cors(w)
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
+func HandleDashboard(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
 		return
 	}
 
-	// Lógica
+	time.Sleep(1 * time.Second)
+
+	id := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/dash/"), "/", 2)[0]
+
+	if id != "0" {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	htmlTemplate, err := os.ReadFile("server/views/dashboard.html")
+	if err != nil {
+		http.Error(w, "Failed to read template file", http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		Title string
+		ID    string
+	}{
+		Title: "Dashboard",
+		ID:    id,
+	}
+
+	filledTemplate, err := fill(string(htmlTemplate), data)
+	if err != nil {
+		http.Error(w, "Failed to render template", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusOK)
+	w.Write(filledTemplate)
+}
+
+func HandleHelloWorld(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	time.Sleep(1 * time.Second)
+
+	w.Header().Set("Content-Type", "text/html")
+
+	fmt.Fprintln(w, `
+	<h1>Hello, World!</h1>
+	<p>Hello, World!</p>
+	`)
+}
+
+func fill(htmlTemplate string, data interface{}) ([]byte, error) {
+	template, err := template.New("").Parse(htmlTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	var filled bytes.Buffer
+	if err := template.Execute(&filled, data); err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return filled.Bytes(), nil
 }

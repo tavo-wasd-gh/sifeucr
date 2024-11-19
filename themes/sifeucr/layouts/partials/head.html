@@ -2,6 +2,7 @@
   <title>{{ if not .IsHome }}{{ .Title | title }} | {{ end }}{{ .Site.Title }}</title>
   <link rel="canonical" href="{{ .Site.BaseURL }}">
   <link rel='stylesheet' type='text/css' href='/css/default.css'>
+  <script src="/js/app.js"></script>
   {{ with .Site.Params.favicon }}<link rel="icon" href="{{ . }}">
   {{ end -}}
   <meta name="description" content="{{ with .Params.description }}{{ . }}{{ else }}{{ .Summary }}{{ end }}">
