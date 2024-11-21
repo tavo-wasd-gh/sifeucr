@@ -2,6 +2,15 @@
 <html lang="{{ .Site.Language }}">
   {{- partial "head.html" . -}}
   <body>
+    <div id="overlay" class="overlay"></div>
+    <div id="dialog" class="dialog">
+      <button class="close-button" onclick="closeDialog()">
+        <i class='bx bx-x'></i>
+      </button>
+      <div id="dialog-content" class="dialog-content">
+        <div class="spinner"></div>
+      </div>
+    </div>
     {{- partial "sidebar.html" . -}}
     <div class="content">
       {{ block "main" . }}{{ end }}

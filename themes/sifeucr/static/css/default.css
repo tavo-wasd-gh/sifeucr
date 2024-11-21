@@ -122,6 +122,10 @@ html {
   font-weight: bold;
 }
 
+.sidebar ul li.active a i {
+  color: var(--color-primary);
+}
+
 .sidebar ul li a i {
   min-width: 2.5em;
   text-align: center;
@@ -223,6 +227,7 @@ a i {
 }
 
 .tag {
+  margin-bottom: 0.2em;
   display: inline-block;
   color: var(--color-font);
   padding: 0.15em 0.8em;
@@ -319,7 +324,7 @@ a i {
 }
 
 .card-item {
-  margin-bottom: 1.5em;
+  margin-bottom: 1em;
   border: 1px solid #ffffff00;
   border-radius: 1em;
   padding: 0.5em 0.6em;
@@ -363,7 +368,7 @@ a i {
 
 hr {
   border: 1px solid var(--color-fg-secondary);
-  margin: 1em 0;
+  margin: 0 0 1em 0;
 }
 
 .overlay {
@@ -391,6 +396,7 @@ hr {
   background-color: var(--color-bg);
   padding: 1em;
   border-radius: 1em;
+  border: 1px solid var(--color-fg-secondary);
   box-shadow: 0 2em 1em rgba(0, 0, 0, 0.2);
   z-index: 1000;
 }
