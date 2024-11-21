@@ -304,6 +304,20 @@ a i {
   overflow-y: auto;
 }
 
+.card-summary {
+  padding: 1em 0;
+  border-radius: 0.8em;
+  border: 1px solid var(--color-fg-secondary);
+  max-height: 25em;
+  overflow-y: auto;
+}
+
+.divisor {
+  border: none;
+  border-top: 2px dotted var(--color-font-unemph);
+}
+
+
 .card-header {
   display: flex;
   justify-content: space-between;
