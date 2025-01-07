@@ -1,9 +1,5 @@
-module sifeucr
+module github.com/tavo-wasd-gh/sifeucr
 
-go 1.23.3
+go 1.23.4
 
-require (
-	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3 // indirect
-	github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f // indirect
-	github.com/tavo-wasd-gh/gopdf v1.0.1 // indirect
-)
+require github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f
