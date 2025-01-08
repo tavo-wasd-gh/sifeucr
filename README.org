@@ -1,0 +1,149 @@
+* SQL
+
+** Cuentas
+
+#+BEGIN_SRC sql
+CREATE TABLE cuentas (
+id_cuenta varchar(500) NOT NULL PRIMARY KEY,
+nombre varchar(500) NOT NULL,
+p_general decimal,
+p1_servicios decimal,
+p1_suministros decimal,
+p1_bienes decimal,
+p1_validez timestamp with time zone NOT NULL,
+p2_servicios decimal,
+p2_suministros decimal,
+p2_bienes decimal,
+p2_validez timestamp with time zone NOT NULL,
+teeu boolean NOT NULL,
+coes boolean NOT NULL
+);
+#+END_SRC
+
+** Suministros
+
+#+BEGIN_SRC sql
+CREATE TABLE suministros (
+id_suministros integer NOT NULL PRIMARY KEY,
+emitido timestamp with time zone NOT NULL,
+id_cuenta varchar(500) NOT NULL,
+justif_sum varchar(500) NOT NULL,
+coes boolean,
+geco varchar(500),
+notas varchar(500)
+);
+#+END_SRC
+
+*** Desglose de Suministros
+
+#+BEGIN_SRC sql
+CREATE TABLE suministros_desglose (
+id serial NOT NULL PRIMARY KEY,
+id_suministros integer NOT NULL,
+id_item varchar(500) NOT NULL,
+nombre varchar(500) NOT NULL,
+cantidad integer NOT NULL,
+monto_bruto_unidad decimal NOT NULL
+);
+#+END_SRC
+
+** Servicios
+
+#+BEGIN_SRC sql
+CREATE TABLE servicios (
+id_servicios serial NOT NULL PRIMARY KEY,
+emitido timestamp with time zone NOT NULL,
+id_cuenta varchar(500) NOT NULL,
+detalle varchar(500) NOT NULL,
+monto_bruto decimal NOT NULL,
+monto_iva decimal NOT NULL,
+monto_desc decimal,
+justif_serv varchar(500) NOT NULL,
+prov_nom varchar(500) NOT NULL,
+prov_ced varchar(500) NOT NULL,
+prov_direc varchar(500) NOT NULL,
+prov_email varchar(500) NOT NULL,
+prov_tel varchar(500) NOT NULL,
+prov_banco varchar(500) NOT NULL,
+prov_iban varchar(500) NOT NULL,
+justif_prov varchar(500) NOT NULL,
+coes boolean,
+geco_sol varchar(500) UNIQUE,
+geco_ocs varchar(500) UNIQUE,
+por_ejecutar timestamp with time zone NOT NULL,
+ejecutado timestamp with time zone,
+pagado timestamp with time zone,
+notas varchar(500)
+);
+#+END_SRC
+
+** Bienes
+
+#+BEGIN_SRC sql
+CREATE TABLE bienes (
+id_bienes serial NOT NULL PRIMARY KEY,
+emitido timestamp with time zone NOT NULL,
+id_cuenta varchar(500) NOT NULL,
+detalle varchar(500) NOT NULL,
+monto_bruto decimal NOT NULL,
+monto_iva decimal NOT NULL,
+monto_desc decimal,
+justif_bien varchar(500) NOT NULL,
+prov_nom varchar(500) NOT NULL,
+prov_ced varchar(500) NOT NULL,
+prov_direc varchar(500) NOT NULL,
+prov_email varchar(500) NOT NULL,
+prov_tel varchar(500) NOT NULL,
+prov_banco varchar(500) NOT NULL,
+prov_iban varchar(500) NOT NULL,
+justif_prov varchar(500) NOT NULL,
+coes boolean,
+geco_sol varchar(500) UNIQUE,
+geco_oc varchar(500) UNIQUE,
+recibido timestamp with time zone,
+notas varchar(500)
+);
+#+END_SRC
+
+** Ajustes
+
+#+BEGIN_SRC sql
+CREATE TABLE ajustes (
+id_ajustes serial NOT NULL PRIMARY KEY,
+emitido timestamp with time zone NOT NULL,
+id_cuenta varchar(500) NOT NULL,
+partida varchar(500) NOT NULL,
+detalle varchar(500) NOT NULL,
+monto_bruto decimal NOT NULL,
+notas varchar(500)
+);
+#+END_SRC
+
+** Donaciones
+
+#+BEGIN_SRC sql
+CREATE TABLE donaciones (
+id_bienes serial NOT NULL PRIMARY KEY,
+emitido timestamp with time zone NOT NULL,
+id_cuenta_salida varchar(500) NOT NULL,
+partida_salida varchar(500) NOT NULL,
+id_cuenta_entrada varchar(500) NOT NULL,
+partida_entrada varchar(500) NOT NULL,
+detalle varchar(500) NOT NULL,
+monto_bruto decimal NOT NULL,
+carta_coes varchar(500) NOT NULL,
+notas varchar(500)
+);
+#+END_SRC
+
+** Relaciones
+
+#+BEGIN_SRC sql
+ALTER TABLE ajustes ADD CONSTRAINT ajustes_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
+ALTER TABLE bienes ADD CONSTRAINT bienes_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
+ALTER TABLE servicios ADD CONSTRAINT servicios_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
+ALTER TABLE suministros ADD CONSTRAINT suministros_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
+ALTER TABLE donaciones ADD CONSTRAINT donaciones_id_cuenta_entrada_fk FOREIGN KEY (id_cuenta_entrada) REFERENCES cuentas (id_cuenta);
+ALTER TABLE donaciones ADD CONSTRAINT donaciones_id_cuenta_salida_fk FOREIGN KEY (id_cuenta_salida) REFERENCES cuentas (id_cuenta);
+ALTER TABLE suministros_desglose ADD CONSTRAINT suministros_desglose_id_suministros_fk FOREIGN KEY (id_suministros) REFERENCES suministros (id_suministros);
+#+END_SRC

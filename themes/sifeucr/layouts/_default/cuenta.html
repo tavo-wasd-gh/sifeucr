@@ -1,5 +1,6 @@
 {{ define "main" }}
 <main hx-get="/api/dashboard" hx-swap="innerHTML" hx-trigger="load">
   {{ .Content }}
+  <span  class="spinner htmx-indicator"/>
 </main>
 {{ end }}

@@ -1,2 +1,4 @@
+github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f h1:TRo0mMnyLOe+ma+LyRPWDG0axS18slX1PJJxJd7AhIA=
 github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f/go.mod h1:ogUQlsR8n+vKvdDoPo/fn9YyspzavlfFiZtjOkc/cdQ=
