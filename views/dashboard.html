@@ -1,7 +1,7 @@
-<h1>Asociación de Estudiantes de Física y Meteorología</h1>
+<h1>{{.Cuenta.Nombre}}</h1>
 <span>Acreditaciones:</span>
-<div style="background-color: seagreen" class="tag active">TEEU</div>
-<div style="background-color: seagreen" class="tag active">COES</div>
+<div style="background-color: {{if .Cuenta.TEEU}}seagreen{{end}}" class="tag {{if .Cuenta.TEEU}}active{{end}}">TEEU</div>
+<div style="background-color: {{if .Cuenta.COES}}seagreen{{end}}" class="tag {{if .Cuenta.COES}}active{{end}}">COES</div>
 <div class="tooltip">
   <i class='bx bxs-info-circle' ></i>
   <div class="tooltip-text">
@@ -9,10 +9,28 @@
   </div>
 </div>
 <div class="scrollable">
+  {{if .Cuenta.PGeneral}}
   <div class="item">
     <div class="card">
       <div class="card-header">
-        <span class="card-title">2024-1</span>
+        <span class="card-title">{{.Periodo}}</span>
+      </div>
+      <!-- General -->
+      <div class="card-item">
+        <div class="progress-bar">
+          <div class="progress" style="width: 10%;"></div>
+        </div>
+        <span class="label">General</span>
+        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+      </div>
+    </div>
+  </div>
+  {{else}}
+  <!-- P1 -->
+  <div class="item">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">{{.Periodo}}-1</span>
         <span class="card-subtitle">₡265.000,00 / ₡1.546.425,51</span>
       </div>
       <!-- Servicios -->
@@ -41,10 +59,11 @@
       </div>
     </div>
   </div>
+  <!-- P2 -->
   <div class="item">
     <div class="card">
       <div class="card-header">
-        <span class="card-title">2024-1</span>
+        <span class="card-title">{{.Periodo}}-1</span>
         <span class="card-subtitle">₡265.000,00 / ₡1.546.425,51</span>
       </div>
       <!-- Servicios -->
@@ -73,6 +92,7 @@
       </div>
     </div>
   </div>
+  {{end}}
 </div>
 <div class="scrollable">
   <div class="item">
@@ -87,10 +107,10 @@
       <div class="card-items">
         <hr>
         <div class="card-item"
-             hx-get="/solicitud/0"
-             hx-target="#dialog-content"
-             hx-swap="innerHTML"
-             onclick="showDialog()">
+          hx-get="/solicitud/0"
+          hx-target="#dialog-content"
+          hx-swap="innerHTML"
+          onclick="showDialog()">
           <div style="background-color: goldenrod" class="tag active">Firmado</div>
           <div style="background-color: cornflowerblue" class="tag active">SF</div>
           <div style="background-color: peru" class="tag active">COES</div>

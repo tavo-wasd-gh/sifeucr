@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/tavo-wasd-gh/gocors"
+	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/lib/pq"
 )
 
@@ -65,11 +66,68 @@ func main() {
 }
 
 func handleDashboard(w http.ResponseWriter, r *http.Request) {
-	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
 		return
 	}
 
 	time.Sleep(1 * time.Second)
+
+	if r.Method == http.MethodPost {
+		if err := r.ParseForm() ; err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+
+		correo := r.FormValue("correo")
+		passwd := r.FormValue("passwd")
+
+		// check correo and passwd...
+
+		// set new jwt
+
+		w.Write([]byte("Hello world! "+correo+":"+passwd))
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		cookie, err := r.Cookie("jwt_token")
+		if err != nil { // No JWT cookie found or other error
+			loginTmpl, err := os.ReadFile("views/login.html")
+			if err != nil {
+				log.Println("Error: Failed to read template file:", err)
+				http.Error(w, "Failed to read template file", http.StatusInternalServerError)
+				return
+			}
+
+			login, err := fill(string(loginTmpl), "")
+			if err != nil {
+				log.Println("Error: Failed to render template:", err)
+				http.Error(w, "Failed to render template", http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(login)
+			return
+		}
+
+		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return jwtSecret, nil
+		})
+
+		if err != nil || !token.Valid { // JWT is not valid
+			// also show login view
+		}
+
+		// JWT is valid
+		// show dashboard view
+		w.WriteHeader(http.StatusOK)
+		w.Write(dashboard)
+		return
+	}
 
 	/*
 	id := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/api/dashboard/"), "/", 2)[0]
@@ -96,10 +154,6 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	*/
-
-	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hello world"))
 }
 
 func fill(htmlTemplate string, data interface{}) ([]byte, error) {

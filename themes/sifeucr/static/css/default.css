@@ -89,7 +89,7 @@ html {
 .sidebar-logo {
   display: flex;
   align-items: center;
-  padding: 0.5em;
+  padding: 0.8em;
   font-weight: bold;
 }
 
@@ -98,7 +98,8 @@ html {
 }
 
 .sidebar-logo img {
-  max-width: 2.5em;
+  max-width: 1.8em;
+  margin-right: 1em;
   height: auto;
 }
 
@@ -461,4 +462,46 @@ hr {
   font-size: 1.8em;
   cursor: pointer;
   color: var(--color-font);
+}
+
+.login, .login form button {
+  width: 100%;
+  color: var(--color-fg);
+  padding: 1em;
+  border: 1px solid var(--color-fg-secondary);
+  border-radius: 1em;
+  background-color: var(--color-bg-secondary);
+}
+
+.login form input {
+  width: 100%;
+  color: var(--color-fg);
+  margin: 0.2em 0;
+  padding: 0.8em 1.5em;
+  border: 1px solid var(--color-fg-secondary);
+  border-radius: 1em;
+  background-color: var(--color-bg);
+}
+
+.login form button {
+  color: var(--color-fg);
+  padding: 0.4em 1.5em;
+  border: 1px solid var(--color-fg-secondary);
+  border-radius: 1em;
+  background-color: var(--color-bg-secondary);
+  width: 8em;
+}
+
+.login form button:hover {
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-fg-secondary);
+  box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.2);
+}
+
+.htmx-button-div {
+  display: flex;
+  margin-top: 1.5em;
+  align-items: center;
+  justify-content: left;
+  gap: 0.5em;
 }
