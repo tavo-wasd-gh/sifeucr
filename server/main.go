@@ -91,23 +91,9 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		cookie, err := r.Cookie("jwt_token")
-		if err != nil { // No JWT cookie found or other error
-			loginTmpl, err := os.ReadFile("views/login.html")
-			if err != nil {
-				log.Println("Error: Failed to read template file:", err)
-				http.Error(w, "Failed to read template file", http.StatusInternalServerError)
-				return
-			}
-
-			login, err := fill(string(loginTmpl), "")
-			if err != nil {
-				log.Println("Error: Failed to render template:", err)
-				http.Error(w, "Failed to render template", http.StatusInternalServerError)
-				return
-			}
-
-			w.WriteHeader(http.StatusOK)
-			w.Write(login)
+		if err != nil {
+			// No JWT cookie found or other error
+			view(w, "views/login.html", "")
 			return
 		}
 
@@ -118,54 +104,46 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return jwtSecret, nil
 		})
 
-		if err != nil || !token.Valid { // JWT is not valid
-			// also show login view
+		if err != nil || !token.Valid {
+			// JWT is not valid
+			view(w, "views/login.html", "")
+			return
 		}
 
 		// JWT is valid
-		// show dashboard view
-		w.WriteHeader(http.StatusOK)
-		w.Write(dashboard)
+		view(w, "views/dashboard.html", "")
 		return
 	}
+}
 
-	/*
-	id := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/api/dashboard/"), "/", 2)[0]
-
-	dashboardData := Dashboard{
-		Cuenta: cuenta,
-		Periodo: time.Now().Year(),
-		Servicios: servicios,
-		Suministros: suministros,
-		Bienes: bienes,
-	}
-
-	dashboardTmpl, err := os.ReadFile("views/dashboard.html")
+func view(w http.ResponseWriter, path string, data interface{}) error {
+	file, err := os.ReadFile(path)
 	if err != nil {
 		log.Println("Error: Failed to read template file:", err)
 		http.Error(w, "Failed to read template file", http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	dashboard, err := fill(string(dashboardTmpl), data)
+	tmpl, err := template.New("template").Parse(string(file))
 	if err != nil {
-		log.Println("Error: Failed to render template:", err)
-		http.Error(w, "Failed to render template", http.StatusInternalServerError)
-		return
-	}
-	*/
-}
-
-func fill(htmlTemplate string, data interface{}) ([]byte, error) {
-	template, err := template.New("").Parse(htmlTemplate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse template: %w", err)
+		log.Println("Error: Failed to parse template:", err)
+		http.Error(w, "Failed to parse template", http.StatusInternalServerError)
+		return err
 	}
 
 	var filled bytes.Buffer
-	if err := template.Execute(&filled, data); err != nil {
-		return nil, fmt.Errorf("failed to execute template: %w", err)
+	if err := tmpl.Execute(&filled, data); err != nil {
+		log.Println("Error: Failed to execute template:", err)
+		http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+		return err
 	}
 
-	return filled.Bytes(), nil
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(filled.Bytes())
+	if err != nil {
+		log.Println("Error: Failed to write response:", err)
+		return err
+	}
+
+	return nil
 }
