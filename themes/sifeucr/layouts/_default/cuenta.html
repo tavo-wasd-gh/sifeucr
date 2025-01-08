@@ -1,0 +1,5 @@
+{{ define "main" }}
+<main hx-get="/api/dashboard" hx-swap="innerHTML" hx-trigger="load">
+  {{ .Content }}
+</main>
+{{ end }}
