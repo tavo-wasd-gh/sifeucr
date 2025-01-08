@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -15,9 +16,82 @@ import (
 	"github.com/tavo-wasd-gh/gocors"
 )
 
-type account struct {
-	id string
-	name string
+type Cuenta struct {
+	ID            string  `json:"id"`
+	Nombre        string  `json:"nombre"`
+	PGeneral      float32   `json:"p-general"`
+	P1Servicios   float32   `json:"p1-servicios"`
+	P1Suministros float32   `json:"p1-suministros"`
+	P1Bienes      float32   `json:"p1-bienes"`
+	P1Validez     time.Time `json:"p1-validez"`
+	P2Servicios   float32   `json:"p2-servicios"`
+	P2Suministros float32   `json:"p2-suministros"`
+	P2Bienes      float32   `json:"p2-bienes"`
+	P2Validez     time.Time `json:"p2-validez"`
+	TEEU          bool      `json:"teeu"`
+	COES          bool      `json:"coes"`
+}
+
+type Servicios struct {
+	ID uint16 `json:"id"`
+	Emitido time.Time `json:"emitido"`
+	Cuenta string `json:"cuenta"`
+	Detalle string `json:"detalle"`
+	MontoBruto float32 `json:"monto-bruto"`
+	MontoIVA float32 `json:"monto-iva"`
+	MontoDesc float32 `json:"monto-desc"`
+	JustifServ string `json:"justif-serv"`
+	ProvNom string `json:"prov-nom"`
+	ProvCed string `json:"prov-ced"`
+	ProvDir string `json:"prov-dir"`
+	ProvEmail string `json:"prov-email"`
+	ProvTel string `json:"prov-tel"`
+	ProvBanco string `json:"prov-banco"`
+	ProvIBAN string `json:"prov-iban"`
+	JustifProv string `json:"justif-prov"`
+	COES bool `json:"coes"`
+	GecoSol bool `json:"geco-sol"`
+	GecoOCS bool `json:"geco-ocs"`
+	PorEjecutar time.Time `json:"por-ejecutar"`
+	Ejecutado time.Time `json:"ejecutado"`
+	Pagado time.Time `json:"pagado"`
+	Notas string `json:"notas"`
+}
+
+type Suministros struct {
+	ID uint16 `json:"id"`
+	Emitido time.Time `json:"emitido"`
+	Cuenta string `json:"cuenta"`
+	Desglose json.RawMessage `json:"desglose"`
+	MontoBruto float32 `json:"monto-bruto"`
+	JustifSum string `json:"justif-sum"`
+	COES bool `json:"coes"`
+	Geco string `json:"geco"`
+	Notas string `json:"notas"`
+}
+
+type Bienes struct {
+	ID uint16 `json:"id"`
+	Emitido time.Time `json:"emitido"`
+	Cuenta string `json:"cuenta"`
+	Detalle string `json:"detalle"`
+	MontoBruto float32 `json:"monto-bruto"`
+	MontoIVA float32 `json:"monto-iva"`
+	MontoDesc float32 `json:"monto-desc"`
+	JustifBien string `json:"justif-bien"`
+	ProvNom string `json:"prov-nom"`
+	ProvCed string `json:"prov-ced"`
+	ProvDir string `json:"prov-dir"`
+	ProvEmail string `json:"prov-email"`
+	ProvTel string `json:"prov-tel"`
+	ProvBanco string `json:"prov-banco"`
+	ProvIBAN string `json:"prov-iban"`
+	JustifProv string `json:"justif-prov"`
+	COES bool `json:"coes"`
+	GecoSol bool `json:"geco-sol"`
+	GecoOC bool `json:"geco-oc"`
+	Recibido time.Time `json:"recibido"`
+	Notas string `json:"notas"`
 }
 
 func main() {
@@ -60,12 +134,31 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a := account{
-		id: id,
-		name: "Mi Asocia",
+	cuenta := Cuenta{
+		ID: id,
+		Nombre: "Asociación de Estudiantes de Ingeniería Mecánica",
+		PGeneral: 0.00,
+		P1Servicios: 1000000.00,
+		P1Suministros: 1000000.00,
+		P1Bienes: 1000000.00,
+		P1Validez: time.Now().Add(10),
+		P2Servicios: 1000000.00,
+		P2Suministros: 1000000.00,
+		P2Bienes: 1000000.00,
+		P2Validez: time.Now().Add(10),
+		TEEU: false,
+		COES: true,
 	}
 
-	filledTemplate, err := fill(string(htmlTemplate), a)
+	data := struct {
+		Cuenta Cuenta
+		// Solicitud Solicitud
+	}{
+		Cuenta: cuenta,
+		// Solicitud: solicitud,
+	}
+
+	filledTemplate, err := fill(string(htmlTemplate), data)
 	if err != nil {
 		http.Error(w, "Failed to render template", http.StatusInternalServerError)
 		return
