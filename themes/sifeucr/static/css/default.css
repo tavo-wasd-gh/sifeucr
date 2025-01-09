@@ -255,14 +255,13 @@ a i {
   padding: 0.15em 0.8em;
   border: 1px solid var(--color-font-unemph);
   border-radius: 0.8em;
-  font-size: 0.75em;
+  font-size: 0.65em;
   text-align: center;
   cursor: default;
 }
 
 .tag.active {
   border: 1px solid var(--color-fg-secondary);
-  font-weight: bold;
   color: white;
 }
 
@@ -306,10 +305,12 @@ a i {
 }
 
 .scrollable .item {
-  padding: 0 1em;
+  padding: 0 0.5em;
   margin: 0 1em 0 0;
-  min-width: 20em;
-  min-height: 10em;
+  min-width: 16em;
+  width: 25em;
+  max-width: 80vw;
+  min-height: 8em;
   text-align: center;
   border: 1px solid var(--color-fg-secondary);
   border-radius: 1em;
