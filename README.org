@@ -1,144 +1,128 @@
 * SQL
 
-** Cuentas
-
 #+BEGIN_SRC sql
 CREATE TABLE cuentas (
-id_cuenta varchar(500) NOT NULL PRIMARY KEY,
-nombre varchar(500) NOT NULL,
-p_general decimal,
-p1_servicios decimal,
-p1_suministros decimal,
-p1_bienes decimal,
-p1_validez timestamp with time zone NOT NULL,
-p2_servicios decimal,
-p2_suministros decimal,
-p2_bienes decimal,
-p2_validez timestamp with time zone NOT NULL,
-teeu boolean NOT NULL,
-coes boolean NOT NULL
+  id_cuenta varchar(500) NOT NULL PRIMARY KEY,
+  nombre varchar(500) NOT NULL,
+  presidencia varchar(500) NOT NULL,
+  tesoreria varchar(500) NOT NULL,
+  p_general decimal,
+  p1_servicios decimal,
+  p1_suministros decimal,
+  p1_bienes decimal,
+  p1_validez timestamp with time zone NOT NULL,
+  p2_servicios decimal,
+  p2_suministros decimal,
+  p2_bienes decimal,
+  p2_validez timestamp with time zone NOT NULL,
+  teeu boolean NOT NULL,
+  coes boolean NOT NULL
 );
-#+END_SRC
 
-** Suministros
 
-#+BEGIN_SRC sql
 CREATE TABLE suministros (
-id_suministros integer NOT NULL PRIMARY KEY,
-emitido timestamp with time zone NOT NULL,
-id_cuenta varchar(500) NOT NULL,
-justif_sum varchar(500) NOT NULL,
-coes boolean,
-geco varchar(500),
-notas varchar(500)
+  id_suministros integer NOT NULL PRIMARY KEY,
+  emitido timestamp with time zone NOT NULL,
+  id_cuenta varchar(500) NOT NULL,
+  justif_sum varchar(500) NOT NULL,
+  coes boolean,
+  geco varchar(500),
+  notas varchar(500)
 );
-#+END_SRC
 
-*** Desglose de Suministros
 
-#+BEGIN_SRC sql
-CREATE TABLE suministros_desglose (
-id serial NOT NULL PRIMARY KEY,
-id_suministros integer NOT NULL,
-id_item varchar(500) NOT NULL,
-nombre varchar(500) NOT NULL,
-cantidad integer NOT NULL,
-monto_bruto_unidad decimal NOT NULL
-);
-#+END_SRC
-
-** Servicios
-
-#+BEGIN_SRC sql
 CREATE TABLE servicios (
-id_servicios serial NOT NULL PRIMARY KEY,
-emitido timestamp with time zone NOT NULL,
-id_cuenta varchar(500) NOT NULL,
-detalle varchar(500) NOT NULL,
-monto_bruto decimal NOT NULL,
-monto_iva decimal NOT NULL,
-monto_desc decimal,
-justif_serv varchar(500) NOT NULL,
-prov_nom varchar(500) NOT NULL,
-prov_ced varchar(500) NOT NULL,
-prov_direc varchar(500) NOT NULL,
-prov_email varchar(500) NOT NULL,
-prov_tel varchar(500) NOT NULL,
-prov_banco varchar(500) NOT NULL,
-prov_iban varchar(500) NOT NULL,
-justif_prov varchar(500) NOT NULL,
-coes boolean,
-geco_sol varchar(500) UNIQUE,
-geco_ocs varchar(500) UNIQUE,
-por_ejecutar timestamp with time zone NOT NULL,
-ejecutado timestamp with time zone,
-pagado timestamp with time zone,
-notas varchar(500)
+  id_servicios serial NOT NULL PRIMARY KEY,
+  emitido timestamp with time zone NOT NULL,
+  id_cuenta varchar(500) NOT NULL,
+  detalle varchar(500) NOT NULL,
+  monto_bruto decimal NOT NULL,
+  monto_iva decimal NOT NULL,
+  monto_desc decimal,
+  justif_serv varchar(500) NOT NULL,
+  prov_nom varchar(500) NOT NULL,
+  prov_ced varchar(500) NOT NULL,
+  prov_direc varchar(500) NOT NULL,
+  prov_email varchar(500) NOT NULL,
+  prov_tel varchar(500) NOT NULL,
+  prov_banco varchar(500) NOT NULL,
+  prov_iban varchar(500) NOT NULL,
+  justif_prov varchar(500) NOT NULL,
+  coes boolean,
+  geco_sol varchar(500) UNIQUE,
+  geco_ocs varchar(500) UNIQUE,
+  por_ejecutar timestamp with time zone NOT NULL,
+  ejecutado timestamp with time zone,
+  pagado timestamp with time zone,
+  notas varchar(500)
 );
-#+END_SRC
 
-** Bienes
 
-#+BEGIN_SRC sql
 CREATE TABLE bienes (
-id_bienes serial NOT NULL PRIMARY KEY,
-emitido timestamp with time zone NOT NULL,
-id_cuenta varchar(500) NOT NULL,
-detalle varchar(500) NOT NULL,
-monto_bruto decimal NOT NULL,
-monto_iva decimal NOT NULL,
-monto_desc decimal,
-justif_bien varchar(500) NOT NULL,
-prov_nom varchar(500) NOT NULL,
-prov_ced varchar(500) NOT NULL,
-prov_direc varchar(500) NOT NULL,
-prov_email varchar(500) NOT NULL,
-prov_tel varchar(500) NOT NULL,
-prov_banco varchar(500) NOT NULL,
-prov_iban varchar(500) NOT NULL,
-justif_prov varchar(500) NOT NULL,
-coes boolean,
-geco_sol varchar(500) UNIQUE,
-geco_oc varchar(500) UNIQUE,
-recibido timestamp with time zone,
-notas varchar(500)
+  id_bienes serial NOT NULL PRIMARY KEY,
+  emitido timestamp with time zone NOT NULL,
+  id_cuenta varchar(500) NOT NULL,
+  detalle varchar(500) NOT NULL,
+  monto_bruto decimal NOT NULL,
+  monto_iva decimal NOT NULL,
+  monto_desc decimal,
+  justif_bien varchar(500) NOT NULL,
+  prov_nom varchar(500) NOT NULL,
+  prov_ced varchar(500) NOT NULL,
+  prov_direc varchar(500) NOT NULL,
+  prov_email varchar(500) NOT NULL,
+  prov_tel varchar(500) NOT NULL,
+  prov_banco varchar(500) NOT NULL,
+  prov_iban varchar(500) NOT NULL,
+  justif_prov varchar(500) NOT NULL,
+  coes boolean,
+  geco_sol varchar(500) UNIQUE,
+  geco_oc varchar(500) UNIQUE,
+  recibido timestamp with time zone,
+  notas varchar(500)
 );
-#+END_SRC
 
-** Ajustes
 
-#+BEGIN_SRC sql
 CREATE TABLE ajustes (
-id_ajustes serial NOT NULL PRIMARY KEY,
-emitido timestamp with time zone NOT NULL,
-id_cuenta varchar(500) NOT NULL,
-partida varchar(500) NOT NULL,
-detalle varchar(500) NOT NULL,
-monto_bruto decimal NOT NULL,
-notas varchar(500)
+  id_ajustes serial NOT NULL PRIMARY KEY,
+  emitido timestamp with time zone NOT NULL,
+  id_cuenta varchar(500) NOT NULL,
+  partida varchar(500) NOT NULL,
+  detalle varchar(500) NOT NULL,
+  monto_bruto decimal NOT NULL,
+  notas varchar(500)
 );
-#+END_SRC
 
-** Donaciones
 
-#+BEGIN_SRC sql
 CREATE TABLE donaciones (
-id_bienes serial NOT NULL PRIMARY KEY,
-emitido timestamp with time zone NOT NULL,
-id_cuenta_salida varchar(500) NOT NULL,
-partida_salida varchar(500) NOT NULL,
-id_cuenta_entrada varchar(500) NOT NULL,
-partida_entrada varchar(500) NOT NULL,
-detalle varchar(500) NOT NULL,
-monto_bruto decimal NOT NULL,
-carta_coes varchar(500) NOT NULL,
-notas varchar(500)
+  id_bienes serial NOT NULL PRIMARY KEY,
+  emitido timestamp with time zone NOT NULL,
+  id_cuenta_salida varchar(500) NOT NULL,
+  partida_salida varchar(500) NOT NULL,
+  id_cuenta_entrada varchar(500) NOT NULL,
+  partida_entrada varchar(500) NOT NULL,
+  detalle varchar(500) NOT NULL,
+  monto_bruto decimal NOT NULL,
+  carta_coes varchar(500) NOT NULL,
+  notas varchar(500)
 );
-#+END_SRC
 
-** Relaciones
 
-#+BEGIN_SRC sql
+CREATE TABLE suministros_desglose (
+  id serial NOT NULL PRIMARY KEY,
+  id_suministros integer NOT NULL,
+  id_item varchar(500) NOT NULL,
+  nombre varchar(500) NOT NULL,
+  cantidad integer NOT NULL,
+  monto_bruto_unidad decimal NOT NULL
+);
+
+
+CREATE TABLE usuarios (
+  id_usuario varchar(500) NOT NULL PRIMARY KEY
+);
+
+
 ALTER TABLE ajustes ADD CONSTRAINT ajustes_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
 ALTER TABLE bienes ADD CONSTRAINT bienes_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
 ALTER TABLE servicios ADD CONSTRAINT servicios_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
@@ -146,4 +130,59 @@ ALTER TABLE suministros ADD CONSTRAINT suministros_cuenta_fk FOREIGN KEY (id_cue
 ALTER TABLE donaciones ADD CONSTRAINT donaciones_id_cuenta_entrada_fk FOREIGN KEY (id_cuenta_entrada) REFERENCES cuentas (id_cuenta);
 ALTER TABLE donaciones ADD CONSTRAINT donaciones_id_cuenta_salida_fk FOREIGN KEY (id_cuenta_salida) REFERENCES cuentas (id_cuenta);
 ALTER TABLE suministros_desglose ADD CONSTRAINT suministros_desglose_id_suministros_fk FOREIGN KEY (id_suministros) REFERENCES suministros (id_suministros);
+ALTER TABLE cuentas ADD CONSTRAINT cuentas_presidencia_fk FOREIGN KEY (presidencia) REFERENCES usuarios (id_usuario);
+ALTER TABLE cuentas ADD CONSTRAINT cuentas_tesoreria_fk FOREIGN KEY (tesoreria) REFERENCES usuarios (id_usuario);
 #+END_SRC
+
+#+begin_src sql
+-- Insert example data into the `usuarios` table
+INSERT INTO usuarios (id_usuario) VALUES
+('1@ucr.ac.cr'),
+('2@ucr.ac.cr'),
+('3@ucr.ac.cr'),
+('4@ucr.ac.cr');
+
+-- Insert example data into the `cuentas` table
+INSERT INTO cuentas (id_cuenta, nombre, presidencia, tesoreria, p_general, p1_servicios, p1_suministros, p1_bienes, p1_validez, p2_servicios, p2_suministros, p2_bienes, p2_validez, teeu, coes)
+VALUES
+('C001', 'Marketing Account', '1@ucr.ac.cr', '1@ucr.ac.cr', 0.15, 0.10, 0.20, 0.25, '2025-01-01T00:00:00Z', 0.12, 0.22, 0.18, '2025-12-31T23:59:59Z', TRUE, FALSE),
+('C002', 'Development Account', '3@ucr.ac.cr', '4@ucr.ac.cr', 0.18, 0.15, 0.12, 0.20, '2024-01-01T00:00:00Z', 0.10, 0.18, 0.15, '2024-12-31T23:59:59Z', FALSE, TRUE);
+
+-- Insert example data into the `suministros` table
+INSERT INTO suministros (id_suministros, emitido, id_cuenta, justif_sum, coes, geco, notas)
+VALUES
+(1, '2025-01-08T10:00:00Z', 'C001', 'Office Supplies', TRUE, 'GECO001', 'Basic office supplies for Q1'),
+(2, '2025-01-08T10:00:00Z', 'C002', 'Development Equipment', FALSE, 'GECO002', 'New monitors for dev team');
+
+-- Insert example data into the `servicios` table
+INSERT INTO servicios (emitido, id_cuenta, detalle, monto_bruto, monto_iva, monto_desc, justif_serv, prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, justif_prov, coes, geco_sol, geco_ocs, por_ejecutar, ejecutado, pagado, notas)
+VALUES
+('2025-01-07T10:00:00Z', 'C001', 'Cleaning Services', 1000.00, 150.00, 50.00, 'Monthly cleaning', 'Clean Co.', '123456789', '123 Clean St.', 'info@cleanco.com', '123-456-7890', 'Clean Bank', 'IBANCLEAN123', 'Contract approved', TRUE, 'SOL001', 'OCS001', '2025-02-01T00:00:00Z', '2025-02-10T00:00:00Z', NULL, 'January cleaning'),
+('2025-01-06T14:00:00Z', 'C002', 'IT Services', 2000.00, 300.00, 100.00, 'IT support contract', 'IT Solutions', '987654321', '456 IT Park', 'support@itsolutions.com', '987-654-3210', 'Tech Bank', 'IBANTECH987', 'Service agreement', FALSE, 'SOL002', 'OCS002', '2025-03-01T00:00:00Z', NULL, NULL, 'Annual IT support');
+
+-- Insert example data into the `bienes` table
+INSERT INTO bienes (emitido, id_cuenta, detalle, monto_bruto, monto_iva, monto_desc, justif_bien, prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, justif_prov, coes, geco_sol, geco_oc, recibido, notas)
+VALUES
+('2025-01-07T09:00:00Z', 'C001', 'Office Chairs', 500.00, 75.00, 25.00, 'New chairs for office', 'Furniture Co.', '654321987', '789 Furniture Ave.', 'sales@furnitureco.com', '654-321-9870', 'Furniture Bank', 'IBANFURN654', 'Invoice #12345', TRUE, 'SOL003', 'OC003', '2025-01-15T00:00:00Z', 'Delivered successfully'),
+('2025-01-08T11:30:00Z', 'C002', 'Desktop Computers', 1500.00, 225.00, 50.00, 'Replacement desktops', 'Tech Supply Co.', '321987654', '987 Tech Blvd.', 'info@techsupply.com', '321-987-6540', 'Tech Bank', 'IBANTECH321', 'Order #987', FALSE, 'SOL004', 'OC004', NULL, 'Pending delivery');
+
+-- Insert example data into the `ajustes` table
+INSERT INTO ajustes (emitido, id_cuenta, partida, detalle, monto_bruto, notas)
+VALUES
+('2025-01-05T12:00:00Z', 'C001', 'Partida A1', 'Adjustment for budget increase', 100.00, 'Budget adjustment for Q1'),
+('2025-01-06T15:00:00Z', 'C002', 'Partida B2', 'Adjustment for tax rebate', 50.00, 'Rebate adjustment for last fiscal year');
+
+-- Insert example data into the `donaciones` table
+INSERT INTO donaciones (emitido, id_cuenta_salida, partida_salida, id_cuenta_entrada, partida_entrada, detalle, monto_bruto, carta_coes, notas)
+VALUES
+('2025-01-07T16:00:00Z', 'C001', 'Donation Out A1', 'C002', 'Donation In B2', 'Transfer of office supplies', 200.00, 'COES-LETTER-001', 'Donated unused supplies'),
+('2025-01-08T10:30:00Z', 'C002', 'Donation Out B1', 'C001', 'Donation In A2', 'Transfer of surplus computers', 300.00, 'COES-LETTER-002', 'Donated surplus equipment');
+
+-- Insert example data into the `suministros_desglose` table
+INSERT INTO suministros_desglose (id_suministros, id_item, nombre, cantidad, monto_bruto_unidad)
+VALUES
+(1, 'ITEM001', 'Pens', 100, 1.00),
+(1, 'ITEM002', 'Notebooks', 50, 2.00),
+(2, 'ITEM003', 'Monitors', 10, 150.00),
+(2, 'ITEM004', 'Keyboards', 10, 25.00);
+#+end_src

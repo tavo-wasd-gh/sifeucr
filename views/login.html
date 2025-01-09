@@ -1,13 +1,15 @@
-<h1>Inicio de sesión</h1>
-<div class="login">
-  <form hx-post="/api/dashboard" hx-swap="outerHTML">
-    <input type="text" id="correo" name="correo" placeholder="Correo electrónico" required>
-    <br>
-    <input type="password" id="passwd" name="passwd" placeholder="Contraseña" required>
-    <br>
-    <div class="htmx-button-div">
-      <button type="submit">Iniciar</button>
-      <span class="spinner htmx-indicator"  style="font-size: 0.8em;"/>
-    </div>
-  </form>
-</div>
+<main>
+  <h1>Inicio de sesión</h1>
+  <div class="login">
+    <form hx-post="/api/dashboard" hx-target="main" hx-swap="outerHTML">
+      <input type="text" id="correo" name="correo" placeholder="Correo electrónico" required>
+      <br>
+      <input type="password" id="passwd" name="passwd" placeholder="Contraseña" required>
+      <br>
+      <div class="htmx-button-div">
+        <button type="submit">Iniciar</button>
+        <span class="spinner htmx-indicator"  style="font-size: 0.8em;"/>
+      </div>
+    </form>
+  </div>
+</main>

@@ -1,234 +1,244 @@
-<h1>{{.Cuenta.Nombre}}</h1>
-<span>Acreditaciones:</span>
-<div style="background-color: {{if .Cuenta.TEEU}}seagreen{{end}}" class="tag {{if .Cuenta.TEEU}}active{{end}}">TEEU</div>
-<div style="background-color: {{if .Cuenta.COES}}seagreen{{end}}" class="tag {{if .Cuenta.COES}}active{{end}}">COES</div>
-<div class="tooltip">
-  <i class='bx bxs-info-circle' ></i>
-  <div class="tooltip-text">
-    Se necesitan estas acreditaciones para ejecutar presupuesto.
-  </div>
-</div>
-<div class="scrollable">
-  {{if .Cuenta.PGeneral}}
-  <div class="item">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">{{.Periodo}}</span>
-      </div>
-      <!-- General -->
-      <div class="card-item">
-        <div class="progress-bar">
-          <div class="progress" style="width: 10%;"></div>
-        </div>
-        <span class="label">General</span>
-        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
-      </div>
+<main>
+  <h1>{{.Cuenta.Nombre}}</h1>
+  <span>Acreditaciones:</span>
+  <div style="background-color: {{if .Cuenta.TEEU}}seagreen{{end}}" class="tag {{if .Cuenta.TEEU}}active{{end}}">TEEU</div>
+  <div style="background-color: {{if .Cuenta.COES}}seagreen{{end}}" class="tag {{if .Cuenta.COES}}active{{end}}">COES</div>
+  <div class="tooltip">
+    <i class='bx bxs-info-circle' ></i>
+    <div class="tooltip-text">
+      Se necesitan estas acreditaciones para ejecutar presupuesto.
     </div>
   </div>
-  {{else}}
-  <!-- P1 -->
-  <div class="item">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">{{.Periodo}}-1</span>
-        <span class="card-subtitle">₡265.000,00 / ₡1.546.425,51</span>
+  <div class="scrollable">
+    {{if .Cuenta.PGeneral}}
+    <div class="item">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">{{.Periodo}}</span>
+        </div>
+        <!-- General -->
+        <div class="card-item">
+          <div class="progress-bar">
+            <div class="progress" style="width: {{divide .PGeneralEmitido .Cuenta.PGeneral}}%;"></div>
+          </div>
+          <span class="label">General</span>
+          <span class="value">₡{{currency .PGeneralEmitido}} / ₡{{currency .Cuenta.PGeneral}}</span>
+        </div>
       </div>
+    </div>
+    {{else}}
+    <!-- P1 -->
+    <div class="item">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">{{.Periodo}}-1</span>
+          <span class="card-subtitle">₡{{currency .P1Emitido}} / ₡{{currency .P1Total}}</span>
+        </div>
+        <!-- Servicios -->
+        <div class="card-item">
+          <div class="progress-bar">
+            <div class="progress" style="width: {{divide .P1ServiciosEmitido .Cuenta.P1Servicios}}%;"></div>
+          </div>
+          <span class="label">Servicios</span>
+          <span class="value">₡{{currency .P1ServiciosEmitido}} / ₡{{currency .Cuenta.P1Servicios}}</span>
+        </div>
+        <!-- Suministros -->
+        <div class="card-item">
+          <div class="progress-bar">
+            <div class="progress" style="width: {{divide .P1SuministrosEmitido .Cuenta.P1Suministros}}%;"></div>
+          </div>
+          <span class="label">Suministros</span>
+          <span class="value">₡{{currency .P1SuministrosEmitido}} / ₡{{currency .Cuenta.P1Suministros}}</span>
+        </div>
+        <!-- Bienes -->
+        <div class="card-item">
+          <div class="progress-bar">
+            <div class="progress" style="width: {{divide .P1BienesEmitido .Cuenta.P1Bienes}}%;"></div>
+          </div>
+          <span class="label">Bienes</span>
+          <span class="value">₡{{currency .P1BienesEmitido}} / ₡{{currency .Cuenta.P1Bienes}}</span>
+        </div>
+      </div>
+    </div>
+    <!-- P2 -->
+    <div class="item">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">{{.Periodo}}-2</span>
+          <span class="card-subtitle">₡{{currency .P2Emitido}} / ₡{{currency .P2Total}}</span>
+        </div>
+        <!-- Servicios -->
+        <div class="card-item">
+          <div class="progress-bar">
+            <div class="progress" style="width: {{divide .P2ServiciosEmitido .Cuenta.P1Servicios}}%;"></div>
+          </div>
+          <span class="label">Servicios</span>
+          <span class="value">₡{{currency .P2ServiciosEmitido}} / ₡{{currency .Cuenta.P2Servicios}}</span>
+        </div>
+        <!-- Suministros -->
+        <div class="card-item">
+          <div class="progress-bar">
+            <div class="progress" style="width: {{divide .P2SuministrosEmitido .Cuenta.P1Suministros}}%;"></div>
+          </div>
+          <span class="label">Suministros</span>
+          <span class="value">₡{{currency .P2SuministrosEmitido}} / ₡{{currency .Cuenta.P2Suministros}}</span>
+        </div>
+        <!-- Bienes -->
+        <div class="card-item">
+          <div class="progress-bar">
+            <div class="progress" style="width: {{divide .P2BienesEmitido .Cuenta.P1Bienes}}%;"></div>
+          </div>
+          <span class="label">Bienes</span>
+          <span class="value">₡{{currency .P2BienesEmitido}} / ₡{{currency .Cuenta.P2Bienes}}</span>
+        </div>
+      </div>
+    </div>
+    {{end}}
+  </div>
+  <div class="scrollable">
+    <div class="item">
       <!-- Servicios -->
-      <div class="card-item">
-        <div class="progress-bar">
-          <div class="progress" style="width: 10%;"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Servicios</span>
+          <a href="#">
+            <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+          </a>
         </div>
-        <span class="label">Servicios</span>
-        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+        <div class="card-items">
+          {{ range .Servicios }}
+          <hr>
+          <div class="card-item"
+            hx-get="/api/solicitud/{{.IDServicios}}"
+            hx-target="#dialog-content"
+            hx-swap="innerHTML"
+            onclick="showDialog()">
+            <div style="background-color: goldenrod" class="tag active">Firmado</div>
+            <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+            <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+            <div style="background-color: {{if .Ejecutado}}seagreen{{end}}" class="tag {{if .Ejecutado}}active{{end}}">Ejecutado</div>
+            <br>
+            <span class="label">{{.Detalle}}</span>
+            <span class="label">{{.ProvNom}}</span>
+            <br>
+            <span class="value">₡{{currency .MontoBruto}}</span>
+          </div>
+          {{ end }}
+        </div>
       </div>
+    </div>
+    <div class="item">
       <!-- Suministros -->
-      <div class="card-item">
-        <div class="progress-bar">
-          <div class="progress" style="width: 30%;"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Suministros</span>
+          <a href="#">
+            <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+          </a>
         </div>
-        <span class="label">Suministros</span>
-        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
+        <div class="card-items">
+          {{range .Suministros}}
+          <hr>
+          <div class="card-item"
+            hx-get="/api/solicitud/{{.IDSuministros}}"
+            hx-target="#dialog-content"
+            hx-swap="innerHTML"
+            onclick="showDialog()">
+            <div style="background-color: goldenrod" class="tag active">Firmado</div>
+            <div style="background-color: {{if .Geco}}cornflowerblue{{end}}" class="tag {{if .Geco}}active{{end}}">SF</div>
+            <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+            <br>
+            <span class="label">Solicitud de suministros No.{{.IDSuministros}}</span>
+            <br>
+            <!-- <span class="value">₡{{currency .MontoBrutoTotal}}</span> -->
+          </div>
+          {{end}}
+        </div>
       </div>
+    </div>
+    <div class="item">
       <!-- Bienes -->
-      <div class="card-item">
-        <div class="progress-bar">
-          <div class="progress" style="width: 100%;"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Bienes</span>
+          <a href="#">
+            <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+          </a>
         </div>
-        <span class="label">Bienes</span>
-        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
-      </div>
-    </div>
-  </div>
-  <!-- P2 -->
-  <div class="item">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">{{.Periodo}}-1</span>
-        <span class="card-subtitle">₡265.000,00 / ₡1.546.425,51</span>
-      </div>
-      <!-- Servicios -->
-      <div class="card-item">
-        <div class="progress-bar">
-          <div class="progress" style="width: 10%;"></div>
-        </div>
-        <span class="label">Servicios</span>
-        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
-      </div>
-      <!-- Suministros -->
-      <div class="card-item">
-        <div class="progress-bar">
-          <div class="progress" style="width: 30%;"></div>
-        </div>
-        <span class="label">Suministros</span>
-        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
-      </div>
-      <!-- Bienes -->
-      <div class="card-item">
-        <div class="progress-bar">
-          <div class="progress" style="width: 100%;"></div>
-        </div>
-        <span class="label">Bienes</span>
-        <span class="value">₡265.000,00 / ₡1.546.425,51</span>
-      </div>
-    </div>
-  </div>
-  {{end}}
-</div>
-<div class="scrollable">
-  <div class="item">
-    <!-- Servicios -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Servicios</span>
-        <a href="#">
-          <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
-        </a>
-      </div>
-      <div class="card-items">
-        <hr>
-        <div class="card-item"
-          hx-get="/solicitud/0"
-          hx-target="#dialog-content"
-          hx-swap="innerHTML"
-          onclick="showDialog()">
-          <div style="background-color: goldenrod" class="tag active">Firmado</div>
-          <div style="background-color: cornflowerblue" class="tag active">SF</div>
-          <div style="background-color: peru" class="tag active">COES</div>
-          <div style="background-color: seagreen" class="tag active">Recibido</div>
-          <br>
-          <span class="label">Servicio de alimentación</span>
-          <span class="label">Lidieth Aguilar</span>
-          <br>
-          <span class="value">₡265.000,00</span>
-        </div>
-        <hr>
-        <div class="card-item">
-          <div style="background-color: goldenrod" class="tag active">Firmado</div>
-          <div style="background-color: cornflowerblue" class="tag active">SF</div>
-          <div style="" class="tag">COES</div>
-          <div style="" class="tag">Recibido</div>
-          <br>
-          <span class="label">Servicio de alimentación</span>
-          <span class="label">Lidieth Aguilar</span>
-          <br>
-          <span class="value">₡265.000,00</span>
-        </div>
-        <hr>
-        <div class="card-item">
-          <div style="background-color: goldenrod" class="tag active">Firmado</div>
-          <div style="" class="tag">SF</div>
-          <div style="" class="tag">COES</div>
-          <div style="" class="tag">Recibido</div>
-          <br>
-          <span class="label">Servicio de alimentación</span>
-          <span class="label">Lidieth Aguilar</span>
-          <br>
-          <span class="value">₡265.000,00</span>
-        </div>
-        <hr>
-        <div class="card-item">
-          <div style="background-color: goldenrod" class="tag active">Firmado</div>
-          <div style="" class="tag">SF</div>
-          <div style="" class="tag">COES</div>
-          <div style="" class="tag">Recibido</div>
-          <br>
-          <span class="label">Servicio de alimentación</span>
-          <span class="label">Lidieth Aguilar</span>
-          <br>
-          <span class="value">₡265.000,00</span>
-        </div>
-      </div>
-      <hr class="divisor">
-      <div class="card-header">
-        <span class="card-title">Ajustes</span>
-      </div>
-      <div class="card-summary">
-        <div class="card-item">
-          <span class="label">⦿ Donación DIR Semana U</span>
-          <br>
-          <span class="value">₡265.000,00</span>
-        </div>
-        <hr>
-        <div class="card-item">
-          <span class="label">⦿ Donación AECCI</span>
-          <br>
-          <span class="value">₡265.000,00</span>
-        </div>
-        <hr>
-        <div class="card-item">
-          <span class="label">⦿ Donación AECCI</span>
-          <br>
-          <span class="value">₡265.000,00</span>
+        <div class="card-items">
+          {{range .Bienes}}
+          <hr>
+          <div class="card-item"
+            hx-get="/api/solicitud/{{.IDBienes}}"
+            hx-target="#dialog-content"
+            hx-swap="innerHTML"
+            onclick="showDialog()">
+            <div style="background-color: goldenrod" class="tag active">Firmado</div>
+            <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+            <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+            <div style="background-color: {{if .Recibido}}seagreen{{end}}" class="tag {{if .Recibido}}active{{end}}">Recibido</div>
+            <br>
+            <span class="label">{{.Detalle}}</span>
+            <br>
+            <span class="value">₡{{currency .MontoBruto}}</span>
+          </div>
+          {{end}}
         </div>
       </div>
     </div>
   </div>
-  <div class="item">
-    <!-- Suministros -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Suministros</span>
-        <a href="#">
-          <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
-        </a>
-      </div>
-      <div class="card-items">
-        <hr>
-        <div class="card-item">
-          <div style="background-color: goldenrod" class="tag active">Firmado</div>
-          <div style="background-color: cornflowerblue" class="tag active">SF</div>
-          <div style="background-color: peru" class="tag active">COES</div>
-          <div style="background-color: seagreen" class="tag active">Recibido</div>
-          <br>
-          <span class="label">Servicio de alimentación</span>
-          <span class="label">Lidieth Aguilar</span>
-          <br>
-          <span class="value">₡265.000,00</span>
+  <div class="scrollable">
+    <div class="item">
+      <!-- Donaciones -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Donaciones</span>
+          <a href="#">
+            <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+          </a>
         </div>
-        <hr>
-        <div class="card-item">
-          <div style="background-color: goldenrod" class="tag active">Firmado</div>
-          <div style="" class="tag">SF</div>
-          <div style="" class="tag">COES</div>
-          <div style="" class="tag">Recibido</div>
-          <br>
-          <span class="label">Servicio de alimentación</span>
-          <span class="label">Lidieth Aguilar</span>
-          <br>
-          <span class="value">₡265.000,00</span>
+        <div class="card-items">
+          {{ range .Donaciones }}
+          <hr>
+          <div class="card-item"
+            hx-get="/api/solicitud/{{.IDDonacion}}"
+            hx-target="#dialog-content"
+            hx-swap="innerHTML"
+            onclick="showDialog()">
+            <div style="background-color: goldenrod" class="tag active">Firmado</div>
+            <br>
+            <span class="label">{{.Detalle}}</span>
+            <br>
+            <span class="value">₡{{currency .MontoBruto}}</span>
+          </div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <!-- Ajustes -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Ajustes</span>
+          <a href="#">
+            <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+          </a>
+        </div>
+        <div class="card-items">
+          {{range .Ajustes}}
+          <hr>
+          <div class="card-item"
+            hx-get="/api/solicitud/{{.IDAjustes}}"
+            hx-target="#dialog-content"
+            hx-swap="innerHTML"
+            onclick="showDialog()">
+            <span class="label">{{.Detalle}}</span>
+            <br>
+            <span class="value">₡{{currency .MontoBruto}}</span>
+          </div>
+          {{end}}
         </div>
       </div>
     </div>
   </div>
-  <div class="item">
-    <!-- Bienes -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Bienes</span>
-        <a href="#">
-          <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
+</main>

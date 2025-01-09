@@ -10,16 +10,17 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	// "strings"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/tavo-wasd-gh/gocors"
-	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	var err error
+
 	var (
 		port = os.Getenv("PORT")
 		db_uri = os.Getenv("DB_URI")
@@ -29,7 +30,7 @@ func main() {
 		log.Fatalf("Fatal: Missing env variables")
 	}
 
-	db, err := sql.Open("postgres", db_uri)
+	db, err = sql.Open("postgres", db_uri)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -78,45 +79,77 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		correo := r.FormValue("correo")
-		passwd := r.FormValue("passwd")
+		// correo := r.FormValue("correo")
+		// passwd := r.FormValue("passwd")
+		// Validar credenciales, usarlas para determinar id_cuenta
+		id_cuenta := "C001"
 
-		// check correo and passwd...
+		if err := jwtSet(w, "jwt_token", id_cuenta, time.Now().Add(15 * time.Minute)) ; err != nil {
+			http.Error(w, "Failed to set JWT", http.StatusInternalServerError)
+			view(w, "views/login.html", "")
+			return
+		}
 
-		// set new jwt
+		data := &Data{}
+		if err := fillData(data, id_cuenta) ; err != nil{
+			log.Println(err)
+			view(w, "views/login.html", "")
+			return
+		}
 
-		w.Write([]byte("Hello world! "+correo+":"+passwd))
+		w.WriteHeader(http.StatusOK)
+		view(w, "views/dashboard.html", data)
 		return
 	}
 
 	if r.Method == http.MethodGet {
-		cookie, err := r.Cookie("jwt_token")
-		if err != nil {
-			// No JWT cookie found or other error
+		if err := jwtValidate(r, "jwt_token") ; err != nil {
+			view(w, "views/login.html", nil)
+			return
+		}
+
+		id_cuenta := "C001"
+
+		data := &Data{}
+		if err := fillData(data, id_cuenta) ; err != nil{
+			log.Println(err)
 			view(w, "views/login.html", "")
 			return
 		}
 
-		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return jwtSecret, nil
-		})
-
-		if err != nil || !token.Valid {
-			// JWT is not valid
-			view(w, "views/login.html", "")
-			return
-		}
-
-		// JWT is valid
-		view(w, "views/dashboard.html", "")
+		w.WriteHeader(http.StatusOK)
+		view(w, "views/dashboard.html", data)
 		return
 	}
 }
 
 func view(w http.ResponseWriter, path string, data interface{}) error {
+	funcMap := template.FuncMap{
+		"divide": func(a, b float64) float64 {
+			if b == 0 {
+				return 0
+			}
+			return 100*(a / b)
+		},
+		"currency": func(amount float64) string {
+			formatted := fmt.Sprintf("%.2f", amount)
+			parts := strings.Split(formatted, ".")
+			intPart := parts[0]
+			decPart := parts[1]
+
+			var result strings.Builder
+			length := len(intPart)
+			for i, digit := range intPart {
+				if i > 0 && (length-i)%3 == 0 {
+					result.WriteString(".")
+				}
+				result.WriteRune(digit)
+			}
+
+			return result.String() + "," + decPart
+		},
+	}
+
 	file, err := os.ReadFile(path)
 	if err != nil {
 		log.Println("Error: Failed to read template file:", err)
@@ -124,7 +157,7 @@ func view(w http.ResponseWriter, path string, data interface{}) error {
 		return err
 	}
 
-	tmpl, err := template.New("template").Parse(string(file))
+	tmpl, err := template.New("template").Funcs(funcMap).Parse(string(file))
 	if err != nil {
 		log.Println("Error: Failed to parse template:", err)
 		http.Error(w, "Failed to parse template", http.StatusInternalServerError)
@@ -138,7 +171,6 @@ func view(w http.ResponseWriter, path string, data interface{}) error {
 		return err
 	}
 
-	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(filled.Bytes())
 	if err != nil {
 		log.Println("Error: Failed to write response:", err)
