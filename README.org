@@ -95,7 +95,7 @@ CREATE TABLE ajustes (
 
 
 CREATE TABLE donaciones (
-  id_bienes serial NOT NULL PRIMARY KEY,
+  id_donacion serial NOT NULL PRIMARY KEY,
   emitido timestamp with time zone NOT NULL,
   id_cuenta_salida varchar(500) NOT NULL,
   partida_salida varchar(500) NOT NULL,
