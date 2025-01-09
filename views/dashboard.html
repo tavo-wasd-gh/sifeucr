@@ -19,7 +19,7 @@
         <!-- General -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{divide .PGeneralEmitido .Cuenta.PGeneral}}%;"></div>
+            <div class="progress" style="width: {{frac .PGeneralEmitido .Cuenta.PGeneral}}%;"></div>
           </div>
           <span class="label">General</span>
           <span class="value">₡{{currency .PGeneralEmitido}} / ₡{{currency .Cuenta.PGeneral}}</span>
@@ -37,7 +37,7 @@
         <!-- Servicios -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{divide .P1ServiciosEmitido .Cuenta.P1Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac .P1ServiciosEmitido .Cuenta.P1Servicios}}%;"></div>
           </div>
           <span class="label">Servicios</span>
           <span class="value">₡{{currency .P1ServiciosEmitido}} / ₡{{currency .Cuenta.P1Servicios}}</span>
@@ -45,7 +45,7 @@
         <!-- Suministros -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{divide .P1SuministrosEmitido .Cuenta.P1Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac .P1SuministrosEmitido .Cuenta.P1Suministros}}%;"></div>
           </div>
           <span class="label">Suministros</span>
           <span class="value">₡{{currency .P1SuministrosEmitido}} / ₡{{currency .Cuenta.P1Suministros}}</span>
@@ -53,7 +53,7 @@
         <!-- Bienes -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{divide .P1BienesEmitido .Cuenta.P1Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac .P1BienesEmitido .Cuenta.P1Bienes}}%;"></div>
           </div>
           <span class="label">Bienes</span>
           <span class="value">₡{{currency .P1BienesEmitido}} / ₡{{currency .Cuenta.P1Bienes}}</span>
@@ -70,7 +70,7 @@
         <!-- Servicios -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{divide .P2ServiciosEmitido .Cuenta.P1Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac .P2ServiciosEmitido .Cuenta.P1Servicios}}%;"></div>
           </div>
           <span class="label">Servicios</span>
           <span class="value">₡{{currency .P2ServiciosEmitido}} / ₡{{currency .Cuenta.P2Servicios}}</span>
@@ -78,7 +78,7 @@
         <!-- Suministros -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{divide .P2SuministrosEmitido .Cuenta.P1Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac .P2SuministrosEmitido .Cuenta.P1Suministros}}%;"></div>
           </div>
           <span class="label">Suministros</span>
           <span class="value">₡{{currency .P2SuministrosEmitido}} / ₡{{currency .Cuenta.P2Suministros}}</span>
@@ -86,7 +86,7 @@
         <!-- Bienes -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{divide .P2BienesEmitido .Cuenta.P1Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac .P2BienesEmitido .Cuenta.P1Bienes}}%;"></div>
           </div>
           <span class="label">Bienes</span>
           <span class="value">₡{{currency .P2BienesEmitido}} / ₡{{currency .Cuenta.P2Bienes}}</span>

@@ -57,7 +57,7 @@ type Suministros struct {
 	Geco          string       `json:"geco" db:"geco"`
 	Notas         string       `json:"notas" db:"notas"`
 	// Agregado:
-	MontoBrutoTotal     float64       `json:"monto_bruto_total" db:"monto_bruto_total"`
+	MontoBrutoTotal float64 `json:"monto_bruto_total" db:"monto_bruto_total"`
 }
 
 type SuministrosDesglose struct {
@@ -125,15 +125,15 @@ type Data struct {
 	Ajustes     []Ajustes
 	Donaciones  []Donaciones
 	// Agregado:
-	PGeneralEmitido float64
-	P1ServiciosEmitido float64
+	PGeneralEmitido      float64
+	P1ServiciosEmitido   float64
 	P1SuministrosEmitido float64
-	P1BienesEmitido float64
-	P1Total float64
-	P1Emitido float64
-	P2ServiciosEmitido float64
+	P1BienesEmitido      float64
+	P1Total              float64
+	P1Emitido            float64
+	P2ServiciosEmitido   float64
 	P2SuministrosEmitido float64
-	P2BienesEmitido float64
-	P2Total float64
-	P2Emitido float64
+	P2BienesEmitido      float64
+	P2Total              float64
+	P2Emitido            float64
 }

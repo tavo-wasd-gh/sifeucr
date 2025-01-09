@@ -14,15 +14,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/tavo-wasd-gh/gocors"
 	_ "github.com/lib/pq"
+	"github.com/tavo-wasd-gh/gocors"
 )
 
 func main() {
 	var err error
 
 	var (
-		port = os.Getenv("PORT")
+		port   = os.Getenv("PORT")
 		db_uri = os.Getenv("DB_URI")
 	)
 
@@ -74,7 +74,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(1 * time.Second)
 
 	if r.Method == http.MethodPost {
-		if err := r.ParseForm() ; err != nil {
+		if err := r.ParseForm(); err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
@@ -84,14 +84,14 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		// Validar credenciales, usarlas para determinar id_cuenta
 		id_cuenta := "C001"
 
-		if err := jwtSet(w, "jwt_token", id_cuenta, time.Now().Add(15 * time.Minute)) ; err != nil {
+		if err := jwtSet(w, "jwt_token", id_cuenta, time.Now().Add(15*time.Minute)); err != nil {
 			http.Error(w, "Failed to set JWT", http.StatusInternalServerError)
 			view(w, "views/login.html", "")
 			return
 		}
 
 		data := &Data{}
-		if err := fillData(data, id_cuenta) ; err != nil{
+		if err := fillData(data, id_cuenta); err != nil {
 			log.Println(err)
 			view(w, "views/login.html", "")
 			return
@@ -103,7 +103,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		if err := jwtValidate(r, "jwt_token") ; err != nil {
+		if err := jwtValidate(r, "jwt_token"); err != nil {
 			view(w, "views/login.html", nil)
 			return
 		}
@@ -111,7 +111,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		id_cuenta := "C001"
 
 		data := &Data{}
-		if err := fillData(data, id_cuenta) ; err != nil{
+		if err := fillData(data, id_cuenta); err != nil {
 			log.Println(err)
 			view(w, "views/login.html", "")
 			return
@@ -125,11 +125,11 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 
 func view(w http.ResponseWriter, path string, data interface{}) error {
 	funcMap := template.FuncMap{
-		"divide": func(a, b float64) float64 {
+		"frac": func(a, b float64) float64 {
 			if b == 0 {
 				return 0
 			}
-			return 100*(a / b)
+			return 100 * (a / b)
 		},
 		"currency": func(amount float64) string {
 			formatted := fmt.Sprintf("%.2f", amount)

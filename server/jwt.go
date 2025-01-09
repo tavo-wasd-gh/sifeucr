@@ -11,7 +11,7 @@ import (
 var jwtSecret = []byte("1234")
 
 type jwtClaims struct {
-	IDCuenta  string `json:"id_cuenta"`
+	IDCuenta string `json:"id_cuenta"`
 	jwt.RegisteredClaims
 }
 
@@ -53,7 +53,7 @@ func jwtValidate(r *http.Request, name string) error {
 
 	if err != nil {
 		return err
-	} 
+	}
 
 	if !token.Valid {
 		return fmt.Errorf("invalid token")

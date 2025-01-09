@@ -11,12 +11,12 @@ var db *sql.DB
 
 func fillData(data *Data, id_cuenta string) error {
 	var (
-		cuenta Cuenta
-		servicios []Servicios
+		cuenta      Cuenta
+		servicios   []Servicios
 		suministros []Suministros
-		bienes []Bienes
-		ajustes []Ajustes
-		donaciones []Donaciones
+		bienes      []Bienes
+		ajustes     []Ajustes
+		donaciones  []Donaciones
 	)
 
 	query := `SELECT * FROM cuentas WHERE id_cuenta = $1`
@@ -195,24 +195,24 @@ func fillData(data *Data, id_cuenta string) error {
 	}
 
 	*data = Data{
-		Cuenta: cuenta,
-		Periodo: time.Now().Year(),
-		Servicios: servicios,
-		Suministros: suministros,
-		Bienes: bienes,
-		Ajustes: ajustes,
-		Donaciones: donaciones,
-		PGeneralEmitido: 0,
-		P1ServiciosEmitido: 0,
+		Cuenta:               cuenta,
+		Periodo:              time.Now().Year(),
+		Servicios:            servicios,
+		Suministros:          suministros,
+		Bienes:               bienes,
+		Ajustes:              ajustes,
+		Donaciones:           donaciones,
+		PGeneralEmitido:      0,
+		P1ServiciosEmitido:   0,
 		P1SuministrosEmitido: 0,
-		P1BienesEmitido: 0,
-		P1Total: 0,
-		P1Emitido: 0,
-		P2ServiciosEmitido: 0,
+		P1BienesEmitido:      0,
+		P1Total:              0,
+		P1Emitido:            0,
+		P2ServiciosEmitido:   0,
 		P2SuministrosEmitido: 0,
-		P2BienesEmitido: 0,
-		P2Total: 0,
-		P2Emitido: 0,
+		P2BienesEmitido:      0,
+		P2Total:              0,
+		P2Emitido:            0,
 	}
 
 	return nil
