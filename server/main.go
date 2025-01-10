@@ -86,14 +86,14 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 
 		if err := jwtSet(w, "jwt_token", id_cuenta, time.Now().Add(15*time.Minute)); err != nil {
 			http.Error(w, "Failed to set JWT", http.StatusInternalServerError)
-			view(w, "views/login.html", "")
+			view(w, "views/login.html", nil)
 			return
 		}
 
 		data := &Data{}
 		if err := fillData(data, id_cuenta); err != nil {
 			log.Println(err)
-			view(w, "views/login.html", "")
+			view(w, "views/login.html", nil)
 			return
 		}
 
@@ -113,7 +113,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		data := &Data{}
 		if err := fillData(data, id_cuenta); err != nil {
 			log.Println(err)
-			view(w, "views/login.html", "")
+			view(w, "views/login.html", nil)
 			return
 		}
 
@@ -123,7 +123,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func view(w http.ResponseWriter, path string, data interface{}) error {
+func view(w http.ResponseWriter, path string, data *Data) error {
 	funcMap := template.FuncMap{
 		"frac": func(a, b float64) float64 {
 			if b == 0 {
@@ -147,6 +147,13 @@ func view(w http.ResponseWriter, path string, data interface{}) error {
 			}
 
 			return result.String() + "," + decPart
+		},
+		"calcularEmitido": func(tipo string) float64 {
+			total, err := calcularEmitido(data, tipo)
+			if err != nil {
+				return 0
+			}
+			return total
 		},
 	}
 

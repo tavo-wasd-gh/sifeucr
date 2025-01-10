@@ -20,6 +20,9 @@ type Cuenta struct {
 	P2Validez     sql.NullTime `json:"p2_validez" db:"p2_validez"`
 	TEEU          bool         `json:"teeu" db:"teeu"`
 	COES          bool         `json:"coes" db:"coes"`
+	// Agregado
+	P1Total float64
+	P2Total float64
 }
 
 type Servicios struct {
@@ -56,8 +59,9 @@ type Suministros struct {
 	COES          bool         `json:"coes" db:"coes"`
 	Geco          string       `json:"geco" db:"geco"`
 	Notas         string       `json:"notas" db:"notas"`
-	// Agregado:
-	MontoBrutoTotal float64 `json:"monto_bruto_total" db:"monto_bruto_total"`
+	// Agregado
+	Desglose        []SuministrosDesglose
+	MontoBrutoTotal float64
 }
 
 type SuministrosDesglose struct {

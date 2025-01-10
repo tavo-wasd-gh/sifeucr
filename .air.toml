@@ -5,8 +5,8 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "hugo && (cd server && go build -o ../tmp/main .)"
-  delay = 1000
+  cmd = "hugo >/dev/null && (cd server && go build -o ../tmp/main .)"
+  delay = 1
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "public", "resources"]
   exclude_file = []
   exclude_regex = ["_test.go"]
@@ -35,9 +35,9 @@ tmp_dir = "tmp"
   watcher = "cyan"
 
 [log]
-  main_only = false
+  main_only = true
   silent = false
-  time = false
+  time = true
 
 [misc]
   clean_on_exit = false

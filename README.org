@@ -119,7 +119,8 @@ CREATE TABLE suministros_desglose (
 
 
 CREATE TABLE usuarios (
-  id_usuario varchar(500) NOT NULL PRIMARY KEY
+  id_usuario varchar(500) NOT NULL PRIMARY KEY,
+  nombre varchar(500) NOT NULL
 );
 
 
@@ -136,11 +137,11 @@ ALTER TABLE cuentas ADD CONSTRAINT cuentas_tesoreria_fk FOREIGN KEY (tesoreria) 
 
 #+begin_src sql
 -- Insert example data into the `usuarios` table
-INSERT INTO usuarios (id_usuario) VALUES
-('1@ucr.ac.cr'),
-('2@ucr.ac.cr'),
-('3@ucr.ac.cr'),
-('4@ucr.ac.cr');
+INSERT INTO usuarios (id_usuario, nombre) VALUES
+('1@ucr.ac.cr', 'John Doe'),
+('2@ucr.ac.cr', 'Clara Doe'),
+('3@ucr.ac.cr', 'Jane Doe'),
+('4@ucr.ac.cr', 'Bob Doe');
 
 -- Insert example data into the `cuentas` table
 INSERT INTO cuentas (id_cuenta, nombre, presidencia, tesoreria, p_general, p1_servicios, p1_suministros, p1_bienes, p1_validez, p2_servicios, p2_suministros, p2_bienes, p2_validez, teeu, coes)
