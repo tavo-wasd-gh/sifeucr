@@ -122,7 +122,7 @@ type Donaciones struct {
 
 type Data struct {
 	Cuenta      Cuenta `json:"id_cuenta" db:"id_cuenta"`
-	Periodo     int
+	Periodo     int    // TODO: is this not necessary?
 	Servicios   []Servicios
 	Suministros []Suministros
 	Bienes      []Bienes

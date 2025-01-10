@@ -30,21 +30,23 @@ func jwtSet(w http.ResponseWriter, name, id_cuenta string, expires time.Time) er
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    name,
-		Value:   token,
-		Expires: expires,
+		Name:     name,
+		Value:    token,
+		Expires:  expires,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	return nil
 }
 
-func jwtValidate(r *http.Request, name string) error {
+func jwtValidate(r *http.Request, name string) (string, error) {
 	cookie, err := r.Cookie(name)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(cookie.Value, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -52,12 +54,12 @@ func jwtValidate(r *http.Request, name string) error {
 	})
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	if !token.Valid {
-		return fmt.Errorf("invalid token")
+	if claims, ok := token.Claims.(*jwtClaims); ok && token.Valid {
+		return claims.IDCuenta, nil
 	}
 
-	return nil
+	return "", fmt.Errorf("invalid token or claims")
 }

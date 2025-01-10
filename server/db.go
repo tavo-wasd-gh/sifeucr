@@ -12,6 +12,10 @@ import (
 
 var db *sql.DB
 
+type CuentasAcreditadas struct {
+	IDCuenta string
+}
+
 func fillData(data *Data, id_cuenta string) error {
 	var (
 		suministros []Suministros
@@ -146,13 +150,13 @@ func fillData(data *Data, id_cuenta string) error {
 	}
 
 	*data = Data{
-		Cuenta:               cuenta,
-		Periodo:              time.Now().Year(),
-		Servicios:            servicios,
-		Suministros:          suministros,
-		Bienes:               bienes,
-		Ajustes:              ajustes,
-		Donaciones:           donaciones,
+		Cuenta:      cuenta,
+		Periodo:     time.Now().Year(), // TODO: is this not necessary?
+		Servicios:   servicios,
+		Suministros: suministros,
+		Bienes:      bienes,
+		Ajustes:     ajustes,
+		Donaciones:  donaciones,
 	}
 
 	return nil
@@ -194,7 +198,7 @@ func calcularRestante(data *Data, tipo string) (float64, error) {
 	case "P1Bienes":
 		return data.Cuenta.P1Bienes - calcularBienes(data, data.Cuenta.P1Validez), nil
 	case "P1Total":
-		return data .Cuenta.P1Total - calcularTotal(data, data.Cuenta.P1Validez), nil
+		return data.Cuenta.P1Total - calcularTotal(data, data.Cuenta.P1Validez), nil
 	case "P2Servicios":
 		return data.Cuenta.P2Servicios - calcularServicios(data, data.Cuenta.P2Validez), nil
 	case "P2Suministros":
@@ -228,7 +232,11 @@ func calcularPGeneral(data *Data) float64 {
 	}
 
 	for _, donacion := range data.Donaciones {
-		total += donacion.MontoBruto
+		if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
+			total += donacion.MontoBruto
+		} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
+			total -= donacion.MontoBruto
+		}
 	}
 
 	return total
@@ -243,11 +251,28 @@ func calcularServicios(data *Data, validez sql.NullTime) float64 {
 		}
 	}
 
+	for _, ajuste := range data.Ajustes {
+		if ajuste.Emitido.Valid && validez.Valid && ajuste.Emitido.Time.Before(validez.Time) {
+			total += ajuste.MontoBruto
+		}
+	}
+
+	for _, donacion := range data.Donaciones {
+		if donacion.Emitido.Valid && validez.Valid && donacion.Emitido.Time.Before(validez.Time) {
+			if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
+				total += donacion.MontoBruto
+			} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
+				total -= donacion.MontoBruto
+			}
+		}
+	}
+
 	return total
 }
 
 func calcularSuministros(data *Data, validez sql.NullTime) float64 {
 	var total float64
+
 	for _, suministro := range data.Suministros {
 		if suministro.Emitido.Valid && validez.Valid && suministro.Emitido.Time.Before(validez.Time) {
 			for _, desglose := range suministro.Desglose {
@@ -255,6 +280,25 @@ func calcularSuministros(data *Data, validez sql.NullTime) float64 {
 			}
 		}
 	}
+
+	for _, ajuste := range data.Ajustes {
+		if ajuste.Emitido.Valid && validez.Valid && ajuste.Emitido.Time.Before(validez.Time) {
+			total += ajuste.MontoBruto
+		}
+	}
+
+	for _, donacion := range data.Donaciones {
+		if donacion.Emitido.Valid && validez.Valid && donacion.Emitido.Time.Before(validez.Time) {
+			if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
+				total += donacion.MontoBruto
+			} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
+				total -= donacion.MontoBruto
+			} else {
+				log.Println("Neither")
+			}
+		}
+	}
+
 	return total
 }
 
@@ -444,4 +488,37 @@ func fillSlice(rows *sql.Rows, destValue reflect.Value) error {
 	}
 
 	return nil
+}
+
+func cuentasAcreditadas(correo string) ([]CuentasAcreditadas, error) {
+	query := `
+		SELECT id_cuenta
+		FROM cuentas
+		WHERE presidencia = $1 OR tesoreria = $1
+	`
+
+	rows, err := db.Query(query, correo)
+	if err != nil {
+		return nil, fmt.Errorf("error querying database: %w", err)
+	}
+	defer rows.Close()
+
+	var results []CuentasAcreditadas
+	for rows.Next() {
+		var cuenta CuentasAcreditadas
+		if err := rows.Scan(&cuenta.IDCuenta); err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
+		}
+		results = append(results, cuenta)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	if len(results) == 0 {
+		return nil, fmt.Errorf("no matching cuentas found for correo: %s", correo)
+	}
+
+	return results, nil
 }

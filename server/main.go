@@ -16,6 +16,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/tavo-wasd-gh/gocors"
+	"github.com/tavo-wasd-gh/gosmtp"
 )
 
 func main() {
@@ -72,6 +73,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var id_cuenta string
+	var err error
 
 	time.Sleep(100 * time.Millisecond)
 
@@ -81,26 +83,54 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// correo := r.FormValue("correo")
-		// passwd := r.FormValue("passwd")
-		// Validar credenciales, usarlas para determinar id_cuenta
-		id_cuenta = "C001"
+		correo := r.FormValue("correo")
+		passwd := r.FormValue("passwd")
+		cuenta_pedida := r.FormValue("id_cuenta")
+
+		cuentas, err := cuentasAcreditadas(correo)
+		if err != nil {
+			http.Error(w, "Failed to validate user", http.StatusUnauthorized)
+			return
+		}
+
+		s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
+		if err := s.Validate(correo); err != nil {
+			http.Error(w, "Failed to validate email", http.StatusUnauthorized)
+			return
+		}
+
+		if cuenta_pedida != "" {
+			for _, cuenta := range cuentas {
+				if cuenta.IDCuenta == id_cuenta {
+					id_cuenta = cuenta_pedida
+					break
+				}
+			}
+		} else {
+			if len(cuentas) == 1 {
+				id_cuenta = cuentas[0].IDCuenta
+			} else if len(cuentas) > 1 {
+				// TODO: Login con las cuentas acreaditadas
+				view(w, "views/login.html", nil)
+				return
+			} else {
+				http.Error(w, "Failed to validate user", http.StatusUnauthorized)
+				return
+			}
+		}
 
 		if err := jwtSet(w, "jwt_token", id_cuenta, time.Now().Add(15*time.Minute)); err != nil {
 			http.Error(w, "Failed to set JWT", http.StatusInternalServerError)
-			view(w, "views/login.html", nil)
 			return
 		}
 	}
 
 	if r.Method == http.MethodGet {
-		if err := jwtValidate(r, "jwt_token"); err != nil {
+		id_cuenta, err = jwtValidate(r, "jwt_token")
+		if err != nil {
 			view(w, "views/login.html", nil)
 			return
 		}
-
-		// Tomar id_cuenta de la validacion del JWT
-		id_cuenta = "C001"
 	}
 
 	data := &Data{}
@@ -121,7 +151,11 @@ func view(w http.ResponseWriter, path string, data *Data) error {
 			if b == 0 {
 				return 0
 			}
-			return 100 * (a / b)
+			frac := 100 * (a / b)
+			if frac < 0 {
+				return 0
+			}
+			return frac
 		},
 		"currency": func(amount float64) string {
 			formatted := fmt.Sprintf("%.2f", amount)
