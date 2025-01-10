@@ -71,7 +71,9 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	time.Sleep(1 * time.Second)
+	var id_cuenta string
+
+	time.Sleep(100 * time.Millisecond)
 
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
@@ -82,24 +84,13 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		// correo := r.FormValue("correo")
 		// passwd := r.FormValue("passwd")
 		// Validar credenciales, usarlas para determinar id_cuenta
-		id_cuenta := "C001"
+		id_cuenta = "C001"
 
 		if err := jwtSet(w, "jwt_token", id_cuenta, time.Now().Add(15*time.Minute)); err != nil {
 			http.Error(w, "Failed to set JWT", http.StatusInternalServerError)
 			view(w, "views/login.html", nil)
 			return
 		}
-
-		data := &Data{}
-		if err := fillData(data, id_cuenta); err != nil {
-			log.Println(err)
-			view(w, "views/login.html", nil)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		view(w, "views/dashboard.html", data)
-		return
 	}
 
 	if r.Method == http.MethodGet {
@@ -108,19 +99,20 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		id_cuenta := "C001"
+		// Tomar id_cuenta de la validacion del JWT
+		id_cuenta = "C001"
+	}
 
-		data := &Data{}
-		if err := fillData(data, id_cuenta); err != nil {
-			log.Println(err)
-			view(w, "views/login.html", nil)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		view(w, "views/dashboard.html", data)
+	data := &Data{}
+	if err := fillData(data, id_cuenta); err != nil {
+		log.Println(err)
+		view(w, "views/login.html", nil)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	view(w, "views/dashboard.html", data)
+	return
 }
 
 func view(w http.ResponseWriter, path string, data *Data) error {
@@ -137,6 +129,11 @@ func view(w http.ResponseWriter, path string, data *Data) error {
 			intPart := parts[0]
 			decPart := parts[1]
 
+			isNegative := strings.HasPrefix(intPart, "-")
+			if isNegative {
+				intPart = intPart[1:]
+			}
+
 			var result strings.Builder
 			length := len(intPart)
 			for i, digit := range intPart {
@@ -146,14 +143,27 @@ func view(w http.ResponseWriter, path string, data *Data) error {
 				result.WriteRune(digit)
 			}
 
-			return result.String() + "," + decPart
+			if isNegative {
+				return "-" + result.String() + "," + decPart
+			}
+			return "₡" + result.String() + "," + decPart
 		},
 		"calcularEmitido": func(tipo string) float64 {
-			total, err := calcularEmitido(data, tipo)
+			emitido, err := calcularEmitido(data, tipo)
 			if err != nil {
 				return 0
 			}
-			return total
+			return emitido
+		},
+		"calcularRestante": func(tipo string) float64 {
+			restante, err := calcularRestante(data, tipo)
+			if err != nil {
+				return 0
+			}
+			return restante
+		},
+		"eq": func(a, b string) bool {
+			return a == b
 		},
 	}
 

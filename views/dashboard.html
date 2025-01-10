@@ -20,10 +20,10 @@
         <!-- General -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularEmitido "PGeneral") .Cuenta.PGeneral}}%;"></div>
+            <div class="progress" style="width: {{frac (calcularRestante "PGeneral") .Cuenta.PGeneral}}%;"></div>
           </div>
           <span class="label">General</span>
-          <span class="value">₡{{currency (calcularEmitido "PGeneral")}} / ₡{{currency .Cuenta.PGeneral}}</span>
+          <span class="value">{{currency (calcularRestante "PGeneral")}} / {{currency .Cuenta.PGeneral}}</span>
         </div>
       </div>
     </div>
@@ -33,31 +33,31 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">{{.Periodo}}-1</span>
-          <span class="card-subtitle">₡{{currency (calcularEmitido "P1Total")}} / ₡{{currency .Cuenta.P1Total}}</span>
+          <span class="card-subtitle">{{currency (calcularRestante "P1Total")}} / {{currency .Cuenta.P1Total}}</span>
         </div>
         <!-- Servicios -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularEmitido "P1Servicios") .Cuenta.P1Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac (calcularRestante "P1Servicios") .Cuenta.P1Servicios}}%;"></div>
           </div>
           <span class="label">Servicios</span>
-          <span class="value">₡{{currency (calcularEmitido "P1Servicios")}} / ₡{{currency .Cuenta.P1Servicios}}</span>
+          <span class="value">{{currency (calcularRestante "P1Servicios")}} / {{currency .Cuenta.P1Servicios}}</span>
         </div>
         <!-- Suministros -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularEmitido "P1Suministros") .Cuenta.P1Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac (calcularRestante "P1Suministros") .Cuenta.P1Suministros}}%;"></div>
           </div>
           <span class="label">Suministros</span>
-          <span class="value">₡{{currency (calcularEmitido "P1Suministros")}} / ₡{{currency .Cuenta.P1Suministros}}</span>
+          <span class="value">{{currency (calcularRestante "P1Suministros")}} / {{currency .Cuenta.P1Suministros}}</span>
         </div>
         <!-- Bienes -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularEmitido "P1Bienes") .Cuenta.P1Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac (calcularRestante "P1Bienes") .Cuenta.P1Bienes}}%;"></div>
           </div>
           <span class="label">Bienes</span>
-          <span class="value">₡{{currency (calcularEmitido "P1Bienes")}} / ₡{{currency .Cuenta.P1Bienes}}</span>
+          <span class="value">{{currency (calcularRestante "P1Bienes")}} / {{currency .Cuenta.P1Bienes}}</span>
         </div>
       </div>
     </div>
@@ -66,31 +66,31 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">{{.Periodo}}-2</span>
-          <span class="card-subtitle">₡{{currency (calcularEmitido "P2Total")}} / ₡{{currency .Cuenta.P2Total}}</span>
+          <span class="card-subtitle">{{currency (calcularRestante "P2Total")}} / {{currency .Cuenta.P2Total}}</span>
         </div>
         <!-- Servicios -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularEmitido "P2Servicios") .Cuenta.P2Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac (calcularRestante "P2Servicios") .Cuenta.P2Servicios}}%;"></div>
           </div>
           <span class="label">Servicios</span>
-          <span class="value">₡{{currency (calcularEmitido "P2Servicios")}} / ₡{{currency .Cuenta.P2Servicios}}</span>
+          <span class="value">{{currency (calcularRestante "P2Servicios")}} / {{currency .Cuenta.P2Servicios}}</span>
         </div>
         <!-- Suministros -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularEmitido "P2Suministros") .Cuenta.P2Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac (calcularRestante "P2Suministros") .Cuenta.P2Suministros}}%;"></div>
           </div>
           <span class="label">Suministros</span>
-          <span class="value">₡{{currency (calcularEmitido "P2Suministros")}} / ₡{{currency .Cuenta.P2Suministros}}</span>
+          <span class="value">{{currency (calcularRestante "P2Suministros")}} / {{currency .Cuenta.P2Suministros}}</span>
         </div>
         <!-- Bienes -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularEmitido "P2Bienes") .Cuenta.P2Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac (calcularRestante "P2Bienes") .Cuenta.P2Bienes}}%;"></div>
           </div>
           <span class="label">Bienes</span>
-          <span class="value">₡{{currency (calcularEmitido "P2Bienes")}} / ₡{{currency .Cuenta.P2Bienes}}</span>
+          <span class="value">{{currency (calcularRestante "P2Bienes")}} / {{currency .Cuenta.P2Bienes}}</span>
         </div>
       </div>
     </div>
@@ -122,7 +122,7 @@
             <span class="label">{{.Detalle}}</span>
             <span class="label">{{.ProvNom}}</span>
             <br>
-            <span class="value">₡{{currency .MontoBruto}}</span>
+            <span class="value">-{{currency .MontoBruto}}</span>
           </div>
           {{ end }}
         </div>
@@ -151,7 +151,7 @@
             <br>
             <span class="label">Solicitud de suministros No.{{.IDSuministros}}</span>
             <br>
-            <span class="value">₡{{currency .MontoBrutoTotal}}</span>
+            <span class="value">-{{currency .MontoBrutoTotal}}</span>
           </div>
           {{end}}
         </div>
@@ -181,7 +181,7 @@
             <br>
             <span class="label">{{.Detalle}}</span>
             <br>
-            <span class="value">₡{{currency .MontoBruto}}</span>
+            <span class="value">-{{currency .MontoBruto}}</span>
           </div>
           {{end}}
         </div>
@@ -199,6 +199,7 @@
           </a>
         </div>
         <div class="card-items">
+          {{ $parentIDCuenta := .Cuenta.IDCuenta }}
           {{ range .Donaciones }}
           <hr>
           <div class="card-item"
@@ -210,7 +211,21 @@
             <br>
             <span class="label">{{.Detalle}}</span>
             <br>
-            <span class="value">₡{{currency .MontoBruto}}</span>
+            <span class="value">
+              {{if eq .IDCuentaEntrada $parentIDCuenta}}
+                {{if eq .PartidaEntrada "servicios"}}Servicios{{end}}
+                {{if eq .PartidaEntrada "suministros"}}Suministros{{end}}
+                {{if eq .PartidaEntrada "bienes"}}Bienes{{end}}
+                {{if eq .PartidaEntrada "Donation In A2"}}Bienes{{end}}<!-- TESTING -->
+              {{end}}
+              {{if eq .IDCuentaSalida $parentIDCuenta}}
+                {{if eq .PartidaSalida "servicios"}}Servicios{{end}}
+                {{if eq .PartidaSalida "suministros"}}Suministros{{end}}
+                {{if eq .PartidaSalida "bienes"}}Bienes{{end}}
+                {{if eq .PartidaSalida "Donation Out A1"}}Bienes{{end}}<!-- TESTING -->
+              {{end}}
+              / {{if eq .IDCuentaSalida $parentIDCuenta}}-{{else}}+{{end}}{{currency .MontoBruto}}
+            </span>
           </div>
           {{ end }}
         </div>
@@ -235,7 +250,13 @@
             onclick="showDialog()">
             <span class="label">{{.Detalle}}</span>
             <br>
-            <span class="value">₡{{currency .MontoBruto}}</span>
+            <span class="value">
+              {{if eq .Partida "servicios"}}Servicios{{end}}
+              {{if eq .Partida "suministros"}}Suministros{{end}}
+              {{if eq .Partida "bienes"}}Bienes{{end}}
+              {{if eq .Partida "Partida A1"}}Bienes{{end}}<!-- TESTING -->
+              / {{if gt .MontoBruto 0.00}}+{{end}}{{currency .MontoBruto}}
+            </span>
           </div>
           {{end}}
         </div>

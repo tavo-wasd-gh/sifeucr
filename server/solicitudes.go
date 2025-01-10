@@ -108,7 +108,7 @@ type Ajustes struct {
 }
 
 type Donaciones struct {
-	IDBienes        int          `json:"id_bienes" db:"id_bienes"`
+	IDDonacion      int          `json:"id_donacion" db:"id_donacion"`
 	Emitido         sql.NullTime `json:"emitido" db:"emitido"`
 	IDCuentaSalida  string       `json:"id_cuenta_salida" db:"id_cuenta_salida"`
 	PartidaSalida   string       `json:"partida_salida" db:"partida_salida"`
@@ -128,16 +128,4 @@ type Data struct {
 	Bienes      []Bienes
 	Ajustes     []Ajustes
 	Donaciones  []Donaciones
-	// Agregado:
-	PGeneralEmitido      float64
-	P1ServiciosEmitido   float64
-	P1SuministrosEmitido float64
-	P1BienesEmitido      float64
-	P1Total              float64
-	P1Emitido            float64
-	P2ServiciosEmitido   float64
-	P2SuministrosEmitido float64
-	P2BienesEmitido      float64
-	P2Total              float64
-	P2Emitido            float64
 }
