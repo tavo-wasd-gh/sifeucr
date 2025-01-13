@@ -10,30 +10,31 @@ CREATE TABLE cuentas (
   p1_servicios decimal,
   p1_suministros decimal,
   p1_bienes decimal,
-  p1_validez timestamp with time zone NOT NULL,
+  p1_validez datetime NOT NULL,
   p2_servicios decimal,
   p2_suministros decimal,
   p2_bienes decimal,
-  p2_validez timestamp with time zone NOT NULL,
+  p2_validez datetime NOT NULL,
   teeu boolean NOT NULL,
-  coes boolean NOT NULL
+  coes boolean NOT NULL,
+  FOREIGN KEY (presidencia) REFERENCES usuarios (id_usuario),
+  FOREIGN KEY (tesoreria) REFERENCES usuarios (id_usuario)
 );
-
 
 CREATE TABLE suministros (
   id_suministros integer NOT NULL PRIMARY KEY,
-  emitido timestamp with time zone NOT NULL,
+  emitido datetime NOT NULL,
   id_cuenta varchar(500) NOT NULL,
   justif_sum varchar(500) NOT NULL,
   coes boolean,
   geco varchar(500),
-  notas varchar(500)
+  notas varchar(500),
+  FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta)
 );
 
-
 CREATE TABLE servicios (
-  id_servicios serial NOT NULL PRIMARY KEY,
-  emitido timestamp with time zone NOT NULL,
+  id_servicios integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  emitido datetime NOT NULL,
   id_cuenta varchar(500) NOT NULL,
   detalle varchar(500) NOT NULL,
   monto_bruto decimal NOT NULL,
@@ -51,16 +52,16 @@ CREATE TABLE servicios (
   coes boolean,
   geco_sol varchar(500) UNIQUE,
   geco_ocs varchar(500) UNIQUE,
-  por_ejecutar timestamp with time zone NOT NULL,
-  ejecutado timestamp with time zone,
-  pagado timestamp with time zone,
-  notas varchar(500)
+  por_ejecutar datetime NOT NULL,
+  ejecutado datetime,
+  pagado datetime,
+  notas varchar(500),
+  FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta)
 );
 
-
 CREATE TABLE bienes (
-  id_bienes serial NOT NULL PRIMARY KEY,
-  emitido timestamp with time zone NOT NULL,
+  id_bienes integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  emitido datetime NOT NULL,
   id_cuenta varchar(500) NOT NULL,
   detalle varchar(500) NOT NULL,
   monto_bruto decimal NOT NULL,
@@ -78,25 +79,25 @@ CREATE TABLE bienes (
   coes boolean,
   geco_sol varchar(500) UNIQUE,
   geco_oc varchar(500) UNIQUE,
-  recibido timestamp with time zone,
-  notas varchar(500)
+  recibido datetime,
+  notas varchar(500),
+  FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta)
 );
 
-
 CREATE TABLE ajustes (
-  id_ajustes serial NOT NULL PRIMARY KEY,
-  emitido timestamp with time zone NOT NULL,
+  id_ajustes integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  emitido datetime NOT NULL,
   id_cuenta varchar(500) NOT NULL,
   partida varchar(500) NOT NULL,
   detalle varchar(500) NOT NULL,
   monto_bruto decimal NOT NULL,
-  notas varchar(500)
+  notas varchar(500),
+  FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta)
 );
 
-
 CREATE TABLE donaciones (
-  id_donacion serial NOT NULL PRIMARY KEY,
-  emitido timestamp with time zone NOT NULL,
+  id_donacion integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  emitido datetime NOT NULL,
   id_cuenta_salida varchar(500) NOT NULL,
   partida_salida varchar(500) NOT NULL,
   id_cuenta_entrada varchar(500) NOT NULL,
@@ -104,86 +105,61 @@ CREATE TABLE donaciones (
   detalle varchar(500) NOT NULL,
   monto_bruto decimal NOT NULL,
   carta_coes varchar(500) NOT NULL,
-  notas varchar(500)
+  notas varchar(500),
+  FOREIGN KEY (id_cuenta_salida) REFERENCES cuentas (id_cuenta),
+  FOREIGN KEY (id_cuenta_entrada) REFERENCES cuentas (id_cuenta)
 );
 
-
 CREATE TABLE suministros_desglose (
-  id serial NOT NULL PRIMARY KEY,
+  id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   id_suministros integer NOT NULL,
   id_item varchar(500) NOT NULL,
   nombre varchar(500) NOT NULL,
   cantidad integer NOT NULL,
-  monto_bruto_unidad decimal NOT NULL
+  monto_bruto_unidad decimal NOT NULL,
+  FOREIGN KEY (id_suministros) REFERENCES suministros (id_suministros)
 );
-
 
 CREATE TABLE usuarios (
   id_usuario varchar(500) NOT NULL PRIMARY KEY,
   nombre varchar(500) NOT NULL
 );
-
-
-ALTER TABLE ajustes ADD CONSTRAINT ajustes_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
-ALTER TABLE bienes ADD CONSTRAINT bienes_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
-ALTER TABLE servicios ADD CONSTRAINT servicios_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
-ALTER TABLE suministros ADD CONSTRAINT suministros_cuenta_fk FOREIGN KEY (id_cuenta) REFERENCES cuentas (id_cuenta);
-ALTER TABLE donaciones ADD CONSTRAINT donaciones_id_cuenta_entrada_fk FOREIGN KEY (id_cuenta_entrada) REFERENCES cuentas (id_cuenta);
-ALTER TABLE donaciones ADD CONSTRAINT donaciones_id_cuenta_salida_fk FOREIGN KEY (id_cuenta_salida) REFERENCES cuentas (id_cuenta);
-ALTER TABLE suministros_desglose ADD CONSTRAINT suministros_desglose_id_suministros_fk FOREIGN KEY (id_suministros) REFERENCES suministros (id_suministros);
-ALTER TABLE cuentas ADD CONSTRAINT cuentas_presidencia_fk FOREIGN KEY (presidencia) REFERENCES usuarios (id_usuario);
-ALTER TABLE cuentas ADD CONSTRAINT cuentas_tesoreria_fk FOREIGN KEY (tesoreria) REFERENCES usuarios (id_usuario);
 #+END_SRC
 
+** Sample data
+
 #+begin_src sql
--- Insert example data into the `usuarios` table
 INSERT INTO usuarios (id_usuario, nombre) VALUES
 ('1@ucr.ac.cr', 'John Doe'),
 ('2@ucr.ac.cr', 'Clara Doe'),
 ('3@ucr.ac.cr', 'Jane Doe'),
 ('4@ucr.ac.cr', 'Bob Doe');
 
--- Insert example data into the `cuentas` table
-INSERT INTO cuentas (id_cuenta, nombre, presidencia, tesoreria, p_general, p1_servicios, p1_suministros, p1_bienes, p1_validez, p2_servicios, p2_suministros, p2_bienes, p2_validez, teeu, coes)
-VALUES
-('C001', 'Marketing Account', '1@ucr.ac.cr', '1@ucr.ac.cr', 0.15, 0.10, 0.20, 0.25, '2025-01-01T00:00:00Z', 0.12, 0.22, 0.18, '2025-12-31T23:59:59Z', TRUE, FALSE),
-('C002', 'Development Account', '3@ucr.ac.cr', '4@ucr.ac.cr', 0.18, 0.15, 0.12, 0.20, '2024-01-01T00:00:00Z', 0.10, 0.18, 0.15, '2024-12-31T23:59:59Z', FALSE, TRUE);
+INSERT INTO cuentas (id_cuenta, nombre, presidencia, tesoreria, p_general, p1_servicios, p1_suministros, p1_bienes, p1_validez, p2_servicios, p2_suministros, p2_bienes, p2_validez, teeu, coes) VALUES
+('DIR',     'Directorio FEUCR',                                   '1@ucr.ac.cr', '2@ucr.ac.cr', 291297589,      0,      0,      0, '2025-12-31 00:00:00',      0,      0,      0, '2025-12-31 00:00:00', 1, 1),
+('F-AEFYM', 'Asociación de Estudiantes de Física y Meteorología', '3@ucr.ac.cr', '4@ucr.ac.cr',         0, 600000, 500000, 400000, '2025-07-01 00:00:00', 300000, 200000, 100000, '2025-12-01 00:00:00', 0, 1);
 
--- Insert example data into the `suministros` table
-INSERT INTO suministros (id_suministros, emitido, id_cuenta, justif_sum, coes, geco, notas)
-VALUES
-(1, '2025-01-08T10:00:00Z', 'C001', 'Office Supplies', TRUE, 'GECO001', 'Basic office supplies for Q1'),
-(2, '2025-01-08T10:00:00Z', 'C002', 'Development Equipment', FALSE, 'GECO002', 'New monitors for dev team');
+INSERT INTO suministros (emitido, id_cuenta, justif_sum, coes, geco, notas) VALUES
+('2025-01-08 10:00:00',     'DIR', 'Horno Microondas Oster OGJ41010', 1, '2025-0001', 'Nota de ejemplo'),
+('2025-04-08 10:00:00', 'F-AEFYM', 'Monitor ASUS ProArt 27"',         0, '2025-0002', 'Nota de ejemplo');
 
--- Insert example data into the `servicios` table
-INSERT INTO servicios (emitido, id_cuenta, detalle, monto_bruto, monto_iva, monto_desc, justif_serv, prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, justif_prov, coes, geco_sol, geco_ocs, por_ejecutar, ejecutado, pagado, notas)
-VALUES
-('2025-01-07T10:00:00Z', 'C001', 'Cleaning Services', 1000.00, 150.00, 50.00, 'Monthly cleaning', 'Clean Co.', '123456789', '123 Clean St.', 'info@cleanco.com', '123-456-7890', 'Clean Bank', 'IBANCLEAN123', 'Contract approved', TRUE, 'SOL001', 'OCS001', '2025-02-01T00:00:00Z', '2025-02-10T00:00:00Z', NULL, 'January cleaning'),
-('2025-01-06T14:00:00Z', 'C002', 'IT Services', 2000.00, 300.00, 100.00, 'IT support contract', 'IT Solutions', '987654321', '456 IT Park', 'support@itsolutions.com', '987-654-3210', 'Tech Bank', 'IBANTECH987', 'Service agreement', FALSE, 'SOL002', 'OCS002', '2025-03-01T00:00:00Z', NULL, NULL, 'Annual IT support');
+INSERT INTO servicios (emitido, id_cuenta, detalle, monto_bruto, monto_iva, monto_desc, justif_serv, prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, justif_prov, coes, geco_sol, geco_ocs, por_ejecutar, ejecutado, pagado, notas) VALUES
+('2025-01-07 10:00:00', 'DIR',     'Servicio de alimentación',         26000.00, 2.00, 0.00, 'Justificación ejemplo', 'Victor Avendaño',   '123456789', 'Montes de Oca', 'info@cleanco.com',        '123-456-7890', 'BCR', 'IBANCLEAN123', 'Contract approved', 1,  'SOL001', 'OCS001', '2025-02-01 00:00:00', '2025-02-10 00:00:00', NULL, 'Nota de ejemplo'),
+('2025-05-06 14:00:00', 'F-AEFYM', 'Servicio de reparación de muebles', 9000.00, 2.00, 0.00, 'Justificación ejemplo', 'Ana María Bolaños', '987654321', 'Montes de Oca', 'support@itsolutions.com', '987-654-3210', 'BAC', 'IBAN ECH987',  'Service agreement', 0, 'SOL002', 'OCS002', '2025-03-01 00:00:00', NULL,                   NULL, 'Nota de ejemplo');
 
--- Insert example data into the `bienes` table
-INSERT INTO bienes (emitido, id_cuenta, detalle, monto_bruto, monto_iva, monto_desc, justif_bien, prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, justif_prov, coes, geco_sol, geco_oc, recibido, notas)
-VALUES
-('2025-01-07T09:00:00Z', 'C001', 'Office Chairs', 500.00, 75.00, 25.00, 'New chairs for office', 'Furniture Co.', '654321987', '789 Furniture Ave.', 'sales@furnitureco.com', '654-321-9870', 'Furniture Bank', 'IBANFURN654', 'Invoice #12345', TRUE, 'SOL003', 'OC003', '2025-01-15T00:00:00Z', 'Delivered successfully'),
-('2025-01-08T11:30:00Z', 'C002', 'Desktop Computers', 1500.00, 225.00, 50.00, 'Replacement desktops', 'Tech Supply Co.', '321987654', '987 Tech Blvd.', 'info@techsupply.com', '321-987-6540', 'Tech Bank', 'IBANTECH321', 'Order #987', FALSE, 'SOL004', 'OC004', NULL, 'Pending delivery');
+INSERT INTO bienes (emitido, id_cuenta, detalle, monto_bruto, monto_iva, monto_desc, justif_bien, prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, justif_prov, coes, geco_sol, geco_oc, recibido, notas) VALUES
+('2025-09-07 09:00:00', 'DIR',      'Sillas de oficina',          50000.00,  2.00, 0.00, 'New chairs for office', 'PC Componentes', '654321987', '789 Furniture Ave.', 'sales@furnitureco.com', '654-321-9870', 'Furniture Bank', 'IBANFURN654', 'Invoice #12345', 1,  'SOL003', 'OC003', '2025-01-15 00:00:00', 'Delivered successfully'),
+('2025-10-08 11:30:00', 'F-AEFYM', 'Computadoras de escritorio', 150000.00, 2.00, 0.00, 'Replacement desktops',  'Intelec',        '321987654', '987  ech Blvd.',     'info@techsupply.com',   '321-987-6540', ' ech Bank',      'IBAN ECH321', 'Order #987',     0, 'SOL004', 'OC004', NULL, 'Pending delivery');
 
--- Insert example data into the `ajustes` table
-INSERT INTO ajustes (emitido, id_cuenta, partida, detalle, monto_bruto, notas)
-VALUES
-('2025-01-05T12:00:00Z', 'C001', 'Partida A1', 'Adjustment for budget increase', 100.00, 'Budget adjustment for Q1'),
-('2025-01-06T15:00:00Z', 'C002', 'Partida B2', 'Adjustment for tax rebate', 50.00, 'Rebate adjustment for last fiscal year');
+INSERT INTO ajustes (emitido, id_cuenta, partida, detalle, monto_bruto, notas) VALUES
+('2025-01-05 12:00:00', 'F-AEFYM', 'servicios', 'Rebajo ausencia CSE', -15000.00, 'Nota');
 
--- Insert example data into the `donaciones` table
-INSERT INTO donaciones (emitido, id_cuenta_salida, partida_salida, id_cuenta_entrada, partida_entrada, detalle, monto_bruto, carta_coes, notas)
-VALUES
-('2025-01-07T16:00:00Z', 'C001', 'Donation Out A1', 'C002', 'Donation In B2', 'Transfer of office supplies', 200.00, 'COES-LETTER-001', 'Donated unused supplies'),
-('2025-01-08T10:30:00Z', 'C002', 'Donation Out B1', 'C001', 'Donation In A2', 'Transfer of surplus computers', 300.00, 'COES-LETTER-002', 'Donated surplus equipment');
+INSERT INTO donaciones (emitido, id_cuenta_salida, partida_salida, id_cuenta_entrada, partida_entrada, detalle, monto_bruto, carta_coes, notas) VALUES
+('2025-01-07 16:00:00', 'F-AEFYM', 'servicios', 'DIR', 'general', 'Donación de AEFYM para DIR para Semana U', 20000.00, 'COES-LE  ER-001', 'Notas');
 
--- Insert example data into the `suministros_desglose` table
-INSERT INTO suministros_desglose (id_suministros, id_item, nombre, cantidad, monto_bruto_unidad)
-VALUES
-(1, 'ITEM001', 'Pens', 100, 1.00),
-(1, 'ITEM002', 'Notebooks', 50, 2.00),
-(2, 'ITEM003', 'Monitors', 10, 150.00),
-(2, 'ITEM004', 'Keyboards', 10, 25.00);
+INSERT INTO suministros_desglose (id_suministros, id_item, nombre, cantidad, monto_bruto_unidad) VALUES
+(1, 'ITEM001', 'Pens',      10, 100.00),
+(1, 'ITEM002', 'Notebooks', 2,  250.00),
+(2, 'ITEM003', 'Monitors',  1,  150000.00),
+(2, 'ITEM004', 'Keyboards', 3,  3000.00);
 #+end_src

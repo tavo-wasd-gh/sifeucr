@@ -20,10 +20,10 @@
         <!-- General -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularRestante "PGeneral") .Cuenta.PGeneral}}%;"></div>
+            <div class="progress" style="width: {{frac (sub .Cuenta.PGeneral (calcularEmitido "General" "")) .Cuenta.PGeneral}}%;"></div>
           </div>
           <span class="label">General</span>
-          <span class="value">{{currency (calcularRestante "PGeneral")}} / {{currency .Cuenta.PGeneral}}</span>
+          <span class="value">{{currency (sub .Cuenta.PGeneral (calcularEmitido "General" ""))}} / {{currency .Cuenta.PGeneral}}</span>
         </div>
       </div>
     </div>
@@ -33,31 +33,31 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">{{.Periodo}}-1</span>
-          <span class="card-subtitle">{{currency (calcularRestante "P1Total")}} / {{currency .Cuenta.P1Total}}</span>
+          <span class="card-subtitle">{{currency (sub .Cuenta.P1Total (calcularEmitido "Total" "P1"))}} / {{currency .Cuenta.P1Total}}</span>
         </div>
         <!-- Servicios -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularRestante "P1Servicios") .Cuenta.P1Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac (sub .Cuenta.P1Servicios (calcularEmitido "Servicios" "P1")) .Cuenta.P1Servicios}}%;"></div>
           </div>
           <span class="label">Servicios</span>
-          <span class="value">{{currency (calcularRestante "P1Servicios")}} / {{currency .Cuenta.P1Servicios}}</span>
+          <span class="value">{{currency (sub .Cuenta.P1Servicios (calcularEmitido "Servicios" "P1"))}} / {{currency .Cuenta.P1Servicios}}</span>
         </div>
         <!-- Suministros -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularRestante "P1Suministros") .Cuenta.P1Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac (sub .Cuenta.P1Suministros (calcularEmitido "Suministros" "P1")) .Cuenta.P1Suministros}}%;"></div>
           </div>
           <span class="label">Suministros</span>
-          <span class="value">{{currency (calcularRestante "P1Suministros")}} / {{currency .Cuenta.P1Suministros}}</span>
+          <span class="value">{{currency (sub .Cuenta.P1Suministros (calcularEmitido "Suministros" "P1"))}} / {{currency .Cuenta.P1Suministros}}</span>
         </div>
         <!-- Bienes -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularRestante "P1Bienes") .Cuenta.P1Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac (sub .Cuenta.P1Bienes (calcularEmitido "Bienes" "P1")) .Cuenta.P1Bienes}}%;"></div>
           </div>
           <span class="label">Bienes</span>
-          <span class="value">{{currency (calcularRestante "P1Bienes")}} / {{currency .Cuenta.P1Bienes}}</span>
+          <span class="value">{{currency (sub .Cuenta.P1Bienes (calcularEmitido "Bienes" "P1"))}} / {{currency .Cuenta.P1Bienes}}</span>
         </div>
       </div>
     </div>
@@ -66,31 +66,31 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">{{.Periodo}}-2</span>
-          <span class="card-subtitle">{{currency (calcularRestante "P2Total")}} / {{currency .Cuenta.P2Total}}</span>
+          <span class="card-subtitle">{{currency (sub .Cuenta.P2Total (calcularEmitido "Total" "P2"))}} / {{currency .Cuenta.P2Total}}</span>
         </div>
         <!-- Servicios -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularRestante "P2Servicios") .Cuenta.P2Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac (sub .Cuenta.P2Servicios (calcularEmitido "Servicios" "P2")) .Cuenta.P2Servicios}}%;"></div>
           </div>
           <span class="label">Servicios</span>
-          <span class="value">{{currency (calcularRestante "P2Servicios")}} / {{currency .Cuenta.P2Servicios}}</span>
+          <span class="value">{{currency (sub .Cuenta.P2Servicios (calcularEmitido "Servicios" "P2"))}} / {{currency .Cuenta.P2Servicios}}</span>
         </div>
         <!-- Suministros -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularRestante "P2Suministros") .Cuenta.P2Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac (sub .Cuenta.P2Suministros (calcularEmitido "Suministros" "P2")) .Cuenta.P2Suministros}}%;"></div>
           </div>
           <span class="label">Suministros</span>
-          <span class="value">{{currency (calcularRestante "P2Suministros")}} / {{currency .Cuenta.P2Suministros}}</span>
+          <span class="value">{{currency (sub .Cuenta.P2Suministros (calcularEmitido "Suministros" "P2"))}} / {{currency .Cuenta.P2Suministros}}</span>
         </div>
         <!-- Bienes -->
         <div class="card-item">
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (calcularRestante "P2Bienes") .Cuenta.P2Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac (sub .Cuenta.P2Bienes (calcularEmitido "Bienes" "P2")) .Cuenta.P2Bienes}}%;"></div>
           </div>
           <span class="label">Bienes</span>
-          <span class="value">{{currency (calcularRestante "P2Bienes")}} / {{currency .Cuenta.P2Bienes}}</span>
+          <span class="value">{{currency (sub .Cuenta.P2Bienes (calcularEmitido "Bienes" "P2"))}} / {{currency .Cuenta.P2Bienes}}</span>
         </div>
       </div>
     </div>

@@ -3,17 +3,30 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"reflect"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var db *sql.DB
 
 type CuentasAcreditadas struct {
 	IDCuenta string
+}
+
+func initializeDB() error {
+	var err error
+	db, err = sql.Open("sqlite3", "./db.db")
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	return nil
 }
 
 func fillData(data *Data, id_cuenta string) error {
@@ -162,58 +175,28 @@ func fillData(data *Data, id_cuenta string) error {
 	return nil
 }
 
-func calcularEmitido(data *Data, tipo string) (float64, error) {
+func calcularEmitido(data *Data, tipo, periodo string) (float64, error) {
 	switch tipo {
-	case "PGeneral":
-		return calcularPGeneral(data), nil
-	case "P1Servicios":
-		return calcularServicios(data, data.Cuenta.P1Validez), nil
-	case "P1Suministros":
-		return calcularSuministros(data, data.Cuenta.P1Validez), nil
-	case "P1Bienes":
-		return calcularBienes(data, data.Cuenta.P1Validez), nil
-	case "P1Total":
-		return calcularTotal(data, data.Cuenta.P1Validez), nil
-	case "P2Servicios":
-		return calcularServicios(data, data.Cuenta.P2Validez), nil
-	case "P2Suministros":
-		return calcularSuministros(data, data.Cuenta.P2Validez), nil
-	case "P2Bienes":
-		return calcularBienes(data, data.Cuenta.P2Validez), nil
-	case "P2Total":
-		return calcularTotal(data, data.Cuenta.P2Validez), nil
+	case "General":
+		return calcularPGeneralEmitido(data), nil
+	case "Total":
+		servicios := calcularServiciosEmitido(data, periodo)
+		suministros := calcularSuministrosEmitido(data, periodo)
+		bienes := calcularBienesEmitido(data, periodo)
+		return servicios + suministros + bienes, nil
+	case "Servicios":
+		return calcularServiciosEmitido(data, periodo), nil
+	case "Suministros":
+		return calcularSuministrosEmitido(data, periodo), nil
+	case "Bienes":
+		return calcularBienesEmitido(data, periodo), nil
 	default:
 		return 0, fmt.Errorf("tipo '%s' no reconocido", tipo)
 	}
 }
 
-func calcularRestante(data *Data, tipo string) (float64, error) {
-	switch tipo {
-	case "PGeneral":
-		return data.Cuenta.PGeneral - calcularPGeneral(data), nil
-	case "P1Servicios":
-		return data.Cuenta.P1Servicios - calcularServicios(data, data.Cuenta.P1Validez), nil
-	case "P1Suministros":
-		return data.Cuenta.P1Suministros - calcularSuministros(data, data.Cuenta.P1Validez), nil
-	case "P1Bienes":
-		return data.Cuenta.P1Bienes - calcularBienes(data, data.Cuenta.P1Validez), nil
-	case "P1Total":
-		return data.Cuenta.P1Total - calcularTotal(data, data.Cuenta.P1Validez), nil
-	case "P2Servicios":
-		return data.Cuenta.P2Servicios - calcularServicios(data, data.Cuenta.P2Validez), nil
-	case "P2Suministros":
-		return data.Cuenta.P2Suministros - calcularSuministros(data, data.Cuenta.P2Validez), nil
-	case "P2Bienes":
-		return data.Cuenta.P2Bienes - calcularBienes(data, data.Cuenta.P2Validez), nil
-	case "P2Total":
-		return data.Cuenta.P2Total - calcularTotal(data, data.Cuenta.P2Validez), nil
-	default:
-		return 0, fmt.Errorf("tipo '%s' no reconocido", tipo)
-	}
-}
-
-func calcularPGeneral(data *Data) float64 {
-	var total float64
+func calcularPGeneralEmitido(data *Data) float64 {
+	var total float64 = 0.00
 
 	for _, servicio := range data.Servicios {
 		total += servicio.MontoBruto
@@ -227,42 +210,26 @@ func calcularPGeneral(data *Data) float64 {
 		total += bien.MontoBruto
 	}
 
-	for _, ajuste := range data.Ajustes {
-		total += ajuste.MontoBruto
-	}
-
-	for _, donacion := range data.Donaciones {
-		if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
-			total += donacion.MontoBruto
-		} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
-			total -= donacion.MontoBruto
-		}
-	}
-
 	return total
 }
 
-func calcularServicios(data *Data, validez sql.NullTime) float64 {
-	var total float64
+func calcularServiciosEmitido(data *Data, periodo string) float64 {
+	var total float64 = 0.00
 
 	for _, servicio := range data.Servicios {
-		if servicio.Emitido.Valid && validez.Valid && servicio.Emitido.Time.Before(validez.Time) {
-			total += servicio.MontoBruto
-		}
-	}
-
-	for _, ajuste := range data.Ajustes {
-		if ajuste.Emitido.Valid && validez.Valid && ajuste.Emitido.Time.Before(validez.Time) {
-			total += ajuste.MontoBruto
-		}
-	}
-
-	for _, donacion := range data.Donaciones {
-		if donacion.Emitido.Valid && validez.Valid && donacion.Emitido.Time.Before(validez.Time) {
-			if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
-				total += donacion.MontoBruto
-			} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
-				total -= donacion.MontoBruto
+		if servicio.Emitido.Valid {
+			switch periodo {
+			case "P1":
+				if data.Cuenta.P1Validez.Valid &&
+				servicio.Emitido.Time.Before(data.Cuenta.P1Validez.Time) {
+					total += servicio.MontoBruto
+				}
+			case "P2":
+				if data.Cuenta.P1Validez.Valid && data.Cuenta.P2Validez.Valid &&
+				!servicio.Emitido.Time.Before(data.Cuenta.P1Validez.Time) &&
+				servicio.Emitido.Time.Before(data.Cuenta.P2Validez.Time) {
+					total += servicio.MontoBruto
+				}
 			}
 		}
 	}
@@ -270,31 +237,26 @@ func calcularServicios(data *Data, validez sql.NullTime) float64 {
 	return total
 }
 
-func calcularSuministros(data *Data, validez sql.NullTime) float64 {
-	var total float64
+func calcularSuministrosEmitido(data *Data, periodo string) float64 {
+	var total float64 = 0.00
 
 	for _, suministro := range data.Suministros {
-		if suministro.Emitido.Valid && validez.Valid && suministro.Emitido.Time.Before(validez.Time) {
-			for _, desglose := range suministro.Desglose {
-				total += desglose.MontoBrutoUnidad * float64(desglose.Cantidad)
-			}
-		}
-	}
-
-	for _, ajuste := range data.Ajustes {
-		if ajuste.Emitido.Valid && validez.Valid && ajuste.Emitido.Time.Before(validez.Time) {
-			total += ajuste.MontoBruto
-		}
-	}
-
-	for _, donacion := range data.Donaciones {
-		if donacion.Emitido.Valid && validez.Valid && donacion.Emitido.Time.Before(validez.Time) {
-			if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
-				total += donacion.MontoBruto
-			} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
-				total -= donacion.MontoBruto
-			} else {
-				log.Println("Neither")
+		if suministro.Emitido.Valid {
+			switch periodo {
+			case "P1":
+				if data.Cuenta.P1Validez.Valid && suministro.Emitido.Time.Before(data.Cuenta.P1Validez.Time) {
+					for _, desglose := range suministro.Desglose {
+						total += desglose.MontoBrutoUnidad * float64(desglose.Cantidad)
+					}
+				}
+			case "P2":
+				if data.Cuenta.P1Validez.Valid && data.Cuenta.P2Validez.Valid &&
+				!suministro.Emitido.Time.Before(data.Cuenta.P1Validez.Time) &&
+				suministro.Emitido.Time.Before(data.Cuenta.P2Validez.Time) {
+					for _, desglose := range suministro.Desglose {
+						total += desglose.MontoBrutoUnidad * float64(desglose.Cantidad)
+					}
+				}
 			}
 		}
 	}
@@ -302,29 +264,23 @@ func calcularSuministros(data *Data, validez sql.NullTime) float64 {
 	return total
 }
 
-func calcularBienes(data *Data, validez sql.NullTime) float64 {
-	var total float64
+func calcularBienesEmitido(data *Data, periodo string) float64 {
+	var total float64 = 0.00
 
 	for _, bien := range data.Bienes {
-		if bien.Emitido.Valid && validez.Valid && bien.Emitido.Time.Before(validez.Time) {
-			total += bien.MontoBruto
-		}
-	}
-
-	for _, ajuste := range data.Ajustes {
-		if ajuste.Emitido.Valid && validez.Valid && ajuste.Emitido.Time.Before(validez.Time) {
-			total += ajuste.MontoBruto
-		}
-	}
-
-	for _, donacion := range data.Donaciones {
-		if donacion.Emitido.Valid && validez.Valid && donacion.Emitido.Time.Before(validez.Time) {
-			if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
-				total += donacion.MontoBruto
-			} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
-				total -= donacion.MontoBruto
-			} else {
-				log.Println("Neither")
+		if bien.Emitido.Valid {
+			switch periodo {
+			case "P1":
+				if data.Cuenta.P1Validez.Valid &&
+				bien.Emitido.Time.Before(data.Cuenta.P1Validez.Time) {
+					total += bien.MontoBruto
+				}
+			case "P2":
+				if data.Cuenta.P1Validez.Valid && data.Cuenta.P2Validez.Valid &&
+				!bien.Emitido.Time.Before(data.Cuenta.P1Validez.Time) &&
+				bien.Emitido.Time.Before(data.Cuenta.P2Validez.Time) {
+					total += bien.MontoBruto
+				}
 			}
 		}
 	}
@@ -332,33 +288,65 @@ func calcularBienes(data *Data, validez sql.NullTime) float64 {
 	return total
 }
 
-func calcularAjustes(data *Data, validez sql.NullTime) float64 {
-	var total float64
+func calcularAjustes(data *Data, periodo string) float64 {
+	var total float64 = 0.00
+
 	for _, ajuste := range data.Ajustes {
-		if ajuste.Emitido.Valid && validez.Valid && ajuste.Emitido.Time.Before(validez.Time) {
-			total += ajuste.MontoBruto
+		if ajuste.Emitido.Valid {
+			switch periodo {
+			case "P1":
+				if data.Cuenta.P1Validez.Valid && ajuste.Emitido.Time.Before(data.Cuenta.P1Validez.Time) {
+					total += ajuste.MontoBruto
+				}
+			case "P2":
+				if data.Cuenta.P1Validez.Valid && data.Cuenta.P2Validez.Valid &&
+					!ajuste.Emitido.Time.Before(data.Cuenta.P1Validez.Time) &&
+					ajuste.Emitido.Time.Before(data.Cuenta.P2Validez.Time) {
+					total += ajuste.MontoBruto
+				}
+			}
 		}
 	}
+
 	return total
 }
 
-func calcularDonaciones(data *Data, validez sql.NullTime) float64 {
-	var total float64
+func calcularDonaciones(data *Data, periodo string) float64 {
+	var total float64 = 0.00
+
 	for _, donacion := range data.Donaciones {
-		if donacion.Emitido.Valid && validez.Valid && donacion.Emitido.Time.Before(validez.Time) {
-			total += donacion.MontoBruto
+		if donacion.Emitido.Valid {
+			switch periodo {
+			case "P1":
+				if data.Cuenta.P1Validez.Valid && donacion.Emitido.Time.Before(data.Cuenta.P1Validez.Time) {
+					if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
+						total += donacion.MontoBruto
+					} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
+						total -= donacion.MontoBruto
+					}
+				}
+			case "P2":
+				if data.Cuenta.P1Validez.Valid && data.Cuenta.P2Validez.Valid &&
+					!donacion.Emitido.Time.Before(data.Cuenta.P1Validez.Time) &&
+					donacion.Emitido.Time.Before(data.Cuenta.P2Validez.Time) {
+					if donacion.IDCuentaEntrada == data.Cuenta.IDCuenta {
+						total += donacion.MontoBruto
+					} else if donacion.IDCuentaSalida == data.Cuenta.IDCuenta {
+						total -= donacion.MontoBruto
+					}
+				}
+			}
 		}
 	}
+
 	return total
 }
 
-func calcularTotal(data *Data, validez sql.NullTime) float64 {
-	totalServicios := calcularServicios(data, validez)
-	totalBienes := calcularBienes(data, validez)
-	totalSuministros := calcularSuministros(data, validez)
-	totalAjustes := calcularAjustes(data, validez)
-	totalDonaciones := calcularDonaciones(data, validez)
-	return totalServicios + totalBienes + totalSuministros + totalAjustes + totalDonaciones
+func isBefore(a, b sql.NullTime) bool {
+	if !a.Valid || !b.Valid {
+		return false
+	}
+	return a.Time.Before(b.Time)
 }
 
 func Scan(rows *sql.Rows, dest interface{}) error {

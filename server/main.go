@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"database/sql"
-	// "encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -14,33 +13,24 @@ import (
 	"syscall"
 	"time"
 
-	_ "github.com/lib/pq"
 	"github.com/tavo-wasd-gh/gocors"
-	"github.com/tavo-wasd-gh/gosmtp"
+	// "github.com/tavo-wasd-gh/gosmtp"
 )
 
 func main() {
-	var err error
-
 	var (
 		port   = os.Getenv("PORT")
-		db_uri = os.Getenv("DB_URI")
+		// db_uri = os.Getenv("DB_URI")
 	)
 
-	if port == "" || db_uri == "" {
+	if port == "" {
 		log.Fatalf("Fatal: Missing env variables")
 	}
 
-	db, err = sql.Open("postgres", db_uri)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+	if err := initializeDB(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
-
-	log.Println("Established database connection")
-
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
-	}
+	defer db.Close()
 
 	http.HandleFunc("/api/dashboard", handleDashboard)
 	http.Handle("/", http.FileServer(http.Dir("public")))
@@ -56,13 +46,6 @@ func main() {
 	}()
 
 	<-stop
-
-	if db != nil {
-		log.Println("Closing db connection...")
-		if err := db.Close(); err != nil {
-			log.Fatalf("Fatal: Failed to close db connection: %v", err)
-		}
-	}
 
 	log.Println("Log: Shutting down...")
 }
@@ -84,7 +67,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 		correo := r.FormValue("correo")
-		passwd := r.FormValue("passwd")
+		// passwd := r.FormValue("passwd")
 		cuenta_pedida := r.FormValue("id_cuenta")
 
 		cuentas, err := cuentasAcreditadas(correo)
@@ -93,11 +76,11 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
-		if err := s.Validate(correo); err != nil {
-			http.Error(w, "Failed to validate email", http.StatusUnauthorized)
-			return
-		}
+		// s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
+		// if err := s.Validate(correo); err != nil {
+		// 	http.Error(w, "Failed to validate email", http.StatusUnauthorized)
+		// 	return
+		// }
 
 		if cuenta_pedida != "" {
 			for _, cuenta := range cuentas {
@@ -182,22 +165,24 @@ func view(w http.ResponseWriter, path string, data *Data) error {
 			}
 			return "₡" + result.String() + "," + decPart
 		},
-		"calcularEmitido": func(tipo string) float64 {
-			emitido, err := calcularEmitido(data, tipo)
-			if err != nil {
-				return 0
-			}
-			return emitido
-		},
-		"calcularRestante": func(tipo string) float64 {
-			restante, err := calcularRestante(data, tipo)
+		"calcularEmitido": func(tipo, periodo string) float64 {
+			restante, err := calcularEmitido(data, tipo, periodo)
 			if err != nil {
 				return 0
 			}
 			return restante
 		},
+		"calcularPeriodo": func(a, b sql.NullTime) bool {
+			return isBefore(a, b)
+		},
 		"eq": func(a, b string) bool {
 			return a == b
+		},
+		"sub": func(a, b float64) float64 {
+			return a - b
+		},
+		"sum": func(a, b float64) float64 {
+			return a + b
 		},
 	}
 
