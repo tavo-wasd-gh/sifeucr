@@ -32,8 +32,6 @@
 }
 
 @media (max-width: 1000px) {
-  :root {
-  }
   .sidebar span {
     opacity: 0;
   }
@@ -46,8 +44,6 @@
 }
 
 @media (max-width: 800px) {
-  :root {
-  }
   .toc {
     display:none;
   }
@@ -307,7 +303,7 @@ a i {
 .scrollable .item {
   padding: 0 0.5em;
   margin: 0 1em 0 0;
-  min-width: 16em;
+  min-width: 17em;
   width: 25em;
   max-width: 80vw;
   min-height: 8em;
@@ -345,7 +341,6 @@ a i {
 .card-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 1em;
   padding: 0 0.6em;
 }
 
@@ -358,11 +353,10 @@ a i {
   font-size: 0.95em;
   color: var(--color-font-unemph);
   font-family: monospace;
-  margin-top: 0.8em;
 }
 
 .card-item {
-  margin-bottom: 1em;
+  margin: 0.7em 0;
   border: 1px solid #ffffff00;
   border-radius: 1em;
   padding: 0.5em 0.6em;
@@ -381,6 +375,7 @@ a i {
   height: 0.4em;
   position: relative;
   overflow: hidden;
+  margin: 0.2em 0;
 }
 
 .progress-bar .progress {
@@ -399,9 +394,9 @@ a i {
   font-size: 0.9em;
   color: var(--color-font-unemph);
   display: block;
-  margin-top: -1.6em;
-  text-align: right;
   font-family: monospace;
+  text-align: right;
+  margin-top: 0.6em;
 }
 
 hr {
