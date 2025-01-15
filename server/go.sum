@@ -4,3 +4,5 @@ github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwp
 github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f h1:TRo0mMnyLOe+ma+LyRPWDG0axS18slX1PJJxJd7AhIA=
 github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f/go.mod h1:ogUQlsR8n+vKvdDoPo/fn9YyspzavlfFiZtjOkc/cdQ=
+github.com/tavo-wasd-gh/gosmtp v1.0.1 h1:xCaflluNezFhlLA5KIwZHgtuCroBvzuJwXRBtGXoSNE=
+github.com/tavo-wasd-gh/gosmtp v1.0.1/go.mod h1:9aV/T1fOgeRHQrH0inf+WALQv+hmZgC2bBx1r63XTAc=

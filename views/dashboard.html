@@ -15,7 +15,7 @@
     <div class="item">
       <div class="card">
         <div class="card-header">
-          <span class="card-title">{{.Periodo}}</span>
+          <span class="card-title">{{.PeriodoActual}}</span>
         </div>
 	<br>
 	<hr>
@@ -34,7 +34,7 @@
     <div class="item">
       <div class="card">
         <div class="card-header">
-          <span class="card-title">{{.Periodo}}-1</span>
+          <span class="card-title">{{.PeriodoActual}}-1</span>
         </div>
         <div class="card-header">
           <span class="card-subtitle">{{currency (sub .Cuenta.P1Total (calcularEmitido "Total" "P1"))}} / {{currency .Cuenta.P1Total}}</span>
@@ -71,7 +71,7 @@
     <div class="item">
       <div class="card">
         <div class="card-header">
-          <span class="card-title">{{.Periodo}}-2</span>
+          <span class="card-title">{{.PeriodoActual}}-2</span>
         </div>
         <div class="card-header">
           <span class="card-subtitle">{{currency (sub .Cuenta.P2Total (calcularEmitido "Total" "P2"))}} / {{currency .Cuenta.P2Total}}</span>
@@ -226,13 +226,13 @@
                 {{if eq .PartidaEntrada "servicios"}}Servicios{{end}}
                 {{if eq .PartidaEntrada "suministros"}}Suministros{{end}}
                 {{if eq .PartidaEntrada "bienes"}}Bienes{{end}}
-                {{if eq .PartidaEntrada "Donation In A2"}}Bienes{{end}}<!-- TESTING -->
+                {{if eq .PartidaEntrada "general"}}General{{end}}
               {{end}}
               {{if eq .IDCuentaSalida $parentIDCuenta}}
                 {{if eq .PartidaSalida "servicios"}}Servicios{{end}}
                 {{if eq .PartidaSalida "suministros"}}Suministros{{end}}
                 {{if eq .PartidaSalida "bienes"}}Bienes{{end}}
-                {{if eq .PartidaSalida "Donation Out A1"}}Bienes{{end}}<!-- TESTING -->
+                {{if eq .PartidaSalida "general"}}General{{end}}
               {{end}}
               / {{if eq .IDCuentaSalida $parentIDCuenta}}-{{else}}+{{end}}{{currency .MontoBruto}}
             </span>
@@ -264,7 +264,7 @@
               {{if eq .Partida "servicios"}}Servicios{{end}}
               {{if eq .Partida "suministros"}}Suministros{{end}}
               {{if eq .Partida "bienes"}}Bienes{{end}}
-              {{if eq .Partida "Partida A1"}}Bienes{{end}}<!-- TESTING -->
+              {{if eq .Partida "general"}}General{{end}}
               / {{if gt .MontoBruto 0.00}}+{{end}}{{currency .MontoBruto}}
             </span>
           </div>

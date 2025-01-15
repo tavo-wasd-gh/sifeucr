@@ -30,16 +30,18 @@ func jwtSet(w http.ResponseWriter, name, id_cuenta string, expires time.Time) er
 	}
 
 	http.SetCookie(w, &http.Cookie{
+		SameSite: http.SameSiteStrictMode,
+		HttpOnly: true,
+		Secure:   ProductionEnvironment,
 		Name:     name,
 		Value:    token,
 		Expires:  expires,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
 	})
 
 	return nil
 }
 
+// jwtValidate(r, "jwt_token")
 func jwtValidate(r *http.Request, name string) (string, error) {
 	cookie, err := r.Cookie(name)
 	if err != nil {

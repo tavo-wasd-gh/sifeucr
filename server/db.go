@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"reflect"
 	"time"
+	"reflect"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -15,25 +15,7 @@ type CuentasAcreditadas struct {
 	IDCuenta string
 }
 
-func initializeDB() error {
-	var err error
-	db, err = sql.Open("sqlite3", "./db.db")
-	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	if err := db.Ping(); err != nil {
-		return fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	return nil
-}
-
 func fillData(data *Data, id_cuenta string) error {
-	var (
-		suministros []Suministros
-	)
-
 	rows, err := db.Query(`SELECT * FROM cuentas WHERE id_cuenta = $1`, id_cuenta)
 	if err != nil {
 		return err
@@ -65,57 +47,37 @@ func fillData(data *Data, id_cuenta string) error {
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var suministro Suministros
-		err := rows.Scan(
-			&suministro.IDSuministros,
-			&suministro.Emitido,
-			&suministro.IDCuenta,
-			&suministro.JustifSum,
-			&suministro.COES,
-			&suministro.Geco,
-			&suministro.Notas,
-		)
-		if err != nil {
-			return err
-		}
+	var suministros []Suministros
 
+	err = Scan(rows, &suministros)
+	if err != nil {
+		return err
+	}
+
+	for i := range suministros {
 		desgloseQuery := `SELECT * FROM suministros_desglose WHERE id_suministros = $1`
-		desgloseRows, err := db.Query(desgloseQuery, suministro.IDSuministros)
+		desgloseRows, err := db.Query(desgloseQuery, suministros[i].IDSuministros)
 		if err != nil {
 			return err
 		}
 		defer desgloseRows.Close()
 
 		var desglose []SuministrosDesglose
-		var montoBrutoTotal float64
-		for desgloseRows.Next() {
-			var item SuministrosDesglose
-			err := desgloseRows.Scan(
-				&item.ID,
-				&item.IDSuministros,
-				&item.IDItem,
-				&item.Nombre,
-				&item.Cantidad,
-				&item.MontoBrutoUnidad,
-			)
-			if err != nil {
-				return err
-			}
-			desglose = append(desglose, item)
-			montoBrutoTotal += item.MontoBrutoUnidad * float64(item.Cantidad)
-		}
-		if err := desgloseRows.Err(); err != nil {
+		err = Scan(desgloseRows, &desglose)
+		if err != nil {
 			return err
 		}
 
-		suministro.Desglose = desglose
-		suministro.MontoBrutoTotal = montoBrutoTotal
-		suministros = append(suministros, suministro)
-	}
+		montoBrutoTotal := func(desglose []SuministrosDesglose) float64 {
+			var total float64
+			for _, item := range desglose {
+				total += item.MontoBrutoUnidad * float64(item.Cantidad)
+			}
+			return total
+			}(desglose)
 
-	if err := rows.Err(); err != nil {
-		return err
+		suministros[i].Desglose = desglose
+		suministros[i].MontoBrutoTotal = montoBrutoTotal
 	}
 
 	rows, err = db.Query(`SELECT * FROM bienes WHERE id_cuenta = $1`, id_cuenta)
@@ -163,13 +125,13 @@ func fillData(data *Data, id_cuenta string) error {
 	}
 
 	*data = Data{
-		Cuenta:      cuenta,
-		Periodo:     time.Now().Year(), // TODO: is this not necessary?
-		Servicios:   servicios,
-		Suministros: suministros,
-		Bienes:      bienes,
-		Ajustes:     ajustes,
-		Donaciones:  donaciones,
+		PeriodoActual: time.Now().Year(),
+		Cuenta:        cuenta,
+		Servicios:     servicios,
+		Suministros:   suministros,
+		Bienes:        bienes,
+		Ajustes:       ajustes,
+		Donaciones:    donaciones,
 	}
 
 	return nil
@@ -340,13 +302,6 @@ func calcularDonaciones(data *Data, periodo string) float64 {
 	}
 
 	return total
-}
-
-func isBefore(a, b sql.NullTime) bool {
-	if !a.Valid || !b.Valid {
-		return false
-	}
-	return a.Time.Before(b.Time)
 }
 
 func Scan(rows *sql.Rows, dest interface{}) error {

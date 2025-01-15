@@ -14,23 +14,31 @@ import (
 	"time"
 
 	"github.com/tavo-wasd-gh/gocors"
-	// "github.com/tavo-wasd-gh/gosmtp"
+	"github.com/tavo-wasd-gh/gosmtp"
 )
+
+var ProductionEnvironment bool = os.Getenv("ENVIRONMENT") == "production"
 
 func main() {
 	var (
-		port   = os.Getenv("PORT")
-		// db_uri = os.Getenv("DB_URI")
+		port = os.Getenv("PORT")
+		db_path = os.Getenv("DB_PATH")
+		err error
 	)
 
 	if port == "" {
 		log.Fatalf("Fatal: Missing env variables")
 	}
 
-	if err := initializeDB(); err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	db, err = sql.Open("sqlite3", db_path)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
 
 	http.HandleFunc("/api/dashboard", handleDashboard)
 	http.Handle("/", http.FileServer(http.Dir("public")))
@@ -58,7 +66,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	var id_cuenta string
 	var err error
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(300 * time.Millisecond)
 
 	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
@@ -67,7 +75,7 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 		correo := r.FormValue("correo")
-		// passwd := r.FormValue("passwd")
+		passwd := r.FormValue("passwd")
 		cuenta_pedida := r.FormValue("id_cuenta")
 
 		cuentas, err := cuentasAcreditadas(correo)
@@ -76,11 +84,13 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
-		// if err := s.Validate(correo); err != nil {
-		// 	http.Error(w, "Failed to validate email", http.StatusUnauthorized)
-		// 	return
-		// }
+		if ProductionEnvironment {
+			s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
+			if err := s.Validate(correo); err != nil {
+				http.Error(w, "Failed to validate email", http.StatusUnauthorized)
+				return
+			}
+		}
 
 		if cuenta_pedida != "" {
 			for _, cuenta := range cuentas {
@@ -173,7 +183,10 @@ func view(w http.ResponseWriter, path string, data *Data) error {
 			return restante
 		},
 		"calcularPeriodo": func(a, b sql.NullTime) bool {
-			return isBefore(a, b)
+			if !a.Valid || !b.Valid {
+				return false
+			}
+			return a.Time.Before(b.Time)
 		},
 		"eq": func(a, b string) bool {
 			return a == b
