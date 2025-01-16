@@ -2,12 +2,12 @@ package views
 
 import (
 	"fmt"
-	"database/sql"
+        "time"
 	"html/template"
 	"strings"
 )
 
-func Init(templatePaths map[string]string) (map[string]*template.Template, error) {
+func Init(viewMap map[string]string) (map[string]*template.Template, error) {
 	funcMap := template.FuncMap{
 		"frac": func(a, b float64) float64 {
 			if b == 0 {
@@ -44,25 +44,118 @@ func Init(templatePaths map[string]string) (map[string]*template.Template, error
 			}
 			return "₡" + result.String() + "," + decPart
 		},
-		"calcularPeriodo": func(a, b sql.NullTime) bool {
-			if !a.Valid || !b.Valid {
+                "eq": func(a, b interface{}) bool {
+			switch a := a.(type) {
+			case time.Time:
+				b, ok := b.(time.Time)
+				if !ok {
+					return false
+				}
+				return a.Equal(b)
+			case float64:
+				b, ok := b.(float64)
+				if !ok {
+					return false
+				}
+				return a == b
+			case int:
+				b, ok := b.(int)
+				if !ok {
+					return false
+				}
+				return a == b
+			default:
 				return false
 			}
-			return a.Time.Before(b.Time)
 		},
-		"eq": func(a, b string) bool {
-			return a == b
+		"gt": func(a, b interface{}) bool {
+			switch a := a.(type) {
+			case time.Time:
+				b, ok := b.(time.Time)
+				if !ok {
+					return false
+				}
+				return a.After(b)
+			case float64:
+				b, ok := b.(float64)
+				if !ok {
+					return false
+				}
+				return a > b
+			case int:
+				b, ok := b.(int)
+				if !ok {
+					return false
+				}
+				return a > b
+			default:
+				return false
+			}
 		},
-		"sub": func(a, b float64) float64 {
-			return a - b
+		"lt": func(a, b interface{}) bool {
+			switch a := a.(type) {
+			case time.Time:
+				b, ok := b.(time.Time)
+				if !ok {
+					return false
+				}
+				return a.Before(b)
+			case float64:
+				b, ok := b.(float64)
+				if !ok {
+					return false
+				}
+				return a < b
+			case int:
+				b, ok := b.(int)
+				if !ok {
+					return false
+				}
+				return a < b
+			default:
+				return false
+			}
 		},
-		"sum": func(a, b float64) float64 {
-			return a + b
+		"sub": func(a, b interface{}) float64 {
+			switch a := a.(type) {
+			case float64:
+				b, ok := b.(float64)
+				if !ok {
+					return 0
+				}
+				return a - b
+			case int:
+				b, ok := b.(int)
+				if !ok {
+					return 0
+				}
+				return float64(a - b)
+			default:
+				return 0
+			}
+		},
+		"sum": func(a, b interface{}) float64 {
+			switch a := a.(type) {
+			case float64:
+				b, ok := b.(float64)
+				if !ok {
+					return 0
+				}
+				return a + b
+			case int:
+				b, ok := b.(int)
+				if !ok {
+					return 0
+				}
+				return float64(a + b)
+			default:
+				return 0
+			}
 		},
 	}
 
 	views := make(map[string]*template.Template)
-	for name, path := range templatePaths {
+	for name, path := range viewMap {
 		tmpl, err := template.New(name).Funcs(funcMap).ParseFiles(path)
 		if err != nil {
 			return nil, err
