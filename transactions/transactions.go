@@ -46,7 +46,7 @@ type Presupuesto struct {
 	//  -> Emitido
 	TotalEmitido       float64
 	ServiciosEmitido   float64
-	SuministrosEmitido float64 
+	SuministrosEmitido float64
 	BienesEmitido      float64
 	//  -> Restante
 	TotalRestante       float64
@@ -62,12 +62,12 @@ func Login(db *sql.DB, usuarioInit, cuentaInit string) (*Usuario, error) {
 	u.Cuenta.ID = cuentaInit
 
 	usuario := db.QueryRow(`SELECT * FROM usuarios WHERE id = ?`, u.ID)
-	if err := gosql.ScanRow(usuario, u) ; err != nil {
+	if err := gosql.ScanRow(usuario, u); err != nil {
 		return nil, err
 	}
 
 	cuenta := db.QueryRow(`SELECT * FROM cuentas WHERE id = ?`, u.Cuenta.ID)
-	if err := gosql.ScanRow(cuenta, u.Cuenta) ; err != nil {
+	if err := gosql.ScanRow(cuenta, u.Cuenta); err != nil {
 		return nil, err
 	}
 

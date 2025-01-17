@@ -7,15 +7,15 @@ import (
 type ServicioMovimiento struct {
 	Movimiento int
 	Cuenta     string
-	Monto float64
-	Firma string
+	Monto      float64
+	Firma      string
 }
 
 type Servicio struct {
 	ID int
 	// Solicitud
 	Emitido     sql.NullTime
-	Emisor     string
+	Emisor      string
 	Detalle     string
 	PorEjecutar sql.NullTime
 	Justif      string
@@ -27,6 +27,8 @@ type Servicio struct {
 	ProvDirec  string
 	ProvEmail  string
 	ProvTel    string
+	ProvBanco  string
+	ProvIBAN   string
 	ProvJustif string
 	MontoBruto float64
 	MontoIVA   float64
