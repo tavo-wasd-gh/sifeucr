@@ -2,20 +2,20 @@ package views
 
 import (
 	"fmt"
-	"time"
 	"html/template"
 	"strings"
+	"time"
 )
 
 func Init(viewMap map[string]string) (map[string]*template.Template, error) {
 	funcMap := template.FuncMap{
-		"frac": frac,
+		"frac":     frac,
 		"currency": currency,
-		"eq": eq,
-		"gt": gt,
-		"lt": lt,
-		"sub": sub,
-		"sum": sum,
+		"eq":       eq,
+		"gt":       gt,
+		"lt":       lt,
+		"sub":      sub,
+		"sum":      sum,
 	}
 
 	views := make(map[string]*template.Template)

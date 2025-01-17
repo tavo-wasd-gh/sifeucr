@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
-	"database/sql"
 
 	"github.com/tavo-wasd-gh/gosmtp"
 )

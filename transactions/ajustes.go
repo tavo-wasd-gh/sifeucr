@@ -5,9 +5,9 @@ import (
 )
 
 type Ajuste struct {
-	ID  int
+	ID         int
 	Emitido    sql.NullTime
-	Cuenta   string
+	Cuenta     string
 	Partida    string
 	Detalle    string
 	MontoBruto float64

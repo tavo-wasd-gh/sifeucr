@@ -5,16 +5,16 @@ import (
 )
 
 type Bien struct {
-	ID   int
+	ID int
 	// Solicitud
 	Emitido    sql.NullTime
-	Cuenta   string
+	Cuenta     string
 	Detalle    string
 	PorRecibir sql.NullTime
 	JustifBien string
-	Firma string
+	Firma      string
 	// COES
-	COES       bool
+	COES bool
 	// OSUM
 	ProvNom    string
 	ProvCed    string
@@ -28,8 +28,8 @@ type Bien struct {
 	GecoSol    string
 	GecoOC     string
 	// Final
-	Recibido   sql.NullTime
-	Notas      string
+	Recibido sql.NullTime
+	Notas    string
 	// ProvBanco  string
 	// ProvIBAN   string
 }

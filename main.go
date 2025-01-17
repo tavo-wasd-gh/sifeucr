@@ -1,16 +1,17 @@
 package main
 
 import (
-	"log"
 	"database/sql"
-	"net/http"
 	"html/template"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/tavo-wasd-gh/sifeucr/db"
 	"github.com/tavo-wasd-gh/sifeucr/views"
+	// "github.com/tavo-wasd-gh/sifeucr/transactions"
 	"github.com/tavo-wasd-gh/gocors"
 )
 
@@ -33,7 +34,7 @@ func main() {
 	}
 
 	viewsMap := map[string]string{
-		"Login":    "views/login.html",
+		"Login":     "views/login.html",
 		"Dashboard": "views/dashboard.html",
 	}
 
