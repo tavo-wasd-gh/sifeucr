@@ -77,6 +77,8 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
+
+	// u, err := transactions.Login(app.DB, "user", "account")
 }
 
 func (app *App) Render(w http.ResponseWriter, name string, data interface{}) {

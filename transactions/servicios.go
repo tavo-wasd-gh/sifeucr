@@ -4,15 +4,21 @@ import (
 	"database/sql"
 )
 
+type ServicioMovimiento struct {
+	Movimiento int
+	Cuenta     string
+	Monto float64
+	Firma string
+}
+
 type Servicio struct {
 	ID int
 	// Solicitud
 	Emitido     sql.NullTime
-	Cuenta      string
+	Emisor     string
 	Detalle     string
 	PorEjecutar sql.NullTime
 	Justif      string
-	Firma       string
 	// COES
 	COES bool
 	// OSUM

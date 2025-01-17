@@ -24,9 +24,9 @@ type Suministros struct {
 
 type Suministro struct {
 	ID            int
+	Nombre        string
 	Articulo      string
 	Agrupacion    string
 	Cantidad      float64
 	MontoUnitario float64
-	MontoTotal    float64
 }

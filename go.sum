@@ -6,3 +6,5 @@ github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f h1:TRo0mMnyLOe
 github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f/go.mod h1:ogUQlsR8n+vKvdDoPo/fn9YyspzavlfFiZtjOkc/cdQ=
 github.com/tavo-wasd-gh/gosmtp v1.0.1 h1:xCaflluNezFhlLA5KIwZHgtuCroBvzuJwXRBtGXoSNE=
 github.com/tavo-wasd-gh/gosmtp v1.0.1/go.mod h1:9aV/T1fOgeRHQrH0inf+WALQv+hmZgC2bBx1r63XTAc=
+github.com/tavo-wasd-gh/gosql v0.0.0-20250117143630-c7f6ff8090ae h1:ZUjME1Gtf/1Hge0OgRty1llefbrPR0bQX2ZtbaSKfxg=
+github.com/tavo-wasd-gh/gosql v0.0.0-20250117143630-c7f6ff8090ae/go.mod h1:591KRcLuSmsPiSVUdmdz1Zbn8Ne04+kXy7PzGB+IkKk=
