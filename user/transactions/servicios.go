@@ -4,21 +4,21 @@ import (
 	"database/sql"
 )
 
-type BienMovimiento struct {
+type ServicioMovimiento struct {
 	Movimiento int
 	Cuenta     string
 	Monto      float64
 	Firma      string
 }
 
-type Bien struct {
+type Servicio struct {
 	ID int
 	// Solicitud
-	Emitido    sql.NullTime
-	Emisor     string
-	Detalle    string
-	PorRecibir sql.NullTime
-	Justif     string
+	Emitido     sql.NullTime
+	Emisor      string
+	Detalle     string
+	PorEjecutar sql.NullTime
+	Justif      string
 	// COES
 	COES bool
 	// OSUM
@@ -34,10 +34,9 @@ type Bien struct {
 	MontoIVA   float64
 	MontoDesc  float64
 	GecoSol    string
-	GecoOC     string
+	GecoOCS    string
 	// Final
-	Recibido sql.NullTime
-	Notas    string
-	// ProvBanco  string
-	// ProvIBAN   string
+	Ejecutado sql.NullTime
+	Pagado    sql.NullTime
+	Notas     string
 }

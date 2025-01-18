@@ -1,4 +1,4 @@
-package transactions
+package user
 
 import (
 	"database/sql"
@@ -11,48 +11,6 @@ type Usuario struct {
 	ID     string `db:"id"`
 	Nombre string `db:"nombre"`
 	Cuenta Cuenta
-}
-
-type Cuenta struct {
-	ID          string `db:"id"`
-	Nombre      string `db:"nombre"`
-	Presidencia string `db:"presidencia"`
-	Tesoreria   string `db:"tesoreria"`
-	PGID        string `db:"pg"`
-	P1ID        string `db:"p1"`
-	P2ID        string `db:"p2"`
-	PG          Presupuesto
-	P1          Presupuesto
-	P2          Presupuesto
-	TEEU        bool `db:"teeu"`
-	COES        bool `db:"coes"`
-	Periodo     int
-	Servicios   []Servicio
-	Suministros []Suministros
-	Bienes      []Bien
-	Ajustes     []Ajuste
-	Donaciones  []Donacion
-}
-
-type Presupuesto struct {
-	ID      string       `db:"id"`
-	Validez sql.NullTime `db:"validez"`
-	// Asignado
-	Total       float64 `db:"general"`
-	Servicios   float64 `db:"servicios"`
-	Suministros float64 `db:"suministros"`
-	Bienes      float64 `db:"bienes"`
-	// Runtime:
-	//  -> Emitido
-	TotalEmitido       float64
-	ServiciosEmitido   float64
-	SuministrosEmitido float64
-	BienesEmitido      float64
-	//  -> Restante
-	TotalRestante       float64
-	ServiciosRestante   float64
-	SuministrosRestante float64
-	BienesRestante      float64
 }
 
 func Login(db *sql.DB, usuarioInit, cuentaInit string) (*Usuario, error) {
