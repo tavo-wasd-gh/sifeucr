@@ -1,4 +1,4 @@
-package user
+package session
 
 import (
 	tr "github.com/tavo-wasd-gh/sifeucr/user/transactions"

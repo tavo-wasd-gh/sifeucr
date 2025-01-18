@@ -1,24 +1,24 @@
-package transactions
+package session
 
 import (
 	"database/sql"
 )
 
-type ServicioMovimiento struct {
+type BienMovimiento struct {
 	Movimiento int
 	Cuenta     string
 	Monto      float64
 	Firma      string
 }
 
-type Servicio struct {
+type Bien struct {
 	ID int
 	// Solicitud
-	Emitido     sql.NullTime
-	Emisor      string
-	Detalle     string
-	PorEjecutar sql.NullTime
-	Justif      string
+	Emitido    sql.NullTime
+	Emisor     string
+	Detalle    string
+	PorRecibir sql.NullTime
+	Justif     string
 	// COES
 	COES bool
 	// OSUM
@@ -34,9 +34,8 @@ type Servicio struct {
 	MontoIVA   float64
 	MontoDesc  float64
 	GecoSol    string
-	GecoOCS    string
+	GecoOC     string
 	// Final
-	Ejecutado sql.NullTime
-	Pagado    sql.NullTime
-	Notas     string
+	Recibido sql.NullTime
+	Notas    string
 }

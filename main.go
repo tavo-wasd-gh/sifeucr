@@ -11,7 +11,7 @@ import (
 
 	"github.com/tavo-wasd-gh/sifeucr/db"
 	"github.com/tavo-wasd-gh/sifeucr/views"
-	// "github.com/tavo-wasd-gh/sifeucr/transactions"
+	// "github.com/tavo-wasd-gh/sifeucr/session"
 	"github.com/tavo-wasd-gh/gocors"
 )
 
@@ -78,7 +78,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// u, err := transactions.Login(app.DB, "user", "account")
+	// u, err := session.Login(app.DB, "user", "account")
 }
 
 func (app *App) Render(w http.ResponseWriter, name string, data interface{}) {
