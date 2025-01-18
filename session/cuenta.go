@@ -1,11 +1,8 @@
 package session
 
-import (
-	tr "github.com/tavo-wasd-gh/sifeucr/user/transactions"
-)
-
 type Cuenta struct {
 	ID          string `db:"id"`
+	Privilegio  string `db:"privilegio"`
 	Nombre      string `db:"nombre"`
 	Presidencia string `db:"presidencia"`
 	Tesoreria   string `db:"tesoreria"`
@@ -18,9 +15,9 @@ type Cuenta struct {
 	TEEU        bool `db:"teeu"`
 	COES        bool `db:"coes"`
 	Periodo     int
-	Servicios   []tr.Servicio
-	Suministros []tr.Suministros
-	Bienes      []tr.Bien
-	Donaciones  []tr.Donacion
-	Ajustes     []tr.Ajuste
+	Servicios   []Servicio
+	Suministros []Suministros
+	Bienes      []Bien
+	Donaciones  []Donacion
+	Ajustes     []Ajuste
 }

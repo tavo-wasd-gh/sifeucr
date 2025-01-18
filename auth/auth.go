@@ -8,13 +8,13 @@ import (
 	"github.com/tavo-wasd-gh/gosmtp"
 )
 
-type User struct {
+type Auth struct {
 	email string
 	passw string
 	asked string
 }
 
-func (u *User) Validate(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
+func (a *Auth) Validate(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 	return nil
 }
 
@@ -59,7 +59,7 @@ func validateUser(db *sql.DB, email, passwd string, asked ...string) (string, er
 
 	s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
 	if err := s.Validate(email); err != nil {
-		return err
+		return "", err
 	}
 
 	if len(asked) > 0 && asked[0] != "" {

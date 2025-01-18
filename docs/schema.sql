@@ -5,6 +5,7 @@ CREATE TABLE usuarios (
 
 CREATE TABLE cuentas (
 	id varchar(20) NOT NULL PRIMARY KEY,
+	privilegio integer NOT NULL,
 	nombre varchar(120) NOT NULL,
 	presidencia varchar(80),
 	tesoreria varchar(80),

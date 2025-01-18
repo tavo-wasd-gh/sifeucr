@@ -7,6 +7,66 @@ import (
 	"github.com/tavo-wasd-gh/gosql"
 )
 
+// Privilege uint64
+const (
+	// Usuario
+	UsuarioCreate = 1 << iota
+	UsuarioDelete
+	UsuarioReadOwn
+	UsuarioWriteOwn
+	UsuarioReadOther
+	UsuarioWriteOther
+	// Cuenta
+	CuentaCreate
+	CuentaDelete
+	CuentaReadOwn
+	CuentaWriteOwn
+	CuentaReadOther
+	CuentaWriteOther
+	// Presupuesto
+	PresupuestoCreate
+	PresupuestoDelete
+	PresupuestoReadOwn
+	PresupuestoWriteOwn
+	PresupuestoReadOther
+	PresupuestoWriteOther
+	// Servicio
+	ServicioCreate
+	ServicioDelete
+	ServicioReadOwn
+	ServicioWriteOwn
+	ServicioReadOther
+	ServicioWriteOther
+	// Suministros
+	SuministrosCreate
+	SuministrosDelete
+	SuministrosReadOwn
+	SuministrosWriteOwn
+	SuministrosReadOther
+	SuministrosWriteOther
+	// Bien
+	BienCreate
+	BienDelete
+	BienReadOwn
+	BienWriteOwn
+	BienReadOther
+	BienWriteOther
+	// Ajuste
+	AjusteCreate
+	AjusteDelete
+	AjusteReadOwn
+	AjusteWriteOwn
+	AjusteReadOther
+	AjusteWriteOther
+	// Donacion
+	DonacionCreate
+	DonacionDelete
+	DonacionReadOwn
+	DonacionWriteOwn
+	DonacionReadOther
+	DonacionWriteOther
+)
+
 type Usuario struct {
 	ID     string `db:"id"`
 	Nombre string `db:"nombre"`
