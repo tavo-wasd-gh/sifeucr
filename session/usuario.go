@@ -74,18 +74,26 @@ type Usuario struct {
 }
 
 func Login(db *sql.DB, usuarioInit, cuentaInit string) (*Usuario, error) {
+	const Privilege = UsuarioReadOwn | CuentaReadOwn | PresupuestoReadOwn |
+		ServicioReadOwn | SuministrosReadOwn |
+		AjusteReadOwn | DonacionReadOwn
+
 	var u Usuario
 
 	u.ID = usuarioInit
 	u.Cuenta.ID = cuentaInit
 
-	usuario := db.QueryRow(`SELECT * FROM usuarios WHERE id = ?`, u.ID)
-	if err := gosql.ScanRow(usuario, u); err != nil {
+	cuenta := db.QueryRow(`SELECT * FROM cuentas WHERE id = ?`, u.Cuenta.ID)
+	if err := gosql.ScanRow(cuenta, u.Cuenta); err != nil {
 		return nil, err
 	}
 
-	cuenta := db.QueryRow(`SELECT * FROM cuentas WHERE id = ?`, u.Cuenta.ID)
-	if err := gosql.ScanRow(cuenta, u.Cuenta); err != nil {
+	if u.Cuenta.Privilegio&Privilege != Privilege {
+		return nil, fmt.Errorf("user privilege %v does not match required privilege", u.Cuenta.Privilegio)
+	}
+
+	usuario := db.QueryRow(`SELECT * FROM usuarios WHERE id = ?`, u.ID)
+	if err := gosql.ScanRow(usuario, u); err != nil {
 		return nil, err
 	}
 

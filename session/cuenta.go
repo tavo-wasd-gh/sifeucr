@@ -2,7 +2,7 @@ package session
 
 type Cuenta struct {
 	ID          string `db:"id"`
-	Privilegio  string `db:"privilegio"`
+	Privilegio  uint64 `db:"privilegio"`
 	Nombre      string `db:"nombre"`
 	Presidencia string `db:"presidencia"`
 	Tesoreria   string `db:"tesoreria"`
