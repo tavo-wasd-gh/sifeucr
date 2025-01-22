@@ -9,20 +9,21 @@ import (
 )
 
 type Claims struct {
-	ID string
+	Usuario string
+	Cuenta string
 	jwt.RegisteredClaims
 }
 
-// jwtSet(w, true, "token", "id", time.Now().Add(15 * time.Minute), []byte("secret"))
-func jwtSet(w http.ResponseWriter, secure bool, name, id_cuenta string, expires time.Time, secret []byte) error {
+func JwtSet(w http.ResponseWriter, secure bool, name, usuario, cuenta string, expires time.Time, secret string) error {
 	claims := &Claims{
-		id_cuenta,
+		usuario,
+		cuenta,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expires),
 		},
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(secret)
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
 	if err != nil {
 		return err
 	}
@@ -39,27 +40,26 @@ func jwtSet(w http.ResponseWriter, secure bool, name, id_cuenta string, expires 
 	return nil
 }
 
-// jwtValidate(r, "token", []byte("secret"))
-func jwtValidate(r *http.Request, name string, secret []byte) (string, error) {
+func JwtValidate(r *http.Request, name string, secret string) (string, string, error) {
 	cookie, err := r.Cookie(name)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	token, err := jwt.ParseWithClaims(cookie.Value, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return secret, nil
+		return []byte(secret), nil
 	})
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims.ID, nil
+		return claims.Usuario, claims.Cuenta, nil
 	}
 
-	return "", fmt.Errorf("invalid token or claims")
+	return "", "", fmt.Errorf("invalid token or claims")
 }

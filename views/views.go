@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"database/sql"
 	"html/template"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ func Init(viewMap map[string]string) (map[string]*template.Template, error) {
 		"lt":       lt,
 		"sub":      sub,
 		"sum":      sum,
+		"datetime": datetime,
 	}
 
 	views := make(map[string]*template.Template)
@@ -180,4 +182,33 @@ func sum(a, b interface{}) float64 {
 	default:
 		return 0
 	}
+}
+
+func datetime(nt sql.NullTime) string {
+	if !nt.Valid {
+		return "N/A"
+	}
+
+	// Map English months and days to their Spanish equivalents
+	months := []string{
+		"", "enero", "febrero", "marzo", "abril", "mayo", "junio",
+		"julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+	}
+	days := []string{
+		"domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado",
+	}
+
+	t := nt.Time
+	dayName := days[t.Weekday()]
+	monthName := months[int(t.Month())]
+
+	// Format the date in Spanish
+	return fmt.Sprintf("%s, %02d de %s de %d, %02d:%02d",
+		dayName,
+		t.Day(),
+		monthName,
+		t.Year(),
+		t.Hour(),
+		t.Minute(),
+	)
 }

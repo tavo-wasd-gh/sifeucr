@@ -1,7 +1,7 @@
 ---
 title: "Mi cuenta"
 toc: false
-layout: cuenta
+layout: dashboard
 ---
 
 # Cuenta

@@ -1,3 +1,4 @@
+{{define "dashboard"}}
 <main>
   <h1>{{.Cuenta.Nombre}}</h1>
   <span>Acreditaciones:</span>
@@ -11,21 +12,26 @@
   </div>
   <br><br><hr>
   <div class="scrollable">
-    {{if .Cuenta.PGeneral}}
+    {{ range .Cuenta.Presupuestos }}
+    {{if .General}}
     <div class="item">
       <div class="card">
         <div class="card-header">
-          <span class="card-title">{{.PeriodoActual}}</span>
+          <span class="card-title">{{.Periodo}}</span>
         </div>
-	<br>
-	<hr>
-        <!-- General -->
+        <br>
+        <hr>
         <div class="card-item">
           <span class="label">General</span>
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (sub .Cuenta.PGeneral (calcularEmitido "General" "")) .Cuenta.PGeneral}}%;"></div>
+            <div class="progress" style="width: 10%;"></div>
           </div>
-          <span class="value">{{currency (sub .Cuenta.PGeneral (calcularEmitido "General" ""))}} / {{currency .Cuenta.PGeneral}}</span>
+          <span class="value">{{currency .General}} / {{currency .General}}</span>
+        </div>
+        <br>
+        <hr>
+        <div class="card-header">
+          <span class="card-subtitle">Válido hasta: {{datetime .Validez}}</span>
         </div>
       </div>
     </div>
@@ -34,76 +40,45 @@
     <div class="item">
       <div class="card">
         <div class="card-header">
-          <span class="card-title">{{.PeriodoActual}}-1</span>
+          <span class="card-title">{{.Periodo}}-{{.Index}}</span>
         </div>
         <div class="card-header">
-          <span class="card-subtitle">{{currency (sub .Cuenta.P1Total (calcularEmitido "Total" "P1"))}} / {{currency .Cuenta.P1Total}}</span>
+          <span class="card-subtitle">{{currency .Total}} / {{currency .Total}}</span>
         </div>
-	<br>
-	<hr>
+        <br>
+        <hr>
         <!-- Servicios -->
         <div class="card-item">
           <span class="label">Servicios</span>
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (sub .Cuenta.P1Servicios (calcularEmitido "Servicios" "P1")) .Cuenta.P1Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac .Servicios .Servicios}}%;"></div>
           </div>
-          <span class="value">{{currency (sub .Cuenta.P1Servicios (calcularEmitido "Servicios" "P1"))}} / {{currency .Cuenta.P1Servicios}}</span>
+          <span class="value">{{currency .Servicios}} / {{currency .Servicios}}</span>
         </div>
         <!-- Suministros -->
         <div class="card-item">
           <span class="label">Suministros</span>
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (sub .Cuenta.P1Suministros (calcularEmitido "Suministros" "P1")) .Cuenta.P1Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac .Suministros .Suministros}}%;"></div>
           </div>
-          <span class="value">{{currency (sub .Cuenta.P1Suministros (calcularEmitido "Suministros" "P1"))}} / {{currency .Cuenta.P1Suministros}}</span>
+          <span class="value">{{currency .Suministros}} / {{currency .Suministros}}</span>
         </div>
         <!-- Bienes -->
         <div class="card-item">
           <span class="label">Bienes</span>
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac (sub .Cuenta.P1Bienes (calcularEmitido "Bienes" "P1")) .Cuenta.P1Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac .Bienes .Bienes}}%;"></div>
           </div>
-          <span class="value">{{currency (sub .Cuenta.P1Bienes (calcularEmitido "Bienes" "P1"))}} / {{currency .Cuenta.P1Bienes}}</span>
+          <span class="value">{{currency .Bienes}} / {{currency .Bienes}}</span>
+        </div>
+        <br>
+        <hr>
+        <div class="card-header">
+          <span class="card-subtitle">Válido hasta: {{datetime .Validez}}</span>
         </div>
       </div>
     </div>
-    <!-- P2 -->
-    <div class="item">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">{{.PeriodoActual}}-2</span>
-        </div>
-        <div class="card-header">
-          <span class="card-subtitle">{{currency (sub .Cuenta.P2Total (calcularEmitido "Total" "P2"))}} / {{currency .Cuenta.P2Total}}</span>
-        </div>
-	<br>
-	<hr>
-        <!-- Servicios -->
-        <div class="card-item">
-          <span class="label">Servicios</span>
-          <div class="progress-bar">
-            <div class="progress" style="width: {{frac (sub .Cuenta.P2Servicios (calcularEmitido "Servicios" "P2")) .Cuenta.P2Servicios}}%;"></div>
-          </div>
-          <span class="value">{{currency (sub .Cuenta.P2Servicios (calcularEmitido "Servicios" "P2"))}} / {{currency .Cuenta.P2Servicios}}</span>
-        </div>
-        <!-- Suministros -->
-        <div class="card-item">
-          <span class="label">Suministros</span>
-          <div class="progress-bar">
-            <div class="progress" style="width: {{frac (sub .Cuenta.P2Suministros (calcularEmitido "Suministros" "P2")) .Cuenta.P2Suministros}}%;"></div>
-          </div>
-          <span class="value">{{currency (sub .Cuenta.P2Suministros (calcularEmitido "Suministros" "P2"))}} / {{currency .Cuenta.P2Suministros}}</span>
-        </div>
-        <!-- Bienes -->
-        <div class="card-item">
-          <span class="label">Bienes</span>
-          <div class="progress-bar">
-            <div class="progress" style="width: {{frac (sub .Cuenta.P2Bienes (calcularEmitido "Bienes" "P2")) .Cuenta.P2Bienes}}%;"></div>
-          </div>
-          <span class="value">{{currency (sub .Cuenta.P2Bienes (calcularEmitido "Bienes" "P2"))}} / {{currency .Cuenta.P2Bienes}}</span>
-        </div>
-      </div>
-    </div>
+    {{end}}
     {{end}}
   </div>
   <div class="scrollable">
@@ -117,8 +92,8 @@
           </a>
         </div>
         <div class="card-items">
-          {{ range .Servicios }}
-	  <br>
+          {{ range .Cuenta.Servicios }}
+          <br>
           <hr>
           <div class="card-item"
             hx-get="/api/servicios/{{.IDServicios}}"
@@ -147,7 +122,7 @@
             <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
           </a>
         </div>
-	<br>
+        <br>
         <div class="card-items">
           {{range .Suministros}}
           <hr>
@@ -176,7 +151,7 @@
             <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
           </a>
         </div>
-	<br>
+        <br>
         <div class="card-items">
           {{range .Bienes}}
           <hr>
@@ -208,11 +183,11 @@
             <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
           </a>
         </div>
-	<br>
+        <br>
         <div class="card-items">
           {{ $parentIDCuenta := .Cuenta.IDCuenta }}
           {{ range .Donaciones }}
-	  <hr>
+          <hr>
           <div class="card-item"
             hx-get="/api/donaciones/{{.IDDonacion}}"
             hx-target="#dialog-content"
@@ -223,16 +198,16 @@
             <span class="label">{{.Detalle}}</span>
             <span class="value">
               {{if eq .IDCuentaEntrada $parentIDCuenta}}
-                {{if eq .PartidaEntrada "servicios"}}Servicios{{end}}
-                {{if eq .PartidaEntrada "suministros"}}Suministros{{end}}
-                {{if eq .PartidaEntrada "bienes"}}Bienes{{end}}
-                {{if eq .PartidaEntrada "general"}}General{{end}}
+              {{if eq .PartidaEntrada "servicios"}}Servicios{{end}}
+              {{if eq .PartidaEntrada "suministros"}}Suministros{{end}}
+              {{if eq .PartidaEntrada "bienes"}}Bienes{{end}}
+              {{if eq .PartidaEntrada "general"}}General{{end}}
               {{end}}
               {{if eq .IDCuentaSalida $parentIDCuenta}}
-                {{if eq .PartidaSalida "servicios"}}Servicios{{end}}
-                {{if eq .PartidaSalida "suministros"}}Suministros{{end}}
-                {{if eq .PartidaSalida "bienes"}}Bienes{{end}}
-                {{if eq .PartidaSalida "general"}}General{{end}}
+              {{if eq .PartidaSalida "servicios"}}Servicios{{end}}
+              {{if eq .PartidaSalida "suministros"}}Suministros{{end}}
+              {{if eq .PartidaSalida "bienes"}}Bienes{{end}}
+              {{if eq .PartidaSalida "general"}}General{{end}}
               {{end}}
               / {{if eq .IDCuentaSalida $parentIDCuenta}}-{{else}}+{{end}}{{currency .MontoBruto}}
             </span>
@@ -250,10 +225,10 @@
             <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
           </a>
         </div>
-	<br>
+        <br>
         <div class="card-items">
           {{range .Ajustes}}
-	  <hr>
+          <hr>
           <div class="card-item"
             hx-get="/api/ajustes/{{.IDAjustes}}"
             hx-target="#dialog-content"
@@ -274,3 +249,4 @@
     </div>
   </div>
 </main>
+{{end}}
