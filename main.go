@@ -167,8 +167,14 @@ func (app *App) ValidateForm(r *http.Request, w http.ResponseWriter) (string, st
 
 	cuentas, err := database.CuentasActivas(app.DB, correo) 
 	if err != nil {
-		http.Error(w, "", http.StatusUnauthorized)
-		return "", "", err
+		err = nil
+
+		correo = correo + "@ucr.ac.cr"
+		cuentas, err = database.CuentasActivas(app.DB, correo)
+		if err != nil {
+			http.Error(w, "", http.StatusUnauthorized)
+			return "", "", err
+		}
 	}
 
 	if len(cuentas) > 1 {
