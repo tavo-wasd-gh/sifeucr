@@ -25,7 +25,7 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 	usuario.Cuenta = cuenta
 
 	if usuario.ID != usuario.Cuenta.Presidencia &&
-	usuario.ID != usuario.Cuenta.Tesoreria {
+		usuario.ID != usuario.Cuenta.Tesoreria {
 		return nil, fmt.Errorf("Login: unauthorized account")
 	}
 

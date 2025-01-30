@@ -10,7 +10,7 @@ import (
 
 type Claims struct {
 	Usuario string
-	Cuenta string
+	Cuenta  string
 	jwt.RegisteredClaims
 }
 

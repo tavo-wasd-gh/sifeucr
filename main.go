@@ -7,14 +7,14 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/tavo-wasd-gh/gocors"
+	"github.com/tavo-wasd-gh/sifeucr/auth"
 	"github.com/tavo-wasd-gh/sifeucr/database"
 	"github.com/tavo-wasd-gh/sifeucr/views"
-	"github.com/tavo-wasd-gh/sifeucr/auth"
 )
 
 type App struct {
@@ -105,7 +105,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := app.Render(w, "dashboard", u) ; err != nil {
+		if err := app.Render(w, "dashboard", u); err != nil {
 			app.log("handleDashboard: error rendering view: %v", err)
 			return
 		}
@@ -127,7 +127,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := app.Render(w, "dashboard", u) ; err != nil {
+		if err := app.Render(w, "dashboard", u); err != nil {
 			app.log("handleDashboard: error rendering view: %v", err)
 		}
 
@@ -165,7 +165,7 @@ func (app *App) ValidateForm(r *http.Request, w http.ResponseWriter) (string, st
 	passwd := r.FormValue("passwd")
 	cuentaPedida := r.FormValue("cuenta")
 
-	cuentas, err := database.CuentasActivas(app.DB, correo) 
+	cuentas, err := database.CuentasActivas(app.DB, correo)
 	if err != nil {
 		err = nil
 

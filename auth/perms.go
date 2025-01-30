@@ -58,8 +58,7 @@ const (
 	ReadDonacionesOwn
 	WriteDonacionesOwn
 	// Defined
-	Regular =
-		ReadUsuarioOwn |
+	Regular = ReadUsuarioOwn |
 		ReadCuentaOwn |
 		ReadPresupuestoOwn |
 		CreateServicios |
@@ -68,15 +67,14 @@ const (
 		CreateSuministros |
 		ReadSuministrosOwn |
 		WriteSuministrosOwn |
-		CreateBienes|
+		CreateBienes |
 		ReadBienesOwn |
 		WriteBienesOwn |
 		ReadAjustesOwn |
 		CreateDonaciones |
 		ReadDonacionesOwn |
 		WriteDonacionesOwn
-	SF =
-		CreateUsuario |
+	SF = CreateUsuario |
 		DeleteUsuario |
 		ReadUsuarioOther |
 		WriteUsuarioOther |
@@ -120,8 +118,7 @@ const (
 		WriteAjustesOwn |
 		ReadDonacionesOther |
 		ReadDonacionesOwn
-	COES =
-		ReadUsuarioOwn |
+	COES = ReadUsuarioOwn |
 		ReadCuentaOwn |
 		ReadPresupuestoOwn |
 		ReadPresupuestoOther |
@@ -135,7 +132,7 @@ const (
 		WriteSuministrosOther |
 		ReadSuministrosOwn |
 		WriteSuministrosOwn |
-		CreateBienes|
+		CreateBienes |
 		ReadBienesOther |
 		WriteBienesOther |
 		ReadBienesOwn |

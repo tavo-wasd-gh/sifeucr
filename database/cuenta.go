@@ -6,16 +6,16 @@ import (
 )
 
 type Cuenta struct {
-	ID string
-	Privilegio uint64
-	Nombre string
+	ID          string
+	Privilegio  uint64
+	Nombre      string
 	Presidencia string
-	Tesoreria string
-	TEEU string
-	COES string
+	Tesoreria   string
+	TEEU        string
+	COES        string
 	// Runtime
 	Presupuestos []Presupuesto
-	Servicios []Servicio
+	Servicios    []Servicio
 	// Suministros []Suministros
 	// Bienes []Bien
 }

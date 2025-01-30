@@ -7,27 +7,27 @@ import (
 )
 
 type Presupuesto struct {
-	ID string
-	Index int
-	Cuenta string
-	Validez time.Time
-	General float64
-	Servicios float64
+	ID          string
+	Index       int
+	Cuenta      string
+	Validez     time.Time
+	General     float64
+	Servicios   float64
 	Suministros float64
-	Bienes float64
+	Bienes      float64
 	// Runtime
 	Periodo int
-	Total float64
+	Total   float64
 	//   Emitido
-	ServiciosEmitido float64
+	ServiciosEmitido   float64
 	SuministrosEmitido float64
-	BienesEmitido float64
-	TotalEmitido float64
+	BienesEmitido      float64
+	TotalEmitido       float64
 	//   Restante
-	ServiciosRestante float64
+	ServiciosRestante   float64
 	SuministrosRestante float64
-	BienesRestante float64
-	TotalRestante float64
+	BienesRestante      float64
+	TotalRestante       float64
 }
 
 func presupuestosInit(db *sql.DB, cuenta string, periodo int) ([]Presupuesto, error) {
@@ -66,7 +66,7 @@ func presupuestosInit(db *sql.DB, cuenta string, periodo int) ([]Presupuesto, er
 			p.Periodo = periodo
 			p.Total = p.Servicios + p.Suministros + p.Bienes
 
-			if err := p.calcularPresupuesto(db) ; err != nil {
+			if err := p.calcularPresupuesto(db); err != nil {
 				return nil, fmt.Errorf("presupuestosActivos: error calculating budget: %w", err)
 			}
 
