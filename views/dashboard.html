@@ -24,7 +24,7 @@
         <div class="card-item">
           <span class="label">General</span>
           <div class="progress-bar">
-            <div class="progress" style="width: 10%;"></div>
+            <div class="progress" style="width: {{frac .TotalRestante .General}}%;"></div>
           </div>
           <span class="value">{{currency .General}} / {{currency .General}}</span>
         </div>
@@ -36,40 +36,36 @@
       </div>
     </div>
     {{else}}
-    <!-- P1 -->
     <div class="item">
       <div class="card">
         <div class="card-header">
           <span class="card-title">{{.Periodo}}-{{.Index}}</span>
         </div>
         <div class="card-header">
-          <span class="card-subtitle">{{currency .Total}} / {{currency .Total}}</span>
+          <span class="card-subtitle">{{currency .TotalRestante}} / {{currency .Total}}</span>
         </div>
         <br>
         <hr>
-        <!-- Servicios -->
         <div class="card-item">
           <span class="label">Servicios</span>
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac .Servicios .Servicios}}%;"></div>
+            <div class="progress" style="width: {{frac .ServiciosRestante .Servicios}}%;"></div>
           </div>
-          <span class="value">{{currency .Servicios}} / {{currency .Servicios}}</span>
+          <span class="value">{{currency .ServiciosRestante}} / {{currency .Servicios}}</span>
         </div>
-        <!-- Suministros -->
         <div class="card-item">
           <span class="label">Suministros</span>
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac .Suministros .Suministros}}%;"></div>
+            <div class="progress" style="width: {{frac .SuministrosRestante .Suministros}}%;"></div>
           </div>
-          <span class="value">{{currency .Suministros}} / {{currency .Suministros}}</span>
+          <span class="value">{{currency .SuministrosRestante}} / {{currency .Suministros}}</span>
         </div>
-        <!-- Bienes -->
         <div class="card-item">
           <span class="label">Bienes</span>
           <div class="progress-bar">
-            <div class="progress" style="width: {{frac .Bienes .Bienes}}%;"></div>
+            <div class="progress" style="width: {{frac .BienesRestante .Bienes}}%;"></div>
           </div>
-          <span class="value">{{currency .Bienes}} / {{currency .Bienes}}</span>
+          <span class="value">{{currency .BienesRestante}} / {{currency .Bienes}}</span>
         </div>
         <br>
         <hr>

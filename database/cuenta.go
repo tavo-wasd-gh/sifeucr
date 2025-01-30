@@ -15,7 +15,7 @@ type Cuenta struct {
 	COES string
 	// Runtime
 	Presupuestos []Presupuesto
-	// Servicios []Servicio
+	Servicios []Servicio
 	// Suministros []Suministros
 	// Bienes []Bien
 }

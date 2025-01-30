@@ -23,7 +23,6 @@ CREATE TABLE presupuestos (
   servicios decimal NOT NULL,
   suministros decimal NOT NULL,
   bienes decimal NOT NULL,
-  total decimal NOT NULL,
   FOREIGN KEY (cuenta) REFERENCES cuentas (id)
 );
 
