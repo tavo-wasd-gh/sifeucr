@@ -5,7 +5,7 @@ CREATE TABLE usuarios (
 
 CREATE TABLE cuentas (
   id varchar(20) PRIMARY KEY,
-  privilegio integer NOT NULL,
+  privilegio usuarios NOT NULL,
   nombre varchar(120) NOT NULL,
   presidencia varchar(80),
   tesoreria varchar(80),
@@ -56,19 +56,21 @@ CREATE TABLE servicios (
   -- Final
   ejecutado datetime,
   pagado datetime,
-  notas varchar(10000)
+  notas varchar(10000),
+  FOREIGN KEY (emisor) REFERENCES usuarios (id)
 );
 
 CREATE TABLE servicios_movimientos (
   id integer PRIMARY KEY,
-  servicio integer NOT NULL,
-  usuario varchar(80) NOT NULL,
+  servicio integer,
+  usuario varchar(80),
+  cuenta varchar(20) NOT NULL,
   presupuesto varchar(50) NOT NULL,
-  partida varchar(10) NOT NULL,
-  monto decimal NOT NULL,
+  monto decimal,
   firma jsonb,
   FOREIGN KEY (servicio) REFERENCES servicios (id),
   FOREIGN KEY (usuario) REFERENCES usuarios (id),
+  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
   FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
 );
 
@@ -131,32 +133,33 @@ CREATE TABLE bienes (
   recibido datetime,
   pagado datetime,
   notas varchar(10000),
-  FOREIGN KEY (emisor) REFERENCES cuentas (id)
+  FOREIGN KEY (emisor) REFERENCES usuarios (id)
 );
 
 CREATE TABLE bienes_movimientos (
   id integer PRIMARY KEY,
-  bien integer NOT NULL,
-  usuario varchar(80) NOT NULL,
-  presupuesto varchar(50) NOT NULL,
-  partida varchar(10) NOT NULL,
-  monto decimal NOT NULL,
+  bien integer,
+  usuario varchar(80),
+  cuenta varchar(20) NOT NULL,
+  presupuesto varchar(50),
+  monto decimal,
   firma jsonb,
   FOREIGN KEY (bien) REFERENCES bienes (id),
   FOREIGN KEY (usuario) REFERENCES usuarios (id),
+  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
   FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
 );
 
 CREATE TABLE ajustes (
   id integer PRIMARY KEY,
   emitido datetime NOT NULL,
-  emisor varchar(20) NOT NULL,
+  emisor varchar(80) NOT NULL,
   cuenta varchar(20) NOT NULL,
   partida varchar(10) NOT NULL,
   detalle varchar(10000) NOT NULL,
   monto_bruto decimal NOT NULL,
   notas varchar(10000),
-  FOREIGN KEY (emisor) REFERENCES cuentas (id),
+  FOREIGN KEY (emisor) REFERENCES usuarios (id),
   FOREIGN KEY (cuenta) REFERENCES cuentas (id)
 );
 

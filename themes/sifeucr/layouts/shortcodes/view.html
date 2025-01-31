@@ -1,0 +1,3 @@
+<main hx-get="{{.Get "get"}}" hx-swap="{{ if .Get "swap" }}{{ .Get "swap" }}{{ else }}outerHTML{{ end }}" hx-trigger="{{ if .Get "trigger" }}{{ .Get "trigger" }}{{ else }}load{{ end }}">
+  <span class="spinner htmx-indicator"/>
+</main>

@@ -1,7 +1,7 @@
 ---
 title: "Mi cuenta"
 toc: false
-layout: dashboard
+layout: single
 ---
 
-# Cuenta
+{{< view get="/api/dashboard" >}}

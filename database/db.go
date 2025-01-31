@@ -48,3 +48,29 @@ func CuentasActivas(db *sql.DB, correo string) ([]string, error) {
 
 	return cuentas, nil
 }
+
+
+func ListaCuentas(db *sql.DB) ([]Cuenta, error) {
+	query := `SELECT id, nombre FROM cuentas`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying cuentas: %w", err)
+	}
+	defer rows.Close()
+
+	var cuentas []Cuenta
+
+	for rows.Next() {
+		var c Cuenta
+		if err := rows.Scan(&c.ID, &c.Nombre); err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
+		}
+		cuentas = append(cuentas, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return cuentas, nil
+}

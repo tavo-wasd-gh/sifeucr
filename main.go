@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -40,8 +41,9 @@ func main() {
 	}
 
 	viewsMap := map[string]string{
-		"login":     "views/login.html",
-		"dashboard": "views/dashboard.html",
+		"login":         "views/login.html",
+		"dashboard":     "views/dashboard.html",
+		"sol-servicios": "views/sol-servicios.html",
 	}
 
 	views, err := views.Init(viewsMap)
@@ -63,7 +65,10 @@ func main() {
 		DB:         db,
 	}
 
+	http.HandleFunc("/api/suscribe", app.handleSuscribe)
 	http.HandleFunc("/api/dashboard", app.handleDashboard)
+	http.HandleFunc("/api/servicios", app.handleServiciosForm)
+	http.HandleFunc("/api/servicios/", app.handleServicios)
 	http.Handle("/", http.FileServer(http.Dir("public")))
 
 	stop := make(chan os.Signal, 1)
@@ -114,7 +119,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		correo, cuenta, err := app.ValidateForm(r, w)
+		correo, cuenta, err := app.ValidateLoginForm(r, w)
 		if err != nil {
 			app.log("handleDashboard: error validating form: %v", err)
 			return
@@ -135,6 +140,101 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodPost {
+	}
+}
+
+func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleServiciosForm: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		u, err := database.Login(app.DB, correo, cuenta)
+		if err != nil {
+			app.log("handleServiciosForm: error logging in: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		if err := app.Render(w, "sol-servicios", u); err != nil {
+			app.log("handleServiciosForm: error rendering view: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	if r.Method == http.MethodPost {
+		servicio, movimientos, err := app.ValidateServiciosForm(r, w)
+		if err != nil {
+			app.log("handleServiciosForm: error validating token: %v", "")
+
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		err = database.NuevoServicio(app.DB, servicio, movimientos) 
+		if err != nil {
+			app.log("handleServiciosForm: error registering service: %v", err)
+			http.Error(w, "", http.StatusBadRequest)
+			// TODO View error
+			return
+		}
+
+		w.Header().Set("HX-Redirect", "/dashboard")
+		w.WriteHeader(http.StatusSeeOther)
+	}
+
+	return
+}
+
+func (app *App) handleSuscribe(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, _, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleServicios: error validating token: %v", err)
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	cuentas, err := database.ListaCuentas(app.DB)
+	if err != nil {
+		app.log("handleServicios: error fetching accounts: %v", err)
+		http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprint(w, `<div class="select-group card-header">
+		<select name="suscriben">`)
+
+	for _, cuenta := range cuentas {
+		fmt.Fprintf(w, `<option value="%s">%s</option>`, cuenta.ID, cuenta.Nombre)
+	}
+
+	fmt.Fprint(w, `</select>
+		<button type="button" style="margin:0.5em;" hx-on:click="this.closest('.select-group').remove()">Quitar</button>
+	</div>`)
+
+	return
+}
+
 func (app *App) Render(w http.ResponseWriter, name string, data interface{}) error {
 	tmpl, ok := app.Views[name]
 
@@ -153,7 +253,7 @@ func (app *App) Render(w http.ResponseWriter, name string, data interface{}) err
 	return nil
 }
 
-func (app *App) ValidateForm(r *http.Request, w http.ResponseWriter) (string, string, error) {
+func (app *App) ValidateLoginForm(r *http.Request, w http.ResponseWriter) (string, string, error) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
@@ -165,16 +265,14 @@ func (app *App) ValidateForm(r *http.Request, w http.ResponseWriter) (string, st
 	passwd := r.FormValue("passwd")
 	cuentaPedida := r.FormValue("cuenta")
 
+	if !strings.Contains(correo, "@") {
+		correo = correo + "@ucr.ac.cr"
+	}
+
 	cuentas, err := database.CuentasActivas(app.DB, correo)
 	if err != nil {
-		err = nil
-
-		correo = correo + "@ucr.ac.cr"
-		cuentas, err = database.CuentasActivas(app.DB, correo)
-		if err != nil {
-			http.Error(w, "", http.StatusUnauthorized)
-			return "", "", err
-		}
+		http.Error(w, "", http.StatusUnauthorized)
+		return "", "", err
 	}
 
 	if len(cuentas) > 1 {
@@ -219,6 +317,111 @@ func (app *App) ValidateForm(r *http.Request, w http.ResponseWriter) (string, st
 	)
 
 	return correo, cuenta, nil
+}
+
+func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (database.Servicio, []database.ServicioMovimiento, error) {
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("validateServiciosForm: error validating token: %v", err)
+		http.Error(w, "", http.StatusUnauthorized)
+		return database.Servicio{}, []database.ServicioMovimiento{}, err
+	}
+	
+	if err := r.ParseForm() ; err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return database.Servicio{}, []database.ServicioMovimiento{}, err
+	}
+
+	// Servicio
+	emitido := time.Now()
+	emisor := correo
+	detalle := r.Form.Get("detalle")
+	porEjecutarStr := r.Form.Get("por-ejecutar")
+	justif := r.Form.Get("justif")
+
+	// Movimiento
+	firma := r.Form.Get("firma")
+	suscriben := r.Form["suscriben"]
+
+	if porEjecutarStr == "" || detalle == "" || justif == "" || firma == "" {
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return database.Servicio{}, []database.ServicioMovimiento{}, err
+	}
+
+	cuentaSuscribe := false
+	for _, cuentaID := range suscriben {
+		if cuentaID == cuenta {
+			cuentaSuscribe = true
+		}
+	}
+	if !cuentaSuscribe {
+		http.Error(w, "Missing default cuenta", http.StatusBadRequest)
+		return database.Servicio{}, []database.ServicioMovimiento{}, err
+	}
+
+	porEjecutar, err := time.Parse("2006-01-02T15:04", porEjecutarStr)
+	if err != nil {
+		http.Error(w, "Invalid datetime", http.StatusBadRequest)
+		return database.Servicio{}, []database.ServicioMovimiento{}, err
+	}
+
+	var s database.Servicio
+
+	s.Emitido = emitido
+	s.Emisor = emisor
+	s.Detalle = detalle
+	s.PorEjecutar = porEjecutar
+	s.Justif = justif
+
+	var mm []database.ServicioMovimiento
+
+	cuentas, err := database.ListaCuentas(app.DB)
+	if err != nil {
+		app.log("handleServiciosForm: error fetching accounts: %v", err)
+		http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
+		return database.Servicio{}, []database.ServicioMovimiento{}, err
+	}
+
+	cuentasStrgs := make([]string, 0, len(cuentas))
+	for _, cuenta := range cuentas {
+		cuentasStrgs = append(cuentasStrgs, cuenta.ID)
+	}
+
+	if err := validateSuscriben(suscriben, cuentasStrgs) ; err != nil {
+		app.log("handleServiciosForm: error fetching accounts: %v", err)
+		http.Error(w, "Non-existent account", http.StatusUnauthorized)
+		return database.Servicio{}, []database.ServicioMovimiento{}, err
+	}
+	
+	for _, cuentaSuscrita := range suscriben {
+		var m database.ServicioMovimiento
+
+		m.Cuenta = cuentaSuscrita
+
+		if m.Cuenta == cuenta {
+			m.Usuario = emisor
+			m.Firma = firma
+		}
+
+		mm = append(mm, m)
+	}
+
+	return s, mm, err
+}
+
+func validateSuscriben(suscriben []string, cuentas []string) error {
+	cuentaMap := make(map[string]bool)
+	for _, cuenta := range cuentas {
+		cuentaMap[cuenta] = true
+	}
+
+	for _, s := range suscriben {
+		if !cuentaMap[s] {
+			return fmt.Errorf("invalid suscriben: %s not found in cuentas", s)
+		}
+	}
+
+	return nil
 }
 
 func (app *App) log(format string, args ...interface{}) {

@@ -26,7 +26,7 @@
           <div class="progress-bar">
             <div class="progress" style="width: {{frac .TotalRestante .General}}%;"></div>
           </div>
-          <span class="value">{{currency .General}} / {{currency .General}}</span>
+          <span class="value">{{currency .TotalRestante}} / {{currency .General}}</span>
         </div>
         <br>
         <hr>
@@ -83,27 +83,28 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Servicios</span>
-          <a href="#">
+          <a href="/servicios">
             <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
           </a>
         </div>
+        <br>
         <div class="card-items">
           {{ range .Cuenta.Servicios }}
           <br>
           <hr>
           <div class="card-item"
-            hx-get="/api/servicios/{{.IDServicios}}"
+            hx-get="/api/servicios/{{.ID}}"
             hx-target="#dialog-content"
             hx-swap="innerHTML"
             onclick="showDialog()">
-            <div style="background-color: goldenrod" class="tag active">Firmado</div>
-            <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+            <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+            <div style="background-color: {{if .GecoSol.String}}cornflowerblue{{end}}" class="tag {{if .GecoSol.String}}active{{end}}">SF</div>
             <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
-            <div style="background-color: {{if .Ejecutado}}seagreen{{end}}" class="tag {{if .Ejecutado}}active{{end}}">Ejecutado</div>
+            <div style="background-color: {{if .Ejecutado.Valid}}seagreen{{end}}" class="tag {{if .Ejecutado.Valid}}active{{end}}">Ejecutado</div>
             <br>
             <span class="label">{{.Detalle}}</span>
-            <span class="label">{{.ProvNom}}</span>
-            <span class="value">-{{currency .MontoBruto}}</span>
+            <span class="label">{{if .ProvNom.Valid}}{{.ProvNom.String}}{{else}}<i>Por definir</i>{{end}}</span>
+            <span class="value">{{if .MontoBruto.Valid}}-{{currency .MontoBruto.Float64}}{{else}}<i>Por definir</i>{{end}}</span>
           </div>
           {{ end }}
         </div>
