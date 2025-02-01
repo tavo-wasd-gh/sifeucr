@@ -17,6 +17,7 @@ func Init(viewMap map[string]string) (map[string]*template.Template, error) {
 		"sub":      sub,
 		"sum":      sum,
 		"datetime": datetime,
+		"summary":  summary,
 	}
 
 	views := make(map[string]*template.Template)
@@ -207,4 +208,11 @@ func datetime(t time.Time) string {
 		t.Hour(),
 		t.Minute(),
 	)
+}
+
+func summary(str string, length int) string {
+	if len(str) > length {
+		return str[:length] + "..."
+	}
+	return str
 }

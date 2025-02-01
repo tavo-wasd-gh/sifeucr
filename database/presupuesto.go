@@ -130,19 +130,37 @@ func (p *Presupuesto) calcularPresupuesto(db *sql.DB) error {
 
 func presupuestoActual(db *sql.DB, cuentaID string) (string, error) {
 	var presupuestoID string
+	currentTime := time.Now()
 
-	// TODO FIX
 	query := `
-		SELECT id FROM presupuestos
-		WHERE cuenta = ?
-		AND strftime('%Y', validez) = strftime('%Y', 'now')
-		AND validez <= date('now')
-		ORDER BY validez DESC
-		LIMIT 1;`
+	SELECT id, validez FROM presupuestos
+	WHERE cuenta = ?
+	AND validez > ? 
+	ORDER BY validez
+	LIMIT 1;`
 
-	err := db.QueryRow(query, cuentaID).Scan(&presupuestoID)
+	rows, err := db.Query(query, cuentaID, currentTime)
 	if err != nil {
-		return "", fmt.Errorf("presupuestoActual: failed to fetch valid presupuesto for cuenta %s: %w", cuentaID, err)
+		return "", fmt.Errorf("presupuestoActual: failed to fetch valid presupuestos for cuenta %s: %w", cuentaID, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		var validez time.Time
+
+		if err := rows.Scan(&id, &validez); err != nil {
+			return "", fmt.Errorf("presupuestoActual: failed to scan row: %w", err)
+		}
+
+		if validez.Year() == currentTime.Year() {
+			presupuestoID = id
+			break
+		}
+	}
+
+	if presupuestoID == "" {
+		return "", fmt.Errorf("presupuestoActual: no valid presupuesto found for cuenta %s", cuentaID)
 	}
 
 	return presupuestoID, nil

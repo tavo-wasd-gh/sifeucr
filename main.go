@@ -69,15 +69,16 @@ func main() {
 	http.HandleFunc("/api/dashboard", app.handleDashboard)
 	http.HandleFunc("/api/servicios", app.handleServiciosForm)
 	http.HandleFunc("/api/servicios/", app.handleServicios)
+	http.HandleFunc("/logout", logoutHandler)
 	http.Handle("/", http.FileServer(http.Dir("public")))
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		app.log("main: privilegio SF: %d", auth.SF)
-		app.log("main: privilegio COES: %d", auth.COES)
-		app.log("main: privilegio Regular: %d", auth.Regular)
+		// app.log("main: privilegio SF: %d", auth.SF)
+		// app.log("main: privilegio COES: %d", auth.COES)
+		// app.log("main: privilegio Regular: %d", auth.Regular)
 		app.log("main: starting on :%s...", port)
 
 		if err := http.ListenAndServe(":"+port, nil); err != nil {
@@ -141,12 +142,29 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
-	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
 
-	if r.Method == http.MethodPost {
+	if r.Method == http.MethodGet {
+		var id string
+
+		path := r.URL.Path
+		segments := strings.Split(path, "/")
+
+		if len(segments) <= 2 {
+			http.Error(w, "ID not found in URL", http.StatusBadRequest)
+			return
+		}
+
+		id = segments[2]
+
+		// Return servicio and fill view
+
+		return
 	}
+
+	return
 }
 
 func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
@@ -422,6 +440,18 @@ func validateSuscriben(suscriben []string, cuentas []string) error {
 	}
 
 	return nil
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Value:   "",
+		Expires: time.Now().Add(-1 * time.Hour),
+		HttpOnly: true,
+		Path:    "/api",
+	})
+
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
 func (app *App) log(format string, args ...interface{}) {

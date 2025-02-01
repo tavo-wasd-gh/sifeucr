@@ -1,6 +1,6 @@
 {{define "dashboard"}}
 <main>
-  <h1>{{.Cuenta.Nombre}}</h1>
+  <h1><a href="/logout" id="logout"><i class='bx bx-log-out'></i></a> {{.Cuenta.Nombre}}</h1>
   <span>Acreditaciones:</span>
   <div style="background-color: {{if .Cuenta.TEEU}}seagreen{{end}}" class="tag {{if .Cuenta.TEEU}}active{{end}}">TEEU</div>
   <div style="background-color: {{if .Cuenta.COES}}seagreen{{end}}" class="tag {{if .Cuenta.COES}}active{{end}}">COES</div>
@@ -102,7 +102,7 @@
             <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
             <div style="background-color: {{if .Ejecutado.Valid}}seagreen{{end}}" class="tag {{if .Ejecutado.Valid}}active{{end}}">Ejecutado</div>
             <br>
-            <span class="label">{{.Detalle}}</span>
+            <span class="label">{{summary .Detalle 50}}</span>
             <span class="label">{{if .ProvNom.Valid}}{{.ProvNom.String}}{{else}}<i>Por definir</i>{{end}}</span>
             <span class="value">{{if .MontoBruto.Valid}}-{{currency .MontoBruto.Float64}}{{else}}<i>Por definir</i>{{end}}</span>
           </div>

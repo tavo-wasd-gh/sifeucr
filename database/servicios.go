@@ -109,7 +109,7 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 					return nil, fmt.Errorf("serviciosInit: error scanning row: %w", err)
 				}
 
-				if f.Valid {
+				if f.String != "" {
 					firmas = append(firmas, f.String)
 				} else {
 					s.FirmasCompletas = false
