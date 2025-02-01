@@ -72,8 +72,8 @@
     </form>
   </div>
   <script>
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+  let canvas = document.getElementById("canvas");
+  let ctx = canvas.getContext("2d");
 
   function fixCanvasResolution() {
     const scale = window.devicePixelRatio || 1;

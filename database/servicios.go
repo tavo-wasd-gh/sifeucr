@@ -38,17 +38,18 @@ type Servicio struct {
 	Pagado    sql.NullTime
 	Notas     sql.NullString
 	// Runtime
+	Movimientos []ServicioMovimiento
 	FirmasCompletas bool
 }
 
 type ServicioMovimiento struct {
 	ID          int
 	Servicio    int
-	Usuario     string
+	Usuario     sql.NullString
 	Cuenta      string
-	Presupuesto string
-	Monto       float64
-	Firma       string
+	Presupuesto sql.NullString
+	Monto       sql.NullFloat64
+	Firma       sql.NullString
 }
 
 func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
@@ -92,28 +93,9 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 
 		validez := s.Emitido.Year()
 		if validez == periodo {
-			queryFirmas := `SELECT firma FROM servicios_movimientos WHERE servicio = ?`
-
-			rows, err := db.Query(queryFirmas, s.ID)
+			s.FirmasCompletas, err = firmasCompletas(db, s.ID)
 			if err != nil {
-				return nil, fmt.Errorf("serviciosInit: error querying database: %w", err)
-			}
-			defer rows.Close()
-
-			var firmas []string
-			s.FirmasCompletas = true
-
-			for rows.Next() {
-				var f sql.NullString
-				if err := rows.Scan(&f); err != nil {
-					return nil, fmt.Errorf("serviciosInit: error scanning row: %w", err)
-				}
-
-				if f.String != "" {
-					firmas = append(firmas, f.String)
-				} else {
-					s.FirmasCompletas = false
-				}
+				return nil, err
 			}
 
 			servicios = append(servicios, s)
@@ -170,8 +152,80 @@ func NuevoServicio (db *sql.DB, servicio Servicio, movimientos []ServicioMovimie
 	return nil
 }
 
-func LeerServicio(db *sql.DB, id string) (Servicio, error) {
+func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 	var s Servicio
+	err := db.QueryRow(`
+		SELECT id, emitido, emisor, detalle, por_ejecutar, justif, coes,
+		       prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, prov_justif,
+		       monto_bruto, monto_iva, monto_desc, geco_sol, geco_ocs, 
+		       ocs_firma, ocs_firma_vive, ejecutado, pagado, notas
+		FROM servicios WHERE id = ?`, id).
+		Scan(
+			&s.ID, &s.Emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &s.Justif, &s.COES,
+			&s.ProvNom, &s.ProvCed, &s.ProvDirec, &s.ProvEmail, &s.ProvTel, &s.ProvBanco, &s.ProvIBAN, &s.ProvJustif,
+			&s.MontoBruto, &s.MontoIVA, &s.MontoDesc, &s.GecoSol, &s.GecoOCS,
+			&s.OCSFirma, &s.OCSFirmaVive, &s.Ejecutado, &s.Pagado, &s.Notas,
+		)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Servicio{}, fmt.Errorf("LeerServicio: servicio con ID '%s' no encontrado", id)
+		}
+		return Servicio{}, fmt.Errorf("LeerServicio: error al obtener servicio: %w", err)
+	}
+
+	rows, err := db.Query("SELECT id, servicio, usuario, cuenta, presupuesto, monto, firma FROM servicios_movimientos WHERE servicio = ?", id)
+	if err != nil {
+		return Servicio{}, fmt.Errorf("LeerServicio: error al obtener movimientos: %w", err)
+	}
+	defer rows.Close()
+
+	var movimientos []ServicioMovimiento
+	found := false
+
+	for rows.Next() {
+		var m ServicioMovimiento
+		if err := rows.Scan(&m.ID, &m.Servicio, &m.Usuario, &m.Cuenta, &m.Presupuesto, &m.Monto, &m.Firma); err != nil {
+			return Servicio{}, fmt.Errorf("LeerServicio: error al escanear movimientos: %w", err)
+		}
+		movimientos = append(movimientos, m)
+
+		if m.Cuenta == cuenta {
+			found = true
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return Servicio{}, fmt.Errorf("LeerServicio: error al recorrer movimientos: %w", err)
+	}
+
+	s.Movimientos = movimientos
+
+	if !found {
+		return Servicio{}, fmt.Errorf("LeerServicio: cuenta '%s' no encontrada en participantes", cuenta)
+	}
 
 	return s, nil
+}
+
+func firmasCompletas(db *sql.DB, servicioID int) (bool, error) {
+	query := `SELECT firma FROM servicios_movimientos WHERE servicio = ?`
+
+	rows, err := db.Query(query, servicioID)
+	if err != nil {
+		return false, fmt.Errorf("checkFirmasCompletas: error querying firmas: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var f sql.NullString
+		if err := rows.Scan(&f); err != nil {
+			return false, fmt.Errorf("checkFirmasCompletas: error scanning firma: %w", err)
+		}
+
+		if !f.Valid || f.String == "" {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

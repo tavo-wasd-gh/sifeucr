@@ -148,6 +148,14 @@ func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
+		_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleServicios: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
 		var id string
 
 		path := r.URL.Path
@@ -158,10 +166,11 @@ func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		id = segments[2]
+		id = segments[3]
 
-		s, err := database.LeerServicio(app.DB, id)
+		s, err := database.LeerServicio(app.DB, id, cuenta)
 		if err != nil {
+			app.log("handleServicios: error loading service: %v", err)
 			http.Error(w, "failed to load servicio", http.StatusInternalServerError)
 			return
 		}
@@ -428,8 +437,14 @@ func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (d
 		m.Cuenta = cuentaSuscrita
 
 		if m.Cuenta == cuenta {
-			m.Usuario = emisor
-			m.Firma = firma
+			m.Usuario = sql.NullString{
+				String: emisor,
+				Valid:  emisor != "",
+			}
+			m.Firma = sql.NullString{
+				String: firma,
+				Valid:  firma != "",
+			}
 		}
 
 		mm = append(mm, m)

@@ -39,13 +39,18 @@
 </div>
 <div class="card-header">
   <span>
-    <small>Solicitud: {{.GecoSol.String}}</small>
+    <small>
+      Solicitud:
+    </small>
     <div class="tooltip">
       <i class='bx bxs-info-circle' ></i>
       <div class="tooltip-text">
         Una vez Secretaría de Finanzas apruebe esta solicitud, se registrará en GECO y se llenará la píldora SF de azul
       </div>
     </div>
+    <small>
+      {{.GecoSol.String}}
+    </small>
   </span>
   <div style="background-color: {{if .GecoSol.String}}cornflowerblue{{end}}" class="tag {{if .GecoSol.String}}active{{end}}">SF</div>
 </div>
@@ -66,6 +71,11 @@
   </span>
   <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
 </div>
+{{ range .Movimientos }}
+<div class="card-header">
+  {{ .Cuenta }}
+</div>
+{{ end }}
 <br>
 <hr>
 <div class="card-header">
@@ -80,10 +90,9 @@
   </span>
   <div style="background-color: {{if .Ejecutado.Valid}}seagreen{{end}}" class="tag {{if .Ejecutado.Valid}}active{{end}}">Ejecutado</div>
 </div>
-</div>
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
 function fixCanvasResolution() {
   const scale = window.devicePixelRatio || 1;
