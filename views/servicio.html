@@ -1,0 +1,176 @@
+{{ define "servicio" }}
+<div class="card-header">
+  <span><strong>Solicitud de Servicios</strong> No. {{.ID}}</span>
+</div>
+<div class="card-header">
+  <small>Emitida por: <i>{{.Emisor}}</i></small>
+</div>
+<div class="card-header">
+  <small>Fecha para ejecutar: <i>{{datetime .PorEjecutar}}</i></small>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <p><strong>Detalle</strong></p>
+</div>
+<div class="card-header">
+  <small>{{.Detalle}}</small>
+</div>
+<br>
+<div class="card-header">
+  <span>
+    <strong>Justificación</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez Contraloría Estudiantil apruebe esta justificación, se llenará la píldora COES de anaranjado
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+</div>
+<div class="card-header">
+  <small>{{.Justif}}</small>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <p><strong>OSUM</strong></p>
+</div>
+<div class="card-header">
+  <span>
+    <small>Solicitud: {{.GecoSol.String}}</small>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez Secretaría de Finanzas apruebe esta solicitud, se registrará en GECO y se llenará la píldora SF de azul
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .GecoSol.String}}cornflowerblue{{end}}" class="tag {{if .GecoSol.String}}active{{end}}">SF</div>
+</div>
+<div class="card-header">
+  <small>OCS: {{.GecoOCS.String}}</small>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <span>
+    <strong>Suscriben</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez todas las partes aprueben y firmen esta solicitud, se llenará la píldora Firmado de amarillo
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <span>
+    <strong>Ejecutado</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez ejecutado el servicio, favor anotar el desglose del servicio recibido.
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .Ejecutado.Valid}}seagreen{{end}}" class="tag {{if .Ejecutado.Valid}}active{{end}}">Ejecutado</div>
+</div>
+</div>
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function fixCanvasResolution() {
+  const scale = window.devicePixelRatio || 1;
+
+  const width = canvas.offsetWidth;
+  const height = canvas.offsetHeight;
+
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+
+  ctx.scale(scale, scale);
+}
+fixCanvasResolution();
+
+function updateStrokeColor() {
+  const color = getComputedStyle(document.documentElement).getPropertyValue("--color-fg").trim();
+  ctx.strokeStyle = color || "black";
+}
+updateStrokeColor();
+
+let drawing = false;
+function startDraw(x, y) {
+  drawing = true;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+}
+
+function draw(x, y) {
+  if (!drawing) return;
+  ctx.lineTo(x, y);
+  ctx.stroke();
+}
+
+function stopDraw() {
+  drawing = false;
+}
+
+canvas.addEventListener("mousedown", (e) => startDraw(e.offsetX, e.offsetY));
+canvas.addEventListener("mousemove", (e) => draw(e.offsetX, e.offsetY));
+canvas.addEventListener("mouseup", stopDraw);
+canvas.addEventListener("mouseleave", stopDraw);
+
+canvas.addEventListener("touchstart", (e) => {
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  startDraw(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  draw(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+canvas.addEventListener("touchend", stopDraw);
+canvas.addEventListener("touchcancel", stopDraw);
+
+document.getElementById("sol-servicios").addEventListener("submit", function () {
+  const tempCanvas = document.createElement("canvas");
+  const tempCtx = tempCanvas.getContext("2d");
+
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+
+  tempCtx.drawImage(canvas, 0, 0);
+
+  const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const alpha = data[i + 3];
+
+    if (alpha > 0) {
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+    }
+  }
+
+  tempCtx.putImageData(imageData, 0, 0);
+
+  document.getElementById("firma").value = tempCanvas.toDataURL("image/png");
+});
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+</script>
+{{end}}

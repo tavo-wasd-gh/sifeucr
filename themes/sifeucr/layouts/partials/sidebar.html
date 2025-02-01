@@ -1,10 +1,8 @@
 <div class="sidebar">
   <ul>
     {{ $menuItems := (slice
-      (dict "icon" "bxs-home"                    "label" "Inicio"      "url" "/")
-      (dict "icon" "bxs-objects-vertical-bottom" "label" "Cuenta"      "url" "/dashboard/")
-      (dict "icon" "bxs-pencil"                  "label" "Solicitudes" "url" "#")
-      (dict "icon" "bxs-calculator"              "label" "Ajustes"     "url" "#")
+      (dict "icon" "bxs-news"                    "label" "Inicio"      "url" "/")
+      (dict "icon" "bxs-user-circle" "label" "Cuenta"      "url" "/dashboard/")
     ) }}
     {{ range $menuItems }}
       {{ $isActive := eq .url $.Page.RelPermalink }}

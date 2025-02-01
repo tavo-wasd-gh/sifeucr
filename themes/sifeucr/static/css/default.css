@@ -450,9 +450,10 @@ hr {
 }
 
 #logout {
-  font-size: 0.7em;
+  font-size: 0.6em;
   color: var(--color-fg);
-  padding: 0.3em;
+  padding: 0.3em 0.6em 0.2em 0.5em;
+  margin: 0.2em 0;
   border: 1px solid var(--color-fg-secondary);
   border-radius: 0.2em;
   background-color: var(--color-bg-secondary);
@@ -571,8 +572,8 @@ hr {
 }
 
 canvas {
-width: 100%;
-height: 15em;
-color: var(--color-fg);
-touch-action: none;
+  width: 100%;
+  height: 15em;
+  color: var(--color-fg);
+  touch-action: none;
 }

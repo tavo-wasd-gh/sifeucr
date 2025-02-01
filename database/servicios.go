@@ -169,3 +169,9 @@ func NuevoServicio (db *sql.DB, servicio Servicio, movimientos []ServicioMovimie
 
 	return nil
 }
+
+func LeerServicio(db *sql.DB, id string) (Servicio, error) {
+	var s Servicio
+
+	return s, nil
+}

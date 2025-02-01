@@ -2,14 +2,14 @@
 <main>
   <h1><a href="/logout" id="logout"><i class='bx bx-log-out'></i></a> {{.Cuenta.Nombre}}</h1>
   <span>Acreditaciones:</span>
-  <div style="background-color: {{if .Cuenta.TEEU}}seagreen{{end}}" class="tag {{if .Cuenta.TEEU}}active{{end}}">TEEU</div>
-  <div style="background-color: {{if .Cuenta.COES}}seagreen{{end}}" class="tag {{if .Cuenta.COES}}active{{end}}">COES</div>
   <div class="tooltip">
     <i class='bx bxs-info-circle' ></i>
     <div class="tooltip-text">
       Se necesitan estas acreditaciones para ejecutar presupuesto.
     </div>
   </div>
+  <div style="background-color: {{if .Cuenta.TEEU}}seagreen{{end}}" class="tag {{if .Cuenta.TEEU}}active{{end}}">TEEU</div>
+  <div style="background-color: {{if .Cuenta.COES}}seagreen{{end}}" class="tag {{if .Cuenta.COES}}active{{end}}">COES</div>
   <br><br><hr>
   <div class="scrollable">
     {{ range .Cuenta.Presupuestos }}

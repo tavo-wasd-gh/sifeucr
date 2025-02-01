@@ -43,7 +43,8 @@ func main() {
 	viewsMap := map[string]string{
 		"login":         "views/login.html",
 		"dashboard":     "views/dashboard.html",
-		"sol-servicios": "views/sol-servicios.html",
+		"servicio":      "views/servicio.html",
+		"servicio-form": "views/servicio-form.html",
 	}
 
 	views, err := views.Init(viewsMap)
@@ -159,7 +160,17 @@ func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
 
 		id = segments[2]
 
-		// Return servicio and fill view
+		s, err := database.LeerServicio(app.DB, id)
+		if err != nil {
+			http.Error(w, "failed to load servicio", http.StatusInternalServerError)
+			return
+		}
+
+		if err := app.Render(w, "servicio", s); err != nil {
+			app.log("handleServicios: error rendering view: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
 
 		return
 	}
@@ -188,7 +199,7 @@ func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := app.Render(w, "sol-servicios", u); err != nil {
+		if err := app.Render(w, "servicio-form", u); err != nil {
 			app.log("handleServiciosForm: error rendering view: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
