@@ -1,4 +1,8 @@
 {{ define "servicio" }}
+{{ $firmaPendiente := "" }}
+{{ range .Movimientos }}{{ if and (eq .Cuenta $.CuentaLoggeada) (not .Firma.String) }}
+{{ $firmaPendiente = .ID }}
+{{ end }}{{ end }}
 <div class="card-header">
   <span><strong>Solicitud de Servicios</strong> No. {{.ID}}</span>
 </div>
@@ -8,6 +12,78 @@
 <div class="card-header">
   <small>Fecha para ejecutar: <i>{{datetime .PorEjecutar}}</i></small>
 </div>
+<br>
+<hr>
+<div class="card-header">
+  <span>
+    <strong>Suscriben</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez todas las partes aprueben y firmen esta solicitud, se llenará la píldora Firmado de amarillo.
+        La distribución de montos debe especificarse en la justificación
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+</div>
+<br>
+<div class="card-header">
+  <table>
+    <thead>
+      <tr>
+        <th><small>Unidad</small></th>
+        <th><small>Presupuesto</small></th>
+        <th><small>Monto</small></th>
+        <th><small>Firma</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Movimientos }}
+      <tr>
+        <td><small>{{ .Cuenta }}</small></td>
+        <td><small>{{ .Presupuesto }}</small></td>
+        <td><span class="value">{{if .Monto.Float64}}{{ currency .Monto.Float64 }}{{else}}Por definir{{end}}</span></td>
+        <td id="firma-{{.Cuenta}}">{{ if .Firma.String }}<i class='bx bx-check'></i>{{end}}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<br>
+{{ if $firmaPendiente }}
+<div class="suscribir">
+  <form id="suscribir" hx-post="/api/suscribir/servicio" hx-swap="outerHTML">
+    <input type="hidden" id="id" name="id" value="{{ $firmaPendiente }}">
+    <br>
+    <div class="card-header">
+      <strong>Firmar como:</strong>
+    </div>
+    <br>
+    <div class="select-group card-header">
+      <select name="cuenta" readonly>
+        <option value="{{.CuentaLoggeada}}">{{.CuentaLoggeada}}</option>
+      </select>
+      <select name="usuario" readonly>
+        <option value="{{.UsuarioLoggeado}}">{{.UsuarioLoggeado}}</option>
+      </select>
+    </div>
+    <div class="card-header">
+      <canvas id="canvas"></canvas>
+    </div>
+    <input type="hidden" id="firma" name="firma">
+    <div class="card-header">
+      <div class="htmx-button-div">
+        <button type="submit">Firmar</button>
+        <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+      </div>
+      <div class="htmx-button-div">
+        <button type="button" onclick="clearCanvas()">Limpiar</button>
+      </div>
+    </div>
+  </form>
+</div>
+{{ end }}
 <br>
 <hr>
 <div class="card-header">
@@ -61,25 +137,6 @@
 <hr>
 <div class="card-header">
   <span>
-    <strong>Suscriben</strong>
-    <div class="tooltip">
-      <i class='bx bxs-info-circle' ></i>
-      <div class="tooltip-text">
-        Una vez todas las partes aprueben y firmen esta solicitud, se llenará la píldora Firmado de amarillo
-      </div>
-    </div>
-  </span>
-  <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
-</div>
-{{ range .Movimientos }}
-<div class="card-header">
-  {{ .Cuenta }}
-</div>
-{{ end }}
-<br>
-<hr>
-<div class="card-header">
-  <span>
     <strong>Ejecutado</strong>
     <div class="tooltip">
       <i class='bx bxs-info-circle' ></i>
@@ -90,9 +147,10 @@
   </span>
   <div style="background-color: {{if .Ejecutado.Valid}}seagreen{{end}}" class="tag {{if .Ejecutado.Valid}}active{{end}}">Ejecutado</div>
 </div>
+{{ if $firmaPendiente }}
 <script>
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
 
 function fixCanvasResolution() {
   const scale = window.devicePixelRatio || 1;
@@ -113,7 +171,7 @@ function updateStrokeColor() {
 }
 updateStrokeColor();
 
-let drawing = false;
+var drawing = false;
 function startDraw(x, y) {
   drawing = true;
   ctx.beginPath();
@@ -151,7 +209,7 @@ canvas.addEventListener("touchmove", (e) => {
 canvas.addEventListener("touchend", stopDraw);
 canvas.addEventListener("touchcancel", stopDraw);
 
-document.getElementById("sol-servicios").addEventListener("submit", function () {
+document.getElementById("suscribir").addEventListener("submit", function () {
   const tempCanvas = document.createElement("canvas");
   const tempCtx = tempCanvas.getContext("2d");
 
@@ -182,4 +240,5 @@ function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 </script>
+{{ end }}
 {{end}}

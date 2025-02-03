@@ -91,6 +91,12 @@ func eq(a, b interface{}) bool {
 			return false
 		}
 		return a == b
+	case string:
+		b, ok := b.(string)
+		if !ok {
+			return false
+		}
+		return a == b
 	default:
 		return false
 	}

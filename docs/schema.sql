@@ -56,6 +56,7 @@ CREATE TABLE servicios (
   -- Final
   ejecutado datetime,
   pagado datetime,
+  acuse_ejecutado varchar(10000),
   notas varchar(10000),
   FOREIGN KEY (emisor) REFERENCES usuarios (id)
 );
@@ -67,7 +68,7 @@ CREATE TABLE servicios_movimientos (
   cuenta varchar(20) NOT NULL,
   presupuesto varchar(50) NOT NULL,
   monto decimal,
-  firma jsonb,
+  firma text,
   FOREIGN KEY (servicio) REFERENCES servicios (id),
   FOREIGN KEY (usuario) REFERENCES usuarios (id),
   FOREIGN KEY (cuenta) REFERENCES cuentas (id),
@@ -86,6 +87,8 @@ CREATE TABLE suministros (
   -- OSUM
   monto_bruto_total decimal,
   geco varchar(20),
+  -- Final
+  acuse_recibido varchar(10000),
   notas varchar(10000),
   FOREIGN KEY (emisor) REFERENCES usuarios (id),
   FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
@@ -132,6 +135,7 @@ CREATE TABLE bienes (
   -- Final
   recibido datetime,
   pagado datetime,
+  acuse_recibido varchar(10000),
   notas varchar(10000),
   FOREIGN KEY (emisor) REFERENCES usuarios (id)
 );
@@ -143,7 +147,7 @@ CREATE TABLE bienes_movimientos (
   cuenta varchar(20) NOT NULL,
   presupuesto varchar(50),
   monto decimal,
-  firma jsonb,
+  firma text,
   FOREIGN KEY (bien) REFERENCES bienes (id),
   FOREIGN KEY (usuario) REFERENCES usuarios (id),
   FOREIGN KEY (cuenta) REFERENCES cuentas (id),

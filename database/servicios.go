@@ -38,8 +38,10 @@ type Servicio struct {
 	Pagado    sql.NullTime
 	Notas     sql.NullString
 	// Runtime
-	Movimientos []ServicioMovimiento
+	Movimientos     []ServicioMovimiento
 	FirmasCompletas bool
+	UsuarioLoggeado string
+	CuentaLoggeada  string
 }
 
 type ServicioMovimiento struct {
@@ -47,7 +49,7 @@ type ServicioMovimiento struct {
 	Servicio    int
 	Usuario     sql.NullString
 	Cuenta      string
-	Presupuesto sql.NullString
+	Presupuesto string
 	Monto       sql.NullFloat64
 	Firma       sql.NullString
 }
@@ -181,6 +183,7 @@ func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 
 	var movimientos []ServicioMovimiento
 	found := false
+	firmasCompletas := true
 
 	for rows.Next() {
 		var m ServicioMovimiento
@@ -189,10 +192,16 @@ func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 		}
 		movimientos = append(movimientos, m)
 
+		if m.Firma.String == "" {
+			firmasCompletas = false
+		}
+
 		if m.Cuenta == cuenta {
 			found = true
 		}
 	}
+
+	s.FirmasCompletas = firmasCompletas
 
 	if err := rows.Err(); err != nil {
 		return Servicio{}, fmt.Errorf("LeerServicio: error al recorrer movimientos: %w", err)
@@ -205,6 +214,32 @@ func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 	}
 
 	return s, nil
+}
+
+func FirmarMovimientoServicios(db *sql.DB, id, usuario, cuenta, firma string) error {
+	_, err := UsuarioAcreditado(db, usuario, cuenta)
+	if err != nil {
+		return fmt.Errorf("FirmarMovimientoServicios: error al iniciar usuario: %w", err)
+	}
+
+	var existingCuenta string
+	err = db.QueryRow("SELECT cuenta FROM servicios_movimientos WHERE id = ?", id).Scan(&existingCuenta)
+	if err != nil {
+		return fmt.Errorf("FirmarMovimientoServicios: error retrieving cuenta for id %s: %w", id, err)
+	}
+	if existingCuenta != cuenta {
+		return fmt.Errorf("FirmarMovimientoServicios: cuenta mismatch for id %s (expected: %s, got: %s)", id, existingCuenta, cuenta)
+	}
+
+	query := `UPDATE servicios_movimientos
+	SET usuario = ?, firma = ?
+	WHERE id = ?;`
+
+	if _, err = db.Exec(query, usuario, firma, id) ; err != nil {
+		return fmt.Errorf("FirmarMovimientoServicios: failed to update servicio_movimiento with id %s: %w", id, err)
+	}
+
+	return nil
 }
 
 func firmasCompletas(db *sql.DB, servicioID int) (bool, error) {

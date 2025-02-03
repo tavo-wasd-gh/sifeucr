@@ -66,10 +66,20 @@ func main() {
 		DB:         db,
 	}
 
-	http.HandleFunc("/api/suscribe", app.handleSuscribe)
-	http.HandleFunc("/api/dashboard", app.handleDashboard)
+	// Hacer Solicitudes
 	http.HandleFunc("/api/servicios", app.handleServiciosForm)
+
+	// Leer Solicitudes
 	http.HandleFunc("/api/servicios/", app.handleServicios)
+
+	// Suscribir a Solicitudes
+	http.HandleFunc("/api/suscribir/servicio", app.handleSuscribirServicio)
+
+	// Credenciales
+	http.HandleFunc("/api/cuentas", app.handleCuentas)
+
+	// ---
+	http.HandleFunc("/api/dashboard", app.handleDashboard)
 	http.HandleFunc("/logout", logoutHandler)
 	http.Handle("/", http.FileServer(http.Dir("public")))
 
@@ -148,7 +158,7 @@ func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
 			app.log("handleServicios: error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
@@ -174,6 +184,9 @@ func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "failed to load servicio", http.StatusInternalServerError)
 			return
 		}
+
+		s.UsuarioLoggeado = correo
+		s.CuentaLoggeada = cuenta
 
 		if err := app.Render(w, "servicio", s); err != nil {
 			app.log("handleServicios: error rendering view: %v", err)
@@ -240,37 +253,87 @@ func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (app *App) handleSuscribe(w http.ResponseWriter, r *http.Request) {
-	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleSuscribirServicio: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		idMov := r.Form.Get("id")
+		usuarioForm := r.Form.Get("usuario")
+		cuentaForm := r.Form.Get("cuenta")
+		firmaForm := r.Form.Get("firma")
+
+		if err != nil ||
+		idMov == "" ||
+		usuarioForm == "" ||
+		cuentaForm == "" ||
+		firmaForm == "" ||
+		usuarioForm != correo ||
+		cuentaForm != cuenta {
+			app.log("handleSuscribirServicio: error parsing form: %v", err)
+			fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		err = database.FirmarMovimientoServicios(app.DB, idMov, correo, cuenta, firmaForm)
+		if err != nil {
+			app.log("handleSuscribirServicio: error signing service: %v", err)
+			fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
+			return
+		}
+
+		w.Header().Set("HX-Redirect", "/dashboard")
+		w.WriteHeader(http.StatusSeeOther)
+        
+		return
+	}
+
+	return
+}
+
+func (app *App) handleCuentas(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
 		return
 	}
 
 	_, _, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("handleServicios: error validating token: %v", err)
+		app.log("handleSuscribe: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
 		http.Error(w, "", http.StatusUnauthorized)
 		return
 	}
 
-	cuentas, err := database.ListaCuentas(app.DB)
-	if err != nil {
-		app.log("handleServicios: error fetching accounts: %v", err)
-		http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
-		return
+	if r.Method == http.MethodGet {
+		cuentas, err := database.ListaCuentas(app.DB)
+		if err != nil {
+			app.log("handleSuscribe: error fetching accounts: %v", err)
+			http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprint(w, `<div class="select-group card-header">
+			<select name="suscriben">`)
+
+		for _, cuenta := range cuentas {
+			fmt.Fprintf(w, `<option value="%s">%s</option>`, cuenta.ID, cuenta.Nombre)
+		}
+
+		fmt.Fprint(w, `</select>
+			<button type="button" style="margin:0.5em;" hx-on:click="this.closest('.select-group').remove()">Quitar</button>
+			</div>`)
 	}
-
-	fmt.Fprint(w, `<div class="select-group card-header">
-		<select name="suscriben">`)
-
-	for _, cuenta := range cuentas {
-		fmt.Fprintf(w, `<option value="%s">%s</option>`, cuenta.ID, cuenta.Nombre)
-	}
-
-	fmt.Fprint(w, `</select>
-		<button type="button" style="margin:0.5em;" hx-on:click="this.closest('.select-group').remove()">Quitar</button>
-	</div>`)
-
-	return
 }
 
 func (app *App) Render(w http.ResponseWriter, name string, data interface{}) error {

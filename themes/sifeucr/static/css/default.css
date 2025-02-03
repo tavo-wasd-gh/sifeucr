@@ -563,6 +563,31 @@ hr {
   background-color: var(--color-bg);
 }
 
+.suscribir form button {
+  color: var(--color-fg);
+  padding: 0.4em 1.5em;
+  border: 1px solid var(--color-fg-secondary);
+  border-radius: 1em;
+  background-color: var(--color-bg-secondary);
+  width: 8em;
+}
+
+.suscribir form button:hover {
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-fg-secondary);
+  box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.2);
+}
+
+.suscribir select {
+  width: 100%;
+  color: var(--color-fg);
+  margin: 0.2em 0;
+  padding: 0.8em 1.5em;
+  border: 1px solid var(--color-fg-secondary);
+  border-radius: 1em;
+  background-color: var(--color-bg);
+}
+
 .htmx-button-div {
   display: flex;
   margin-top: 1.5em;
@@ -576,4 +601,15 @@ canvas {
   height: 15em;
   color: var(--color-fg);
   touch-action: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid var(--color-fg-secondary);
+  padding: 1em;
+  text-align: left;
 }
