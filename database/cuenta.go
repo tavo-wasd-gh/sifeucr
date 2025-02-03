@@ -16,8 +16,8 @@ type Cuenta struct {
 	// Runtime
 	Presupuestos []Presupuesto
 	Servicios    []Servicio
-	// Suministros []Suministros
-	// Bienes []Bien
+	Suministros  []Suministros
+	Bienes []Bien
 }
 
 func cuentaInit(db *sql.DB, cuenta string) (Cuenta, error) {

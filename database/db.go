@@ -49,7 +49,6 @@ func CuentasActivas(db *sql.DB, correo string) ([]string, error) {
 	return cuentas, nil
 }
 
-
 func ListaCuentas(db *sql.DB) ([]Cuenta, error) {
 	query := `SELECT id, nombre FROM cuentas`
 	rows, err := db.Query(query)
@@ -73,4 +72,27 @@ func ListaCuentas(db *sql.DB) ([]Cuenta, error) {
 	}
 
 	return cuentas, nil
+}
+
+func firmasCompletas(db *sql.DB, table string, column string, id int) (bool, error) {
+	query := fmt.Sprintf("SELECT firma FROM %s WHERE %s = ?", table, column)
+
+	rows, err := db.Query(query, id)
+	if err != nil {
+		return false, fmt.Errorf("firmasCompletas: error querying firmas from %s: %w", table, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var f sql.NullString
+		if err := rows.Scan(&f); err != nil {
+			return false, fmt.Errorf("firmasCompletas: error scanning firma: %w", err)
+		}
+
+		if !f.Valid || f.String == "" {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

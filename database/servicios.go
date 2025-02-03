@@ -101,7 +101,7 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 
 		validez := s.Emitido.Year()
 		if validez == periodo {
-			s.FirmasCompletas, err = firmasCompletas(db, s.ID)
+			s.FirmasCompletas, err = firmasCompletas(db, "servicios_movimientos", "servicio", s.ID)
 			if err != nil {
 				return nil, err
 			}
@@ -113,7 +113,7 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 	return servicios, nil
 }
 
-func NuevoServicio (db *sql.DB, servicio Servicio, movimientos []ServicioMovimiento) error {
+func NuevoServicio(db *sql.DB, servicio Servicio, movimientos []ServicioMovimiento) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("NuevoServicio: failed to begin transaction: %w", err)
@@ -282,27 +282,4 @@ func ConfirmarEjecutadoServicios(db *sql.DB, id, usuario, cuenta string, fecha t
 	}
 
 	return nil
-}
-
-func firmasCompletas(db *sql.DB, servicioID int) (bool, error) {
-	query := `SELECT firma FROM servicios_movimientos WHERE servicio = ?`
-
-	rows, err := db.Query(query, servicioID)
-	if err != nil {
-		return false, fmt.Errorf("checkFirmasCompletas: error querying firmas: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var f sql.NullString
-		if err := rows.Scan(&f); err != nil {
-			return false, fmt.Errorf("checkFirmasCompletas: error scanning firma: %w", err)
-		}
-
-		if !f.Valid || f.String == "" {
-			return false, nil
-		}
-	}
-
-	return true, nil
 }

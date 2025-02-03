@@ -27,6 +27,12 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 	}
 	usuario.Cuenta.Servicios = servicios
 
+	suministros, err := suministrosInit(db, c)
+	if err != nil {
+		return nil, fmt.Errorf("Login: failed to init servicios: %v", err)
+	}
+	usuario.Cuenta.Suministros = suministros
+
 	return usuario, nil
 }
 

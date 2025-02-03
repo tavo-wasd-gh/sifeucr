@@ -84,6 +84,7 @@ CREATE TABLE suministros (
   -- Solicitud
   emitido datetime NOT NULL,
   emisor varchar(80) NOT NULL,
+  cuenta varchar(20) NOT NULL,
   presupuesto varchar(50) NOT NULL,
   justif varchar(10000) NOT NULL,
   -- COES
@@ -99,19 +100,20 @@ CREATE TABLE suministros (
   -- Final
   notas varchar(10000),
   FOREIGN KEY (emisor) REFERENCES usuarios (id),
+  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
   FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id),
   FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
 );
 
 CREATE TABLE suministros_desglose (
   id integer PRIMARY KEY,
-  desglose integer NOT NULL,
+  suministros integer NOT NULL,
   nombre varchar(120) NOT NULL,
   articulo varchar(40) NOT NULL,
   agrupacion varchar(40) NOT NULL,
   cantidad integer NOT NULL,
   monto_unitario decimal NOT NULL,
-  FOREIGN KEY (desglose) REFERENCES suministros (id)
+  FOREIGN KEY (suministros) REFERENCES suministros (id)
 );
 
 CREATE TABLE bienes (

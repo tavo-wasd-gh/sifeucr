@@ -79,7 +79,6 @@
   </div>
   <div class="scrollable">
     <div class="item">
-      <!-- Servicios -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Servicios</span>
@@ -111,7 +110,6 @@
       </div>
     </div>
     <div class="item">
-      <!-- Suministros -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Suministros</span>
@@ -121,7 +119,7 @@
         </div>
         <br>
         <div class="card-items">
-          {{range .Suministros}}
+          {{range .Cuenta.Suministros}}
           <hr>
           <div class="card-item"
             hx-get="/api/suministros/{{.IDSuministros}}"
@@ -140,7 +138,6 @@
       </div>
     </div>
     <div class="item">
-      <!-- Bienes -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Bienes</span>
@@ -150,7 +147,7 @@
         </div>
         <br>
         <div class="card-items">
-          {{range .Bienes}}
+          {{range .Cuenta.Bienes}}
           <hr>
           <div class="card-item"
             hx-get="/api/bienes/{{.IDBienes}}"
@@ -172,7 +169,6 @@
   </div>
   <div class="scrollable">
     <div class="item">
-      <!-- Donaciones -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Donaciones</span>
@@ -214,7 +210,6 @@
       </div>
     </div>
     <div class="item">
-      <!-- Ajustes -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Ajustes</span>
