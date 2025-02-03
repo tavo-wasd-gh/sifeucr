@@ -100,7 +100,7 @@
             <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
             <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
             <div style="background-color: {{if .GecoSol.String}}cornflowerblue{{end}}" class="tag {{if .GecoSol.String}}active{{end}}">SF</div>
-            <div style="background-color: {{if .Ejecutado.Valid}}seagreen{{end}}" class="tag {{if .Ejecutado.Valid}}active{{end}}">Ejecutado</div>
+            <div style="background-color: {{if .AcuseFecha.Valid}}seagreen{{end}}" class="tag {{if .AcuseFecha.Valid}}active{{end}}">Ejecutado</div>
             <br>
             <span class="label">{{summary .Detalle 50}}</span>
             <span class="label">{{if .ProvNom.Valid}}{{.ProvNom.String}}{{else}}<i>Por definir</i>{{end}}</span>

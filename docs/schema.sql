@@ -53,11 +53,15 @@ CREATE TABLE servicios (
   -- ViVE
   ocs_firma varchar(500),
   ocs_firma_vive varchar(500),
+  -- Ejecutado
+  acuse_usuario varchar(80),
+  acuse_fecha datetime,
+  acuse varchar(10000),
+  acuse_firma text,
   -- Final
-  ejecutado datetime,
   pagado datetime,
-  acuse_ejecutado varchar(10000),
   notas varchar(10000),
+  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id),
   FOREIGN KEY (emisor) REFERENCES usuarios (id)
 );
 

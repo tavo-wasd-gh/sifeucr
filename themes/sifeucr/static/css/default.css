@@ -532,13 +532,7 @@ hr {
   width: 8em;
 }
 
-.sol-servicios form button:hover {
-  border: 1px solid var(--color-primary);
-  background-color: var(--color-fg-secondary);
-  box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.2);
-}
-
-.sol-servicios form textarea {
+textarea {
   width: 100%;
   color: var(--color-fg);
   margin: 0.2em 0;
@@ -563,7 +557,7 @@ hr {
   background-color: var(--color-bg);
 }
 
-.suscribir form button {
+form button {
   color: var(--color-fg);
   padding: 0.4em 1.5em;
   border: 1px solid var(--color-fg-secondary);
@@ -572,13 +566,23 @@ hr {
   width: 8em;
 }
 
-.suscribir form button:hover {
+form button:hover {
   border: 1px solid var(--color-primary);
   background-color: var(--color-fg-secondary);
   box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.2);
 }
 
-.suscribir select {
+select {
+  width: 100%;
+  color: var(--color-fg);
+  margin: 0.2em 0;
+  padding: 0.8em 1.5em;
+  border: 1px solid var(--color-fg-secondary);
+  border-radius: 1em;
+  background-color: var(--color-bg);
+}
+
+form input {
   width: 100%;
   color: var(--color-fg);
   margin: 0.2em 0;
@@ -601,6 +605,8 @@ canvas {
   height: 15em;
   color: var(--color-fg);
   touch-action: none;
+  border: 1px solid var(--color-fg-secondary);
+  border-radius: 1em;
 }
 
 table {

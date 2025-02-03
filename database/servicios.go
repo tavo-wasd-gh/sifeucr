@@ -33,10 +33,14 @@ type Servicio struct {
 	// ViVE
 	OCSFirma     sql.NullString
 	OCSFirmaVive sql.NullString
+	// Ejecutado
+	AcuseUsuario sql.NullString
+	AcuseFecha   sql.NullTime
+	Acuse        sql.NullString
+	AcuseFirma   sql.NullString
 	// Final
-	Ejecutado sql.NullTime
-	Pagado    sql.NullTime
-	Notas     sql.NullString
+	Pagado sql.NullTime
+	Notas  sql.NullString
 	// Runtime
 	Movimientos     []ServicioMovimiento
 	FirmasCompletas bool
@@ -61,7 +65,8 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 	s.coes,
 	s.prov_nom,s.prov_ced,s.prov_direc,s.prov_email,s.prov_tel,s.prov_banco,s.prov_iban,s.prov_justif,s.monto_bruto,s.monto_iva,s.monto_desc,s.geco_sol,s.geco_ocs,
 	s.ocs_firma,s.ocs_firma_vive,
-	s.ejecutado,s.pagado,s.notas
+	s.acuse_usuario, s.acuse_fecha, s.acuse, s.acuse_firma,
+	s.pagado, s.notas
 	FROM servicios s
 	JOIN servicios_movimientos sm
 	ON s.id = sm.servicio
@@ -88,7 +93,8 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 			&s.COES,
 			&s.ProvNom, &s.ProvCed, &s.ProvDirec, &s.ProvEmail, &s.ProvTel, &s.ProvBanco, &s.ProvIBAN, &s.ProvJustif, &s.MontoBruto, &s.MontoIVA, &s.MontoDesc, &s.GecoSol, &s.GecoOCS,
 			&s.OCSFirma, &s.OCSFirmaVive,
-			&s.Ejecutado, &s.Pagado, &s.Notas,
+			&s.AcuseUsuario, &s.AcuseFecha, &s.Acuse, &s.AcuseFirma,
+			&s.Pagado, &s.Notas,
 		); err != nil {
 			return nil, fmt.Errorf("serviciosInit: error scanning row: %w", err)
 		}
@@ -158,15 +164,17 @@ func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 	var s Servicio
 	err := db.QueryRow(`
 		SELECT id, emitido, emisor, detalle, por_ejecutar, justif, coes,
-		       prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, prov_justif,
-		       monto_bruto, monto_iva, monto_desc, geco_sol, geco_ocs, 
-		       ocs_firma, ocs_firma_vive, ejecutado, pagado, notas
+		prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, prov_justif,
+		monto_bruto, monto_iva, monto_desc, geco_sol, geco_ocs, 
+		ocs_firma, ocs_firma_vive, acuse_usuario, acuse_fecha, acuse, acuse_firma,
+		pagado, notas
 		FROM servicios WHERE id = ?`, id).
 		Scan(
 			&s.ID, &s.Emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &s.Justif, &s.COES,
 			&s.ProvNom, &s.ProvCed, &s.ProvDirec, &s.ProvEmail, &s.ProvTel, &s.ProvBanco, &s.ProvIBAN, &s.ProvJustif,
 			&s.MontoBruto, &s.MontoIVA, &s.MontoDesc, &s.GecoSol, &s.GecoOCS,
-			&s.OCSFirma, &s.OCSFirmaVive, &s.Ejecutado, &s.Pagado, &s.Notas,
+			&s.OCSFirma, &s.OCSFirmaVive, &s.AcuseUsuario, &s.AcuseFecha, &s.Acuse, &s.AcuseFirma,
+			&s.Pagado, &s.Notas,
 		)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -237,6 +245,40 @@ func FirmarMovimientoServicios(db *sql.DB, id, usuario, cuenta, firma string) er
 
 	if _, err = db.Exec(query, usuario, firma, id) ; err != nil {
 		return fmt.Errorf("FirmarMovimientoServicios: failed to update servicio_movimiento with id %s: %w", id, err)
+	}
+
+	return nil
+}
+
+func ConfirmarEjecutadoServicios(db *sql.DB, id, usuario, cuenta string, fecha time.Time, acuse, firma string) error {
+	now := time.Now()
+	oneMonthAgo := now.AddDate(0, -1, 0)
+
+	if fecha.After(now) || fecha.Before(oneMonthAgo) {
+		return fmt.Errorf("ConfirmarEjecutadoServicios: invalid date")
+	}
+
+	_, err := UsuarioAcreditado(db, usuario, cuenta)
+	if err != nil {
+		return fmt.Errorf("ConfirmarEjecutadoServicios: usuario %s no acreditado para cuenta %s: %w", usuario, cuenta, err)
+	}
+
+	var servicioID int
+	err = db.QueryRow("SELECT servicio FROM servicios_movimientos WHERE servicio = ? AND cuenta = ?", id, cuenta).Scan(&servicioID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("ConfirmarEjecutadoServicios: no matching servicio_movimiento found for id %s and cuenta %s", id, cuenta)
+		}
+		return fmt.Errorf("ConfirmarEjecutadoServicios: error retrieving servicio for id %s: %w", id, err)
+	}
+
+	query := `UPDATE servicios
+		SET acuse_usuario = ?, acuse_fecha = ?, acuse = ?, acuse_firma = ?
+		WHERE id = ?;`
+
+	_, err = db.Exec(query, usuario, fecha, acuse, firma, servicioID)
+	if err != nil {
+		return fmt.Errorf("ConfirmarEjecutadoServicios: failed to update servicio with id %d: %w", servicioID, err)
 	}
 
 	return nil

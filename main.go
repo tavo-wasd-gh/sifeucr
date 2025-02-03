@@ -75,6 +75,9 @@ func main() {
 	// Suscribir a Solicitudes
 	http.HandleFunc("/api/suscribir/servicio", app.handleSuscribirServicio)
 
+	// Marcar como ejecutado/recibido
+	http.HandleFunc("/api/ejecutar/servicio", app.handleEjecutarServicio)
+
 	// Credenciales
 	http.HandleFunc("/api/cuentas", app.handleCuentas)
 
@@ -254,7 +257,7 @@ func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) {
-	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
 		return
 	}
 
@@ -266,36 +269,68 @@ func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if r.Method == http.MethodPost {
-		err := r.ParseForm()
-		idMov := r.Form.Get("id")
-		usuarioForm := r.Form.Get("usuario")
-		cuentaForm := r.Form.Get("cuenta")
-		firmaForm := r.Form.Get("firma")
+	err = r.ParseForm()
+	idMov := r.Form.Get("id")
+	firmaForm := r.Form.Get("firma-suscribir")
 
-		if err != nil ||
-		idMov == "" ||
-		usuarioForm == "" ||
-		cuentaForm == "" ||
-		firmaForm == "" ||
-		usuarioForm != correo ||
-		cuentaForm != cuenta {
-			app.log("handleSuscribirServicio: error parsing form: %v", err)
-			fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
-			http.Error(w, "", http.StatusBadRequest)
-			return
-		}
+	if err != nil || idMov == "" || firmaForm == "" {
+		app.log("handleSuscribirServicio: error parsing form: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
 
-		err = database.FirmarMovimientoServicios(app.DB, idMov, correo, cuenta, firmaForm)
-		if err != nil {
-			app.log("handleSuscribirServicio: error signing service: %v", err)
-			fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
-			return
-		}
+	err = database.FirmarMovimientoServicios(app.DB, idMov, correo, cuenta, firmaForm)
+	if err != nil {
+		app.log("handleSuscribirServicio: error signing service: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
+		return
+	}
 
+	w.Header().Set("HX-Redirect", "/dashboard")
+	w.WriteHeader(http.StatusSeeOther)
+}
+
+func (app *App) handleEjecutarServicio(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleSuscribirServicio: error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
-		w.WriteHeader(http.StatusSeeOther)
-        
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	err = r.ParseForm()
+	idServ := r.Form.Get("id")
+	fechaEjecutadoStr := r.Form.Get("fecha-ejecutado")
+	acuseEjecutado := r.Form.Get("acuse-ejecutado")
+	firmaAcuse := r.Form.Get("firma-acuse")
+
+	if err != nil ||
+	idServ == "" ||
+	fechaEjecutadoStr == "" ||
+	acuseEjecutado == "" ||
+	firmaAcuse == "" {
+		app.log("handleSuscribirServicio: error parsing form: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
+		return
+	}
+
+	fechaEjecutado, err := time.Parse("2006-01-02T15:04", fechaEjecutadoStr)
+	if err != nil {
+		app.log("handleEjecutarServicio: error parsing form: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
+		return
+	}
+
+	err = database.ConfirmarEjecutadoServicios(app.DB, idServ, correo, cuenta, fechaEjecutado, acuseEjecutado, firmaAcuse)
+	if err != nil {
+		app.log("handleEjecutarServicio: error in confirmation: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la solicitud</div>`)
 		return
 	}
 
@@ -379,6 +414,7 @@ func (app *App) ValidateLoginForm(r *http.Request, w http.ResponseWriter) (strin
 	if len(cuentas) > 1 {
 		found := false
 		if cuentaPedida == "" {
+			// TODO
 			// Falta el caso en el que hay multiples cuentas, mostrar
 			// login con opciones de las cuentas activas
 			app.Render(w, "login", nil)
