@@ -334,7 +334,8 @@ func (app *App) handleEjecutarServicio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	return
+	w.Header().Set("HX-Redirect", "/dashboard")
+	w.WriteHeader(http.StatusSeeOther)
 }
 
 func (app *App) handleCuentas(w http.ResponseWriter, r *http.Request) {

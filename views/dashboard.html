@@ -103,7 +103,7 @@
             <div style="background-color: {{if .AcuseFecha.Valid}}seagreen{{end}}" class="tag {{if .AcuseFecha.Valid}}active{{end}}">Ejecutado</div>
             <br>
             <span class="label">{{summary .Detalle 50}}</span>
-            <span class="label">{{if .ProvNom.Valid}}{{.ProvNom.String}}{{else}}<i>Por definir</i>{{end}}</span>
+            <span class="label">{{if .ProvNom.Valid}}{{summary .ProvNom.String 30}}{{else}}<i>Por definir</i>{{end}}</span>
             <span class="value">{{if .MontoBruto.Valid}}-{{currency .MontoBruto.Float64}}{{else}}<i>Por definir</i>{{end}}</span>
           </div>
           {{ end }}

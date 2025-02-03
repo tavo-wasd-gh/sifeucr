@@ -91,11 +91,16 @@ CREATE TABLE suministros (
   -- OSUM
   monto_bruto_total decimal,
   geco varchar(20),
+  -- Recibido
+  acuse_usuario varchar(80),
+  acuse_fecha datetime,
+  acuse varchar(10000),
+  acuse_firma text,
   -- Final
-  acuse_recibido varchar(10000),
   notas varchar(10000),
   FOREIGN KEY (emisor) REFERENCES usuarios (id),
-  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
+  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id),
+  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id)
 );
 
 CREATE TABLE suministros_desglose (
@@ -136,12 +141,16 @@ CREATE TABLE bienes (
   -- ViVE
   oc_firma varchar(500),
   oc_firma_vive varchar(500),
+  -- Recibido
+  acuse_usuario varchar(80),
+  acuse_fecha datetime,
+  acuse varchar(10000),
+  acuse_firma text,
   -- Final
-  recibido datetime,
   pagado datetime,
-  acuse_recibido varchar(10000),
   notas varchar(10000),
-  FOREIGN KEY (emisor) REFERENCES usuarios (id)
+  FOREIGN KEY (emisor) REFERENCES usuarios (id),
+  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id)
 );
 
 CREATE TABLE bienes_movimientos (
