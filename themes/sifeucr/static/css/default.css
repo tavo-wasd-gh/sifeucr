@@ -618,6 +618,10 @@ table {
 
 th, td {
   border: 1px solid var(--color-fg-secondary);
-  padding: 1em;
+  padding: 0.3em 1em;
   text-align: left;
+}
+
+tr:nth-child(odd) {
+  background-color: var(--color-bg-secondary);
 }

@@ -99,8 +99,8 @@ CREATE TABLE suministros (
   -- Final
   notas varchar(10000),
   FOREIGN KEY (emisor) REFERENCES usuarios (id),
-  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id),
-  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id)
+  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id),
+  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
 );
 
 CREATE TABLE suministros_desglose (
@@ -149,8 +149,8 @@ CREATE TABLE bienes (
   -- Final
   pagado datetime,
   notas varchar(10000),
-  FOREIGN KEY (emisor) REFERENCES usuarios (id),
-  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id)
+  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id),
+  FOREIGN KEY (emisor) REFERENCES usuarios (id)
 );
 
 CREATE TABLE bienes_movimientos (
