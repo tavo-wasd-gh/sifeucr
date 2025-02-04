@@ -2,7 +2,7 @@
 <main>
   <h1>Solicitud de Bienes</h1>
   <div>
-      <form id="sol-bien" hx-post="/api/bienes" hx-target="#response" hx-swap="innerHTML">
+    <form id="sol-bien" hx-post="/api/bienes" hx-target="#response" hx-swap="innerHTML">
       <div class="card-header">
         <small>Emite: <i>{{.Nombre}}</i></small>
       </div>
@@ -53,7 +53,7 @@
       </div>
       <div class="card-header">
         <div class="htmx-button-div">
-          <button type="button" hx-get="/api/cuentas" hx-target="#suscriben" hx-swap="beforeend">+</button>
+          <button type="button" hx-get="/api/cuentas/suscriben" hx-target="#suscriben" hx-swap="beforeend">+</button>
           <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
         </div>
       </div>
@@ -172,4 +172,3 @@
   </script>
 </main>
 {{end}}
-

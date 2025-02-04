@@ -625,3 +625,14 @@ th, td {
 tr:nth-child(even) {
   background-color: var(--color-bg-secondary);
 }
+
+.app-error {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+  border-radius: 0.4em;
+  margin: 1em 0;
+  padding: 0.8em;
+  text-align: left;
+  border: 1px solid #FCA5A5;
+  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
+}

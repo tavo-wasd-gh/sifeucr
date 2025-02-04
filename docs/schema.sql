@@ -174,28 +174,40 @@ CREATE TABLE ajustes (
   id integer PRIMARY KEY,
   emitido datetime NOT NULL,
   emisor varchar(80) NOT NULL,
+  cuenta_emisora varchar(20) NOT NULL,
   cuenta varchar(20) NOT NULL,
+  presupuesto varchar(50) NOT NULL,
   partida varchar(10) NOT NULL,
   detalle varchar(10000) NOT NULL,
   monto_bruto decimal NOT NULL,
   notas varchar(10000),
   FOREIGN KEY (emisor) REFERENCES usuarios (id),
-  FOREIGN KEY (cuenta) REFERENCES cuentas (id)
+  FOREIGN KEY (cuenta_emisora) REFERENCES cuentas (id),
+  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
+  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
 );
 
 CREATE TABLE donaciones (
   id integer PRIMARY KEY,
   emitido datetime NOT NULL,
+  emisor varchar(80) NOT NULL,
+  cuenta varchar(20) NOT NULL,
   cuenta_salida varchar(20) NOT NULL,
+  presupuesto_salida varchar(20) NOT NULL,
   partida_salida varchar(10) NOT NULL,
   cuenta_entrada varchar(20) NOT NULL,
+  presupuesto_entrada varchar(20) NOT NULL,
   partida_entrada varchar(10) NOT NULL,
   detalle varchar(10000) NOT NULL,
   monto_bruto decimal NOT NULL,
-  carta_coes varchar(500) NOT NULL,
+  carta_coes varchar(500),
   notas varchar(10000),
+  FOREIGN KEY (emisor) REFERENCES usuarios (id),
+  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
   FOREIGN KEY (cuenta_salida) REFERENCES cuentas (id),
-  FOREIGN KEY (cuenta_entrada) REFERENCES cuentas (id)
+  FOREIGN KEY (cuenta_entrada) REFERENCES cuentas (id),
+  FOREIGN KEY (presupuesto_salida) REFERENCES presupuestos (id),
+  FOREIGN KEY (presupuesto_entrada) REFERENCES presupuestos (id)
 );
 
 CREATE TABLE historial (

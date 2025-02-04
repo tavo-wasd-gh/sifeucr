@@ -10,6 +10,18 @@ type Usuario struct {
 	ID     string
 	Nombre string
 	Cuenta Cuenta
+	// Runtime
+	//     COES
+	ServiciosPendientesCOES   []Servicio
+	SuministrosPendientesCOES []Suministros
+	BienesPendientesCOES      []Bien
+	DonacionesPendientesCOES  []Donacion
+	//     SF
+	ServiciosPendientesGECO   []Servicio
+	SuministrosPendientesGECO []Suministros
+	BienesPendientesGECO      []Bien
+	//     CC
+	AjustesCC []Ajuste
 }
 
 func Login(db *sql.DB, u, c string) (*Usuario, error) {
@@ -51,6 +63,33 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 		return nil, fmt.Errorf("Login: failed to init donaciones: %v", err)
 	}
 	usuario.Cuenta.Donaciones = donaciones
+
+	if usuario.Cuenta.ID == "COES" {
+		tServ, err := ServiciosPendientesCOES(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
+		}
+
+		tSum, err := SuministrosPendientesCOES(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
+		}
+
+		tBien, err := BienesPendientesCOES(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
+		}
+
+		tDona, err := DonacionesPendientesCOES(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
+		}
+
+		usuario.ServiciosPendientesCOES = tServ
+		usuario.SuministrosPendientesCOES = tSum
+		usuario.BienesPendientesCOES = tBien
+		usuario.DonacionesPendientesCOES = tDona
+	}
 
 	return usuario, nil
 }

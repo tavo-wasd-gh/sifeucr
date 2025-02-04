@@ -11,9 +11,18 @@
       <div id="items">
         <div class="card-header">
           <input type="text" name="nombre[]" placeholder="Nombre">
+        </div>
+        <div class="card-header">
           <input type="text" name="articulo[]" placeholder="Artículo">
+        </div>
+        <div class="card-header">
           <input type="text" name="agrupacion[]" placeholder="Agrupación">
+        </div>
+        <div class="card-header">
           <input type="number" name="cantidad[]" placeholder="Cantidad">
+        </div>
+        <div class="card-header">
+          <span></span>
           <button style="margin:0.5em;" id="rem-item" type="button" disabled>Quitar</button>
         </div>
       </div>
@@ -140,22 +149,36 @@
   }
 
   function addItem() {
-    let newCard = document.createElement('div');
-    newCard.classList.add('card-header');
-    newCard.innerHTML = `
-<input type="text" name="nombre[]" placeholder="Nombre">
-<input type="text" name="articulo[]" placeholder="Artículo">
-<input type="text" name="agrupacion[]" placeholder="Agrupación">
-<input type="number" name="cantidad[]" placeholder="Cantidad">
-<button style="margin:0.5em;" type="button" class="rem-item">Quitar</button>
+    let itemsContainer = document.getElementById('items');
+
+    let itemGroup = document.createElement('div');
+    itemGroup.classList.add('item-group');
+
+    itemGroup.innerHTML = `
+<div class="card-header">
+  <input type="text" name="nombre[]" placeholder="Nombre">
+</div>
+<div class="card-header">
+  <input type="text" name="articulo[]" placeholder="Artículo">
+</div>
+<div class="card-header">
+  <input type="text" name="agrupacion[]" placeholder="Agrupación">
+</div>
+<div class="card-header">
+  <input type="number" name="cantidad[]" placeholder="Cantidad">
+</div>
+<div class="card-header">
+  <span></span>
+  <button style="margin:0.5em;" type="button" class="rem-item">Quitar</button>
+</div>
 `;
 
-    document.getElementById('items').appendChild(newCard);
+    itemsContainer.appendChild(itemGroup);
   }
 
   document.getElementById('items').addEventListener('click', function (event) {
     if (event.target.classList.contains('rem-item')) {
-      event.target.closest('.card-header').remove();
+      event.target.closest('.item-group').remove();
     }
   });
   </script>

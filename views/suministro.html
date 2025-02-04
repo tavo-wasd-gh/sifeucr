@@ -22,6 +22,14 @@
 <div class="card-header">
   <small>{{.Justif}}</small>
 </div>
+{{if (eq .CuentaLoggeada "COES")}}
+<form hx-post="/api/aprobar/suministro/{{.ID}}">
+  <div class="htmx-button-div">
+    <button type="submit">Aprobar</button>
+    <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+  </div>
+</form>
+{{end}}
 <br>
 <hr>
 <div class="card-header">

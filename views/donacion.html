@@ -1,0 +1,57 @@
+{{ define "donacion" }}
+<div class="card-header">
+  <span><strong>Solicitud de Donación</strong> No. {{.ID}}</span>
+</div>
+<div class="card-header">
+  <small>Emitida por: <i>{{.Emisor}}</i></small>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <strong>Desglose</strong>
+</div>
+<br>
+<div class="card-header">
+  <table>
+    <thead>
+      <tr>
+        <th><small>Cuenta</small></th>
+        <th><small>Presupuesto</small></th>
+        <th><small>Partida</small></th>
+        <th><small>Monto</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><small>{{.CuentaSalida}}</small></td>
+        <td><small>{{.PresupuestoSalida}}</small></td>
+        <td><small>{{.PartidaSalida}}</small></td>
+        <td><span class="value">-{{currency .MontoBruto}}</span></td>
+      </tr>
+      <tr>
+        <td><small>{{.CuentaEntrada}}</small></td>
+        <td><small>{{.PresupuestoEntrada}}</small></td>
+        <td><small>{{.PartidaEntrada}}</small></td>
+        <td><span class="value">+{{currency .MontoBruto}}</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <span>
+    <strong>Detalle</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez Contraloría Estudiantil apruebe esta donación, se llenará la píldora COES de anaranjado
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .CartaCOES}}peru{{end}}" class="tag {{if .CartaCOES}}active{{end}}">COES</div>
+</div>
+<div class="card-header">
+  <small>{{.Detalle}}</small>
+</div>
+{{end}}

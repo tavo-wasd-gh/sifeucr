@@ -1,0 +1,34 @@
+{{ define "ajuste" }}
+<div class="card-header">
+  <span><strong>Ajuste</strong> No. {{.ID}}</span>
+</div>
+<div class="card-header">
+  <small>Emitido por: <i>{{.Emisor}}</i></small>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <span><strong>Desglose</strong></span>
+</div>
+<br>
+<div class="card-header">
+  <table>
+    <thead>
+      <tr>
+        <th><small>Cuenta</small></th>
+        <th><small>Presupuesto</small></th>
+        <th><small>Partida</small></th>
+        <th><small>Monto</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><small>{{.Cuenta}}</small></td>
+        <td><small>{{.Presupuesto}}</small></td>
+        <td><small>{{.Partida}}</small></td>
+        <td><span class="value">-{{currency .MontoBruto}}</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{{ end }}

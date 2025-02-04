@@ -30,6 +30,7 @@ type Suministros struct {
 	// Runtime
 	Desglose []SuministroDesglose
 	UsuarioLoggeado string
+	CuentaLoggeada string
 }
 
 type SuministroDesglose struct {
@@ -251,8 +252,9 @@ func LeerSuministro(db *sql.DB, id, cuenta string) (Suministros, error) {
 	}
 
 	s.Desglose = desglose
+	s.CuentaLoggeada = cuenta
 
-	if s.Cuenta != cuenta {
+	if s.Cuenta != cuenta && cuenta != "COES" && cuenta != "SF" {
 		return Suministros{}, fmt.Errorf("LeerSuministros: cuenta '%s' no tiene acceso a este suministro", cuenta)
 	}
 
@@ -290,5 +292,69 @@ func ConfirmarEjecutadoSuministros(db *sql.DB, id, usuario, cuenta string, fecha
 		return fmt.Errorf("ConfirmarEjecutadoSuministros: failed to update suministro with id %d: %w", suministroID, err)
 	}
 
+	return nil
+}
+
+func SuministrosPendientesCOES(db *sql.DB, periodo int) ([]Suministros, error) {
+	query := `
+		SELECT id, emitido, emisor, cuenta, presupuesto, justif, firma,
+		       coes, monto_bruto_total, geco, 
+		       acuse_usuario, acuse_fecha, acuse, acuse_firma, notas
+		FROM suministros
+		WHERE coes = FALSE
+		ORDER BY emitido DESC
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("SuministrosPendientesCOES: error fetching suministros: %w", err)
+	}
+	defer rows.Close()
+
+	var suministros []Suministros
+
+	for rows.Next() {
+		var s Suministros
+		var emitido time.Time
+		var acuseFecha sql.NullTime
+		var acuseUsuario, acuse, acuseFirma, geco sql.NullString
+		var montoBrutoTotal sql.NullFloat64
+		var notas sql.NullString
+
+		if err := rows.Scan(
+			&s.ID, &emitido, &s.Emisor, &s.Cuenta, &s.Presupuesto, &s.Justif, &s.Firma,
+			&s.COES, &montoBrutoTotal, &geco,
+			&acuseUsuario, &acuseFecha, &acuse, &acuseFirma, &notas,
+		); err != nil {
+			return nil, fmt.Errorf("SuministrosPendientesCOES: error scanning row: %w", err)
+		}
+
+		// ✅ Filter by year (in Go)
+		if emitido.Year() == periodo {
+			s.Emitido = emitido
+			s.MontoBrutoTotal = montoBrutoTotal.Float64
+			s.GECO = geco.String
+			s.AcuseUsuario = acuseUsuario.String
+			s.AcuseFecha = acuseFecha.Time
+			s.Acuse = acuse.String
+			s.AcuseFirma = acuseFirma.String
+			s.Notas = notas.String
+
+			suministros = append(suministros, s)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("SuministrosPendientesCOES: error iterating rows: %w", err)
+	}
+
+	return suministros, nil
+}
+
+func AprobarSuministroCOES(db *sql.DB, id string) error {
+	_, err := db.Exec(`UPDATE suministros SET coes = TRUE WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("AprobarSuministroCOES: failed to update service: %w", err)
+	}
 	return nil
 }

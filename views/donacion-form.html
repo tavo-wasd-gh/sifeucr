@@ -1,0 +1,105 @@
+{{ define "donacion-form" }}
+<main>
+  <h1>Solicitud de Donación</h1>
+  <div>
+    <form id="sol-donacion" hx-post="/api/donaciones" hx-target="#response" hx-swap="innerHTML">
+      <div class="card-header">
+        <small>Emite: <i>{{.Nombre}}</i></small>
+      </div>
+      <br>
+      <hr>
+      <div class="card-header">
+        <span>
+          <small>Monto:</small>
+          <div class="tooltip">
+            <i class='bx bxs-info-circle' ></i>
+            <div class="tooltip-text">
+              Monto a transferir
+            </div>
+          </div>
+        </span>
+      </div>
+      <br>
+      <div class="card-header">
+        <input id="monto-bruto" name="monto-bruto" type="number" step="0.01" required>
+      </div>
+      <br>
+      <hr>
+      <div class="card-header">
+        <span>
+          <small>Cuenta y partida de salida:</small>
+          <div class="tooltip">
+            <i class='bx bxs-info-circle' ></i>
+            <div class="tooltip-text">
+              Cuenta y partida a la que se rebaja el monto.
+            </div>
+          </div>
+        </span>
+      </div>
+      <br>
+      <div class="card-header">
+        <select name="cuenta-salida">
+          <option value="{{.Cuenta.ID}}" readonly>{{.Cuenta.ID}}</option>
+        </select>
+      </div>
+      <div class="card-header">
+        <select name="partida-salida">
+          <option value="servicios">Servicios</option>
+          <option value="suministros">Suministros</option>
+          <option value="bienes">Bienes</option>
+        </select>
+      </div>
+      <br>
+      <div class="card-header">
+        <span>
+          <small>Cuenta y partida de entrada:</small>
+          <div class="tooltip">
+            <i class='bx bxs-info-circle' ></i>
+            <div class="tooltip-text">
+              Cuenta y partida a la que se asigna el monto.
+            </div>
+          </div>
+        </span>
+      </div>
+      <br>
+      <div class="card-header" id="cuenta-entrada-container" 
+        hx-get="/api/cuentas/donacion"
+        hx-trigger="load" 
+        hx-target="#cuenta-entrada-container" 
+        hx-swap="outerHTML">
+      </div>
+      <div class="card-header">
+        <select name="partida-entrada">
+          <option value="servicios">Servicios</option>
+          <option value="suministros">Suministros</option>
+          <option value="bienes">Bienes</option>
+        </select>
+      </div>
+      <br>
+      <hr>
+      <div class="card-header">
+        <span>
+          <small>Detalle:</small>
+          <div class="tooltip">
+            <i class='bx bxs-info-circle' ></i>
+            <div class="tooltip-text">
+              Motivo de realizar la donación
+            </div>
+          </div>
+        </span>
+      </div>
+      <br>
+      <div class="card-header">
+        <textarea id="detalle" name="detalle" placeholder="Detalle" required></textarea>
+      </div>
+      <div id="response"></div>
+      <div class="card-header">
+        <div class="htmx-button-div">
+          <button type="submit">Solicitar</button>
+          <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+{{end}}

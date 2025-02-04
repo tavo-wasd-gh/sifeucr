@@ -50,6 +50,10 @@ func main() {
 		"suministro-form": "views/suministro-form.html",
 		"bien":            "views/bien.html",
 		"bien-form":       "views/bien-form.html",
+		"donacion":        "views/donacion.html",
+		"donacion-form":   "views/donacion-form.html",
+		"ajuste":          "views/ajuste.html",
+		"ajuste-form":     "views/ajuste-form.html",
 	}
 
 	views, err := views.Init(viewsMap)
@@ -75,11 +79,15 @@ func main() {
 	http.HandleFunc("/api/servicios", app.handleServicioForm)
 	http.HandleFunc("/api/suministros", app.handleSuministroForm)
 	http.HandleFunc("/api/bienes", app.handleBienForm)
+	http.HandleFunc("/api/donaciones", app.handleDonacionForm)
+	http.HandleFunc("/api/ajustes", app.handleAjusteForm)
 
 	// Leer Solicitudes
 	http.HandleFunc("/api/servicios/", app.handleServicio)
 	http.HandleFunc("/api/suministro/", app.handleSuministro)
 	http.HandleFunc("/api/bienes/", app.handleBien)
+	http.HandleFunc("/api/donaciones/", app.handleDonacion)
+	http.HandleFunc("/api/ajustes/", app.handleAjuste)
 
 	// Suscribir a Solicitudes
 	http.HandleFunc("/api/suscribir/servicio", app.handleSuscribirServicio)
@@ -90,8 +98,15 @@ func main() {
 	http.HandleFunc("/api/recibir/suministro", app.handleRecibirSuministro)
 	http.HandleFunc("/api/recibir/bien", app.handleRecibirBien)
 
+	// Aprobar COES
+	http.HandleFunc("/api/aprobar/servicio/", app.handleAprobarServicioCOES)
+	http.HandleFunc("/api/aprobar/suministro/", app.handleAprobarSuministroCOES)
+	http.HandleFunc("/api/aprobar/bien/", app.handleAprobarBienCOES)
+
 	// Credenciales
-	http.HandleFunc("/api/cuentas", app.handleCuentas)
+	http.HandleFunc("/api/cuentas/suscriben", app.handleCuentasSuscriben)
+	http.HandleFunc("/api/cuentas/donacion", app.handleCuentasDonacion)
+	http.HandleFunc("/api/cuentas/ajuste", app.handleCuentasAjuste)
 
 	// ---
 	http.HandleFunc("/api/dashboard", app.handleDashboard)
@@ -303,6 +318,88 @@ func (app *App) handleBien(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *App) handleDonacion(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleDonacion: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			w.WriteHeader(http.StatusSeeOther)
+			return
+		}
+
+		var id string
+		path := r.URL.Path
+		segments := strings.Split(path, "/")
+		if len(segments) < 4 {
+			http.Error(w, "ID not found in URL", http.StatusBadRequest)
+			return
+		}
+		id = segments[3]
+
+		d, err := database.LeerDonacion(app.DB, id, cuenta)
+		if err != nil {
+			app.log("handleDonacion: error loading donacion: %v", err)
+			http.Error(w, "failed to load donacion", http.StatusInternalServerError)
+			return
+		}
+
+		d.UsuarioLoggeado = correo
+		d.CuentaLoggeada = cuenta
+
+		if err := app.Render(w, "donacion", d); err != nil {
+			app.log("handleDonacion: error rendering view: %v", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (app *App) handleAjuste(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleAjuste: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			w.WriteHeader(http.StatusSeeOther)
+			return
+		}
+
+		var id string
+		path := r.URL.Path
+		segments := strings.Split(path, "/")
+		if len(segments) < 4 {
+			http.Error(w, "ID not found in URL", http.StatusBadRequest)
+			return
+		}
+		id = segments[3]
+
+		ajuste, err := database.LeerAjuste(app.DB, id, cuenta)
+		if err != nil {
+			app.log("handleAjuste: error loading ajuste: %v", err)
+			http.Error(w, "failed to load ajuste", http.StatusInternalServerError)
+			return
+		}
+
+		ajuste.UsuarioLoggeado = correo
+		ajuste.CuentaLoggeada = cuenta
+
+		if err := app.Render(w, "ajuste", ajuste); err != nil {
+			app.log("handleAjuste: error rendering view: %v", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
 		return
@@ -313,7 +410,7 @@ func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			app.log("handleServicioForm: error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
-			http.Error(w, "", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusSeeOther)
 			return
 		}
 
@@ -337,16 +434,14 @@ func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 		servicio, err := app.validateServicioForm(r, w)
 		if err != nil {
 			app.log("handleServicioForm: error validating token: %v", "")
-
 			w.Header().Set("HX-Redirect", "/dashboard")
-			http.Error(w, "", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusSeeOther)
 			return
 		}
 
 		err = database.NuevoServicio(app.DB, servicio)
 		if err != nil {
 			app.log("handleServicioForm: error registering service: %v", err)
-			http.Error(w, "", http.StatusBadRequest)
 			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando servicio</div>`)
 			return
 		}
@@ -392,16 +487,14 @@ func (app *App) handleSuministroForm(w http.ResponseWriter, r *http.Request) {
 		suministro, err := app.validateSuministroForm(r, w)
 		if err != nil {
 			app.log("handleSuministroForm: error validating token: %v", "")
-
 			w.Header().Set("HX-Redirect", "/dashboard")
-			http.Error(w, "", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusSeeOther)
 			return
 		}
 
 		err = database.NuevoSuministro(app.DB, suministro)
 		if err != nil {
 			app.log("handleSuministroForm: error registering sum: %v", err)
-			http.Error(w, "", http.StatusBadRequest)
 			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando servicio</div>`)
 			return
 		}
@@ -467,6 +560,219 @@ func (app *App) handleBienForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *App) handleDonacionForm(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleDonacionForm: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		u, err := database.Login(app.DB, correo, cuenta)
+		if err != nil {
+			app.log("handleDonacionForm: error logging in: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		if err := app.Render(w, "donacion-form", u); err != nil {
+			app.log("handleDonacionForm: error rendering view: %v", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		donacion, err := app.validateDonacionForm(r, w)
+		if err != nil {
+			app.log("handleDonacionForm: error validating form: %v", err)
+			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando donación</div>`)
+			return
+		}
+
+		err = database.NuevoDonacion(app.DB, donacion)
+		if err != nil {
+			app.log("handleDonacionForm: error registering donacion: %v", err)
+			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando donación</div>`)
+			return
+		}
+
+		w.Header().Set("HX-Redirect", "/dashboard")
+		w.WriteHeader(http.StatusSeeOther)
+
+		return
+	}
+}
+
+func (app *App) handleAjusteForm(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleAjusteForm: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			w.WriteHeader(http.StatusSeeOther)
+			return
+		}
+
+		u, err := database.Login(app.DB, correo, cuenta)
+		if err != nil {
+			app.log("handleAjusteForm: error logging in: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		if err := app.Render(w, "ajuste-form", u); err != nil {
+			app.log("handleAjusteForm: error rendering view: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		ajuste, err := app.validateAjusteForm(r, w)
+		if err != nil {
+			app.log("handleAjusteForm: error validating form: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			return
+		}
+
+		err = database.NuevoAjuste(app.DB, ajuste)
+		if err == nil {
+			app.log("handleAjusteForm: error registering ajuste: %v", err)
+			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando ajuste</div>`)
+			return
+		}
+
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+}
+
+func (app *App) validateAjusteForm(r *http.Request, w http.ResponseWriter) (database.Ajuste, error) {
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("validateAjusteForm: error validating token: %v", err)
+		return database.Ajuste{}, err
+	}
+
+	if err := r.ParseForm(); err != nil {
+		return database.Ajuste{}, err
+	}
+
+	if cuenta != "CC" && cuenta != "SF" {
+		http.Error(w, "", http.StatusBadRequest)
+		return database.Ajuste{}, fmt.Errorf("Solamente CC y SF pueden emitir ajustes")
+	}
+
+	emitido := time.Now()
+	cuentaEmisora := cuenta
+	cuentaDestino := r.Form.Get("cuenta")
+	partida := r.Form.Get("partida")
+	detalle := r.Form.Get("detalle")
+	montoStr := r.Form.Get("monto-bruto")
+
+	if cuentaDestino == "" || partida == "" || detalle == "" || montoStr == "" {
+		return database.Ajuste{}, fmt.Errorf("missing required fields")
+	}
+
+	montoBruto, err := strconv.ParseFloat(montoStr, 64)
+	if err != nil {
+		http.Error(w, "Invalid monto format", http.StatusBadRequest)
+		return database.Ajuste{}, err
+	}
+
+	validPartidas := map[string]bool{
+		"servicios":   true,
+		"suministros": true,
+		"bienes":      true,
+	}
+	if !validPartidas[partida] {
+		http.Error(w, "Invalid partida value", http.StatusBadRequest)
+		return database.Ajuste{}, fmt.Errorf("invalid partida value")
+	}
+
+	ajuste := database.Ajuste{
+		Emitido:    emitido,
+		Emisor:     correo,
+		CuentaEmisora: cuentaEmisora,
+		Cuenta:     cuentaDestino,
+		Partida:    partida,
+		Detalle:    detalle,
+		MontoBruto: montoBruto,
+	}
+
+	return ajuste, nil
+}
+
+func (app *App) validateDonacionForm(r *http.Request, w http.ResponseWriter) (database.Donacion, error) {
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("validateDonacionForm: error validating token: %v", err)
+		http.Error(w, "", http.StatusUnauthorized)
+		return database.Donacion{}, err
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return database.Donacion{}, err
+	}
+
+	emitido := time.Now()
+	cuentaSalida := r.Form.Get("cuenta-salida")
+	partidaSalida := r.Form.Get("partida-salida")
+	cuentaEntrada := r.Form.Get("cuenta-entrada")
+	partidaEntrada := r.Form.Get("partida-entrada")
+	detalle := r.Form.Get("detalle")
+	montoBrutoStr := r.Form.Get("monto-bruto")
+
+	validPartidas := map[string]bool{
+		"servicios":   true,
+		"suministros": true,
+		"bienes":      true,
+	}
+
+	if !validPartidas[partidaSalida] || !validPartidas[partidaEntrada] {
+		return database.Donacion{}, fmt.Errorf("invalid partida value")
+	}
+
+	if cuentaSalida == "" || cuentaEntrada == "" || detalle == "" || montoBrutoStr == "" {
+		return database.Donacion{}, fmt.Errorf("missing required fields")
+	}
+
+	montoBruto, err := strconv.ParseFloat(montoBrutoStr, 64)
+	if err != nil {
+		return database.Donacion{}, err
+	}
+
+	donacion := database.Donacion{
+		Emitido:        emitido,
+		Emisor:         correo,
+		Cuenta:         cuenta,
+		CuentaSalida:   cuentaSalida,
+		PartidaSalida:  partidaSalida,
+		CuentaEntrada:  cuentaEntrada,
+		PartidaEntrada: partidaEntrada,
+		Detalle:        detalle,
+		MontoBruto:     montoBruto,
+	}
+
+	return donacion, nil
+}
+
 func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
 		return
@@ -487,7 +793,6 @@ func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) 
 	if err != nil || idMov == "" || firmaForm == "" {
 		app.log("handleSuscribirServicio: error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
-		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
@@ -511,7 +816,7 @@ func (app *App) handleSuscribirBien(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.log("handleSuscribirBien: error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
-		http.Error(w, "", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusSeeOther)
 		return
 	}
 
@@ -677,7 +982,7 @@ func (app *App) handleRecibirBien(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusSeeOther)
 }
 
-func (app *App) handleCuentas(w http.ResponseWriter, r *http.Request) {
+func (app *App) handleCuentasSuscriben(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
 		return
 	}
@@ -686,7 +991,7 @@ func (app *App) handleCuentas(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.log("handleSuscribe: error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
-		http.Error(w, "", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusSeeOther)
 		return
 	}
 
@@ -708,6 +1013,74 @@ func (app *App) handleCuentas(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `</select>
 			<button type="button" style="margin:0.5em;" hx-on:click="this.closest('.select-group').remove()">Quitar</button>
 			</div>`)
+	}
+}
+
+func (app *App) handleCuentasDonacion(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, _, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleCuentas: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		w.WriteHeader(http.StatusSeeOther)
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		cuentas, err := database.ListaCuentas(app.DB)
+		if err != nil {
+			app.log("handleCuentas: error fetching accounts: %v", err)
+			http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprint(w, `<div class="card-header" id="cuenta-entrada-container">
+			<select name="cuenta-entrada">`)
+
+		for _, cuenta := range cuentas {
+			fmt.Fprintf(w, `<option value="%s">%s</option>`, cuenta.ID, cuenta.Nombre)
+		}
+
+		fmt.Fprint(w, `</select></div>`)
+
+		return
+	}
+}
+
+func (app *App) handleCuentasAjuste(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, _, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleCuentas: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		w.WriteHeader(http.StatusSeeOther)
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		cuentas, err := database.ListaCuentas(app.DB)
+		if err != nil {
+			app.log("handleCuentas: error fetching accounts: %v", err)
+			http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprint(w, `<div class="card-header" id="cuenta-container">
+			<select name="cuenta">`)
+
+		for _, cuenta := range cuentas {
+			fmt.Fprintf(w, `<option value="%s">%s</option>`, cuenta.ID, cuenta.Nombre)
+		}
+
+		fmt.Fprint(w, `</select></div>`)
+
+		return
 	}
 }
 
@@ -1053,6 +1426,113 @@ func validateSuscriben(suscriben []string, cuentas []string) error {
 	}
 
 	return nil
+}
+
+func (app *App) handleAprobarServicioCOES(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleDashboard: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	if cuenta != "COES" {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
+		return
+	}
+
+	path := r.URL.Path
+	segments := strings.Split(path, "/")
+	if len(segments) < 5 {
+		http.Error(w, "ID not found in URL", http.StatusBadRequest)
+		return
+	}
+	id := segments[4]
+
+	err = database.AprobarServicioCOES(app.DB, id)
+	if err != nil {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func (app *App) handleAprobarSuministroCOES(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleDashboard: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	if cuenta != "COES" {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
+		return
+	}
+
+	path := r.URL.Path
+	segments := strings.Split(path, "/")
+	if len(segments) < 5 {
+		http.Error(w, "ID not found in URL", http.StatusBadRequest)
+		return
+	}
+	id := segments[4]
+
+	err = database.AprobarSuministroCOES(app.DB, id)
+	if err != nil {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+func (app *App) handleAprobarBienCOES(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleDashboard: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	if cuenta != "COES" {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
+		return
+	}
+
+	path := r.URL.Path
+	segments := strings.Split(path, "/")
+	if len(segments) < 5 {
+		http.Error(w, "ID not found in URL", http.StatusBadRequest)
+		return
+	}
+	id := segments[4]
+
+	err = database.AprobarBienCOES(app.DB, id)
+	if err != nil {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
 }
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {

@@ -329,7 +329,7 @@ func LeerBien(db *sql.DB, id, cuenta string) (Bien, error) {
 
 	b.Movimientos = movimientos
 
-	if !found {
+	if !found && cuenta != "COES" && cuenta != "SF" {
 		return Bien{}, fmt.Errorf("LeerBien: cuenta '%s' no encontrada en participantes", cuenta)
 	}
 
@@ -384,5 +384,91 @@ func ConfirmarRecibidoBienes(db *sql.DB, id, usuario, cuenta string, fecha time.
 		return fmt.Errorf("ConfirmarRecibidoBienes: failed to update bien with id %s: %w", id, err)
 	}
 
+	return nil
+}
+
+func BienesPendientesCOES(db *sql.DB, periodo int) ([]Bien, error) {
+	query := `
+		SELECT id, emitido, emisor, detalle, por_recibir, justif, 
+		       coes, prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, 
+		       prov_iban, prov_justif, monto_bruto, monto_iva, monto_desc, 
+		       geco_sol, geco_oc, oc_firma, oc_firma_vive, 
+		       acuse_usuario, acuse_fecha, acuse, acuse_firma, 
+		       pagado, notas
+		FROM bienes
+		WHERE coes = FALSE
+		ORDER BY emitido DESC
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("BienesPendientesCOES: error fetching bienes: %w", err)
+	}
+	defer rows.Close()
+
+	var bienes []Bien
+
+	for rows.Next() {
+		var b Bien
+		var emitido time.Time
+		var acuseFecha, pagado sql.NullTime
+		var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOC sql.NullString
+		var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+		var montoBruto, montoIVA, montoDesc sql.NullFloat64
+		var ocFirma, ocFirmaVive sql.NullString
+		var justif, notas sql.NullString
+
+		if err := rows.Scan(
+			&b.ID, &emitido, &b.Emisor, &b.Detalle, &b.PorRecibir, &justif,
+			&b.COES, &provNom, &provCed, &provDirec, &provEmail, &provTel, &provBanco, &provIBAN, &provJustif,
+			&montoBruto, &montoIVA, &montoDesc, &gecoSol, &gecoOC,
+			&ocFirma, &ocFirmaVive, &acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
+		); err != nil {
+			return nil, fmt.Errorf("BienesPendientesCOES: error scanning row: %w", err)
+		}
+
+		// ✅ Filter by year (in Go)
+		if emitido.Year() == periodo {
+			b.Emitido = emitido
+			b.Justif = justif.String
+			b.ProvNom = provNom.String
+			b.ProvCed = provCed.String
+			b.ProvDirec = provDirec.String
+			b.ProvEmail = provEmail.String
+			b.ProvTel = provTel.String
+			b.ProvBanco = provBanco.String
+			b.ProvIBAN = provIBAN.String
+			b.ProvJustif = provJustif.String
+			b.MontoBruto = montoBruto.Float64
+			b.MontoIVA = montoIVA.Float64
+			b.MontoDesc = montoDesc.Float64
+			b.GecoSol = gecoSol.String
+			b.GecoOC = gecoOC.String
+			b.OCFirma = ocFirma.String
+			b.OCFirmaVive = ocFirmaVive.String
+			b.AcuseUsuario = acuseUsuario.String
+			b.AcuseFecha = acuseFecha.Time
+			b.Acuse = acuse.String
+			b.AcuseFirma = acuseFirma.String
+			b.Pagado = pagado.Time
+			b.Notas = notas.String
+
+			bienes = append(bienes, b)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("BienesPendientesCOES: error iterating rows: %w", err)
+	}
+
+	return bienes, nil
+}
+
+func AprobarBienCOES(db *sql.DB, id string) error {
+	_, err := db.Exec(`UPDATE bienes SET coes = TRUE WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("AprobarBienCOES: failed to update service: %w", err)
+	}
 	return nil
 }
