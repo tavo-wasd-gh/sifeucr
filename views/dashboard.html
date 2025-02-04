@@ -179,11 +179,11 @@
         </div>
         <br>
         <div class="card-items">
-          {{ $parentIDCuenta := .Cuenta.IDCuenta }}
-          {{ range .Donaciones }}
+          {{ $parentIDCuenta := .Cuenta.ID }}
+          {{ range .Cuenta.Donaciones }}
           <hr>
           <div class="card-item"
-            hx-get="/api/donaciones/{{.IDDonacion}}"
+            hx-get="/api/donaciones/{{.ID}}"
             hx-target="#dialog-content"
             hx-swap="innerHTML"
             onclick="showDialog()">
@@ -191,19 +191,19 @@
             <br>
             <span class="label">{{.Detalle}}</span>
             <span class="value">
-              {{if eq .IDCuentaEntrada $parentIDCuenta}}
+              {{if eq .CuentaEntrada $parentIDCuenta}}
               {{if eq .PartidaEntrada "servicios"}}Servicios{{end}}
               {{if eq .PartidaEntrada "suministros"}}Suministros{{end}}
               {{if eq .PartidaEntrada "bienes"}}Bienes{{end}}
               {{if eq .PartidaEntrada "general"}}General{{end}}
               {{end}}
-              {{if eq .IDCuentaSalida $parentIDCuenta}}
+              {{if eq .CuentaSalida $parentIDCuenta}}
               {{if eq .PartidaSalida "servicios"}}Servicios{{end}}
               {{if eq .PartidaSalida "suministros"}}Suministros{{end}}
               {{if eq .PartidaSalida "bienes"}}Bienes{{end}}
               {{if eq .PartidaSalida "general"}}General{{end}}
               {{end}}
-              / {{if eq .IDCuentaSalida $parentIDCuenta}}-{{else}}+{{end}}{{currency .MontoBruto}}
+              / {{if eq .CuentaSalida $parentIDCuenta}}-{{else}}+{{end}}{{currency .MontoBruto}}
             </span>
           </div>
           {{ end }}
@@ -220,7 +220,7 @@
         </div>
         <br>
         <div class="card-items">
-          {{range .Ajustes}}
+          {{range .Cuenta.Ajustes}}
           <hr>
           <div class="card-item"
             hx-get="/api/ajustes/{{.IDAjustes}}"

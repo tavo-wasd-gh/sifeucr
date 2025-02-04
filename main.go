@@ -48,6 +48,7 @@ func main() {
 		"servicio-form":   "views/servicio-form.html",
 		"suministro":      "views/suministro.html",
 		"suministro-form": "views/suministro-form.html",
+		"bien":            "views/bien.html",
 		"bien-form":       "views/bien-form.html",
 	}
 
@@ -76,15 +77,18 @@ func main() {
 	http.HandleFunc("/api/bienes", app.handleBienForm)
 
 	// Leer Solicitudes
-	http.HandleFunc("/api/servicios/", app.handleServicios)
+	http.HandleFunc("/api/servicios/", app.handleServicio)
 	http.HandleFunc("/api/suministro/", app.handleSuministro)
+	http.HandleFunc("/api/bienes/", app.handleBien)
 
 	// Suscribir a Solicitudes
 	http.HandleFunc("/api/suscribir/servicio", app.handleSuscribirServicio)
+	http.HandleFunc("/api/suscribir/bien", app.handleSuscribirBien)
 
 	// Marcar como ejecutado/recibido
 	http.HandleFunc("/api/ejecutar/servicio", app.handleEjecutarServicio)
 	http.HandleFunc("/api/recibir/suministro", app.handleRecibirSuministro)
+	http.HandleFunc("/api/recibir/bien", app.handleRecibirBien)
 
 	// Credenciales
 	http.HandleFunc("/api/cuentas", app.handleCuentas)
@@ -163,7 +167,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
+func (app *App) handleServicio(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
@@ -256,6 +260,47 @@ func (app *App) handleSuministro(w http.ResponseWriter, r *http.Request) {
 	}
 
 	return
+}
+
+func (app *App) handleBien(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleBien: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		var id string
+		path := r.URL.Path
+		segments := strings.Split(path, "/")
+		if len(segments) < 4 {
+			http.Error(w, "ID not found in URL", http.StatusBadRequest)
+			return
+		}
+		id = segments[3]
+
+		b, err := database.LeerBien(app.DB, id, cuenta)
+		if err != nil {
+			app.log("handleBien: error loading bien: %v", err)
+			http.Error(w, "failed to load bien", http.StatusInternalServerError)
+			return
+		}
+
+		b.UsuarioLoggeado = correo
+		b.CuentaLoggeada = cuenta
+
+		if err := app.Render(w, "bien", b); err != nil {
+			app.log("handleBien: error rendering view: %v", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+	}
 }
 
 func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
@@ -457,6 +502,40 @@ func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusSeeOther)
 }
 
+func (app *App) handleSuscribirBien(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleSuscribirBien: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	err = r.ParseForm()
+	idMov := r.Form.Get("id")
+	firmaForm := r.Form.Get("firma-suscribir")
+
+	if err != nil || idMov == "" || firmaForm == "" {
+		app.log("handleSuscribirBien: error parsing form: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
+		return
+	}
+
+	err = database.FirmarMovimientoBienes(app.DB, idMov, correo, cuenta, firmaForm)
+	if err != nil {
+		app.log("handleSuscribirBien: error signing bien: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+	w.WriteHeader(http.StatusSeeOther)
+}
+
 func (app *App) handleEjecutarServicio(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
 		return
@@ -543,6 +622,53 @@ func (app *App) handleRecibirSuministro(w http.ResponseWriter, r *http.Request) 
 	err = database.ConfirmarEjecutadoSuministros(app.DB, idSuministro, correo, cuenta, fechaRecibido, acuseRecibido, firmaAcuse)
 	if err != nil {
 		app.log("handleRecibirSuministro: error in confirmation: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la recepción</div>`)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+	w.WriteHeader(http.StatusSeeOther)
+}
+
+func (app *App) handleRecibirBien(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleRecibirBien: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	err = r.ParseForm()
+	idBien := r.Form.Get("id")
+	fechaRecibidoStr := r.Form.Get("fecha-recibido")
+	acuseRecibido := r.Form.Get("acuse-recibido")
+	firmaAcuse := r.Form.Get("firma-acuse")
+
+	if err != nil ||
+		idBien == "" ||
+		fechaRecibidoStr == "" ||
+		acuseRecibido == "" ||
+		firmaAcuse == "" {
+		app.log("handleRecibirBien: error parsing form: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
+		return
+	}
+
+	fechaRecibido, err := time.Parse("2006-01-02T15:04", fechaRecibidoStr)
+	if err != nil {
+		app.log("handleRecibirBien: error parsing date: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error en la fecha de recepción</div>`)
+		return
+	}
+
+	err = database.ConfirmarRecibidoBienes(app.DB, idBien, correo, cuenta, fechaRecibido, acuseRecibido, firmaAcuse)
+	if err != nil {
+		app.log("handleRecibirBien: error in confirmation: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la recepción</div>`)
 		return
 	}

@@ -1,0 +1,399 @@
+{{ define "bien" }}
+{{ $firmaPendiente := "" }}
+{{ range .Movimientos }}{{ if and (eq .Cuenta $.CuentaLoggeada) (not .Firma) }}
+{{ $firmaPendiente = .ID }}
+{{ end }}{{ end }}
+<div class="card-header">
+  <span><strong>Solicitud de Bienes</strong> No. {{.ID}}</span>
+</div>
+<div class="card-header">
+  <small>Emitida por: <i>{{.Emisor}}</i></small>
+</div>
+<div class="card-header">
+  <small>Fecha para recibir: <i>{{datetime .PorRecibir}}</i></small>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <span>
+    <strong>Suscriben</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Firmas de las unidades participantes.
+        La distribución de montos debe especificarse en la justificación
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+</div>
+<br>
+<div class="card-header">
+  <table>
+    <thead>
+      <tr>
+        <th><small>Unidad</small></th>
+        <th><small>Presupuesto</small></th>
+        <th><small>Monto</small></th>
+        <th><small>Firma</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Movimientos }}
+      <tr>
+        <td><small>{{ .Cuenta }}</small></td>
+        <td><small>{{ .Presupuesto }}</small></td>
+        <td><span class="value">{{if .Monto}}{{ currency .Monto }}{{else}}Por definir{{end}}</span></td>
+        <td id="firma-{{.Cuenta}}">{{ if .Firma }}<i class='bx bx-check'></i>{{end}}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<br>
+{{ if $firmaPendiente }}
+<div class="suscribir">
+  <form id="suscribir" hx-post="/api/suscribir/bien" hx-swap="outerHTML">
+    <input type="hidden" id="id" name="id" value="{{ $firmaPendiente }}">
+    <br>
+    <div class="card-header">
+      <strong>Firmar como:</strong>
+    </div>
+    <br>
+    <div class="card-header">
+      <small>Firma de <i>{{.UsuarioLoggeado}}</i> como <i>{{.CuentaLoggeada}}:</i></small>
+    </div>
+    <br>
+    <div class="card-header">
+      <canvas id="canvas-suscribir"></canvas>
+    </div>
+    <input type="hidden" id="firma-suscribir" name="firma-suscribir">
+    <div class="card-header">
+      <div class="htmx-button-div">
+        <button type="submit">Firmar</button>
+        <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+      </div>
+      <div class="htmx-button-div">
+        <button type="button" onclick="clearCanvas()">Limpiar</button>
+      </div>
+    </div>
+  </form>
+</div>
+{{ end }}
+<br>
+<hr>
+<div class="card-header">
+  <p><strong>Detalle</strong></p>
+</div>
+<div class="card-header">
+  <small>{{.Detalle}}</small>
+</div>
+<br>
+<div class="card-header">
+  <span>
+    <strong>Justificación</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez Contraloría Estudiantil apruebe esta justificación, se llenará la píldora COES de anaranjado
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+</div>
+<div class="card-header">
+  <small>{{.Justif}}</small>
+</div>
+<br>
+<hr>
+<div class="card-header">
+  <p><strong>Proveedor</strong></p>
+</div>
+<div class="card-header">
+  <span>
+    <small>
+      Solicitud:
+    </small>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez Secretaría de Finanzas apruebe esta solicitud, se registrará en GECO y se llenará la píldora SF de azul
+      </div>
+    </div>
+    <small>
+      {{.GecoSol}}
+    </small>
+  </span>
+  <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+</div>
+<div class="card-header">
+  <small>OC: {{.GecoOC}}</small>
+</div>
+<br>
+{{if .GecoOC}}
+<div class="card-header">
+  <small>Entidad: {{.ProvNom}}</small>
+</div>
+<div class="card-header">
+  <small>Cédula: {{.ProvCed}}</small>
+</div>
+<div class="card-header">
+  <small>Dirección: {{.ProvDirec}}</small>
+</div>
+<div class="card-header">
+  <small>Correo: {{.ProvEmail}}</small>
+</div>
+<div class="card-header">
+  <small>Tel: {{.ProvTel}}</small>
+</div>
+<div class="card-header">
+  <small>Justificación: {{.ProvJustif}}</small>
+</div>
+<br>
+{{end}}
+<hr>
+<div class="card-header">
+  <span>
+    <strong>Recibido</strong>
+    <div class="tooltip">
+      <i class='bx bxs-info-circle' ></i>
+      <div class="tooltip-text">
+        Una vez recibido el bien, favor anotar el desglose del bien recibido.
+      </div>
+    </div>
+  </span>
+  <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
+</div>
+{{if .Acuse}}
+<div class="card-header">
+  <small>Confirmado por: <i>{{.AcuseUsuario}}</i></small>
+</div>
+<div class="card-header">
+  <small>Recibido: <i>{{datetime .AcuseFecha}}</i></small>
+</div>
+<br>
+<div class="card-header">
+  <strong>Acuse</strong>
+</div>
+<div class="card-header">
+  <small>{{.Acuse}}</small>
+</div>
+{{else}}
+<br>
+<form id="recibir" hx-post="/api/recibir/bien">
+  <input type="hidden" id="id" name="id" value="{{ .ID }}">
+  <div class="card-header">
+    <input type="datetime-local" id="fecha-recibido" name="fecha-recibido" {{if .GecoOC}}required{{else}}disabled{{end}}>
+  </div>
+  <div class="card-header">
+    <textarea id="acuse-recibido" name="acuse-recibido" placeholder="Acuse de ejecución" {{if .GecoOC}}required{{else}}disabled{{end}}></textarea>
+  </div>
+  <br>
+  <div class="card-header">
+    <small>Firma de <i>{{.UsuarioLoggeado}}</i> como <i>{{.CuentaLoggeada}}:</i></small>
+  </div>
+  <br>
+  <div class="card-header">
+    <canvas id="canvas-acuse"></canvas>
+  </div>
+  <input type="hidden" id="firma-acuse" name="firma-acuse">
+  <div class="card-header">
+    <div class="htmx-button-div">
+      <button type="submit" {{if .GecoOC}}required{{else}}disabled{{end}}>Confirmar</button>
+      <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+    </div>
+    <div class="htmx-button-div">
+      <button type="button" onclick="clearCanvas()">Limpiar</button>
+    </div>
+  </div>
+</form>
+{{end}}
+{{ if $firmaPendiente }}
+<script>
+var canvas = document.getElementById("canvas-suscribir");
+var ctx = canvas.getContext("2d");
+
+function fixCanvasResolution() {
+  const scale = window.devicePixelRatio || 1;
+
+  const width = canvas.offsetWidth;
+  const height = canvas.offsetHeight;
+
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+
+  ctx.scale(scale, scale);
+}
+fixCanvasResolution();
+
+function updateStrokeColor() {
+  const color = getComputedStyle(document.documentElement).getPropertyValue("--color-fg").trim();
+  ctx.strokeStyle = color || "black";
+}
+updateStrokeColor();
+
+var drawing = false;
+function startDraw(x, y) {
+  drawing = true;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+}
+
+function draw(x, y) {
+  if (!drawing) return;
+  ctx.lineTo(x, y);
+  ctx.stroke();
+}
+
+function stopDraw() {
+  drawing = false;
+}
+
+canvas.addEventListener("mousedown", (e) => startDraw(e.offsetX, e.offsetY));
+canvas.addEventListener("mousemove", (e) => draw(e.offsetX, e.offsetY));
+canvas.addEventListener("mouseup", stopDraw);
+canvas.addEventListener("mouseleave", stopDraw);
+
+canvas.addEventListener("touchstart", (e) => {
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  startDraw(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  draw(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+canvas.addEventListener("touchend", stopDraw);
+canvas.addEventListener("touchcancel", stopDraw);
+
+document.getElementById("suscribir").addEventListener("submit", function () {
+  const tempCanvas = document.createElement("canvas");
+  const tempCtx = tempCanvas.getContext("2d");
+
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+
+  tempCtx.drawImage(canvas, 0, 0);
+
+  const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const alpha = data[i + 3];
+
+    if (alpha > 0) {
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+    }
+  }
+
+  tempCtx.putImageData(imageData, 0, 0);
+
+  document.getElementById("firma-suscribir").value = tempCanvas.toDataURL("image/png");
+});
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+</script>
+{{ end }}
+{{ if and .GecoOC (not .Acuse) }}
+<script>
+var canvas = document.getElementById("canvas-acuse");
+var ctx = canvas.getContext("2d");
+
+function fixCanvasResolution() {
+  const scale = window.devicePixelRatio || 1;
+
+  const width = canvas.offsetWidth;
+  const height = canvas.offsetHeight;
+
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+
+  ctx.scale(scale, scale);
+}
+fixCanvasResolution();
+
+function updateStrokeColor() {
+  const color = getComputedStyle(document.documentElement).getPropertyValue("--color-fg").trim();
+  ctx.strokeStyle = color || "black";
+}
+updateStrokeColor();
+
+var drawing = false;
+function startDraw(x, y) {
+  drawing = true;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+}
+
+function draw(x, y) {
+  if (!drawing) return;
+  ctx.lineTo(x, y);
+  ctx.stroke();
+}
+
+function stopDraw() {
+  drawing = false;
+}
+
+canvas.addEventListener("mousedown", (e) => startDraw(e.offsetX, e.offsetY));
+canvas.addEventListener("mousemove", (e) => draw(e.offsetX, e.offsetY));
+canvas.addEventListener("mouseup", stopDraw);
+canvas.addEventListener("mouseleave", stopDraw);
+
+canvas.addEventListener("touchstart", (e) => {
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  startDraw(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  draw(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+canvas.addEventListener("touchend", stopDraw);
+canvas.addEventListener("touchcancel", stopDraw);
+
+document.getElementById("recibir").addEventListener("submit", function () {
+  const tempCanvas = document.createElement("canvas");
+  const tempCtx = tempCanvas.getContext("2d");
+
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+
+  tempCtx.drawImage(canvas, 0, 0);
+
+  const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const alpha = data[i + 3];
+
+    if (alpha > 0) {
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+    }
+  }
+
+  tempCtx.putImageData(imageData, 0, 0);
+
+  document.getElementById("firma-acuse").value = tempCanvas.toDataURL("image/png");
+});
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+</script>
+{{ end }}
+{{end}}
