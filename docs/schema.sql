@@ -87,6 +87,7 @@ CREATE TABLE suministros (
   cuenta varchar(20) NOT NULL,
   presupuesto varchar(50) NOT NULL,
   justif varchar(10000) NOT NULL,
+  firma text,
   -- COES
   coes boolean,
   -- OSUM

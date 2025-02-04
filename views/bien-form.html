@@ -1,8 +1,8 @@
-{{ define "servicio-form" }}
+{{ define "bien-form" }}
 <main>
-  <h1>Solicitud de Servicios</h1>
+  <h1>Solicitud de Bienes</h1>
   <div>
-      <form id="sol-servicios" hx-post="/api/servicios" hx-target="#response" hx-swap="innerHTML">
+      <form id="sol-bien" hx-post="/api/bienes" hx-target="#response" hx-swap="innerHTML">
       <div class="card-header">
         <small>Emite: <i>{{.Nombre}}</i></small>
       </div>
@@ -10,18 +10,18 @@
       <hr>
       <div class="card-header">
         <span>
-          <small>Fecha para ejecutar el servicio:</small>
+          <small>Fecha para recibir el bien:</small>
           <div class="tooltip">
             <i class='bx bxs-info-circle' ></i>
             <div class="tooltip-text">
-              Fecha en la que se espera recibir el servicio. En caso de ser un rango de fechas, digitar la fecha más próxima y especificar las fechas en el detalle.
+              Fecha en la que se espera recibir el bien. En caso de no ser una fecha específica, puede poner el día de hoy.
             </div>
           </div>
         </span>
       </div>
       <br>
       <div class="card-header">
-        <input type="datetime-local" id="por-ejecutar" name="por-ejecutar" required>
+        <input type="datetime-local" id="por-recibir" name="por-recibir" required>
       </div>
       <div class="card-header">
         <textarea id="detalle" name="detalle" placeholder="Detalle" required></textarea>
@@ -139,7 +139,7 @@
   canvas.addEventListener("touchend", stopDraw);
   canvas.addEventListener("touchcancel", stopDraw);
 
-  document.getElementById("sol-servicios").addEventListener("submit", function () {
+  document.getElementById("sol-bien").addEventListener("submit", function () {
     const tempCanvas = document.createElement("canvas");
     const tempCtx = tempCanvas.getContext("2d");
 
@@ -172,3 +172,4 @@
   </script>
 </main>
 {{end}}
+

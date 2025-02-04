@@ -14,24 +14,43 @@ type Usuario struct {
 
 func Login(db *sql.DB, u, c string) (*Usuario, error) {
 	usuario, err := UsuarioAcreditado(db, u, c)
+	periodoActual := time.Now().Year()
 
-	presupuestos, err := presupuestosInit(db, c, time.Now().Year())
+	presupuestos, err := presupuestosInit(db, c, periodoActual)
 	if err != nil {
 		return nil, fmt.Errorf("Login: failed to init presupuestos: %v", err)
 	}
 	usuario.Cuenta.Presupuestos = presupuestos
 
-	servicios, err := serviciosInit(db, c, time.Now().Year())
+	servicios, err := serviciosInit(db, c, periodoActual)
 	if err != nil {
 		return nil, fmt.Errorf("Login: failed to init servicios: %v", err)
 	}
 	usuario.Cuenta.Servicios = servicios
 
-	suministros, err := suministrosInit(db, c)
+	suministros, err := suministrosInit(db, c, periodoActual)
 	if err != nil {
-		return nil, fmt.Errorf("Login: failed to init servicios: %v", err)
+		return nil, fmt.Errorf("Login: failed to init suministros: %v", err)
 	}
 	usuario.Cuenta.Suministros = suministros
+
+	bienes, err := bienesInit(db, c, periodoActual)
+	if err != nil {
+		return nil, fmt.Errorf("Login: failed to init bienes: %v", err)
+	}
+	usuario.Cuenta.Bienes = bienes
+
+	ajustes, err := ajustesInit(db, c, periodoActual)
+	if err != nil {
+		return nil, fmt.Errorf("Login: failed to init ajustes: %v", err)
+	}
+	usuario.Cuenta.Ajustes = ajustes
+
+	donaciones, err := donacionesInit(db, c, periodoActual)
+	if err != nil {
+		return nil, fmt.Errorf("Login: failed to init donaciones: %v", err)
+	}
+	usuario.Cuenta.Donaciones = donaciones
 
 	return usuario, nil
 }

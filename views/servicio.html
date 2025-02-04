@@ -1,6 +1,6 @@
 {{ define "servicio" }}
 {{ $firmaPendiente := "" }}
-{{ range .Movimientos }}{{ if and (eq .Cuenta $.CuentaLoggeada) (not .Firma.String) }}
+{{ range .Movimientos }}{{ if and (eq .Cuenta $.CuentaLoggeada) (not .Firma) }}
 {{ $firmaPendiente = .ID }}
 {{ end }}{{ end }}
 <div class="card-header">
@@ -43,8 +43,8 @@
       <tr>
         <td><small>{{ .Cuenta }}</small></td>
         <td><small>{{ .Presupuesto }}</small></td>
-        <td><span class="value">{{if .Monto.Float64}}{{ currency .Monto.Float64 }}{{else}}Por definir{{end}}</span></td>
-        <td id="firma-{{.Cuenta}}">{{ if .Firma.String }}<i class='bx bx-check'></i>{{end}}</td>
+        <td><span class="value">{{if .Monto}}{{ currency .Monto }}{{else}}Por definir{{end}}</span></td>
+        <td id="firma-{{.Cuenta}}">{{ if .Firma }}<i class='bx bx-check'></i>{{end}}</td>
       </tr>
       {{ end }}
     </tbody>
@@ -121,33 +121,33 @@
       </div>
     </div>
     <small>
-      {{.GecoSol.String}}
+      {{.GecoSol}}
     </small>
   </span>
-  <div style="background-color: {{if .GecoSol.String}}cornflowerblue{{end}}" class="tag {{if .GecoSol.String}}active{{end}}">SF</div>
+  <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
 </div>
 <div class="card-header">
-  <small>OCS: {{.GecoOCS.String}}</small>
+  <small>OCS: {{.GecoOCS}}</small>
 </div>
 <br>
-{{if .GecoOCS.String}}
+{{if .GecoOCS}}
 <div class="card-header">
-  <small>Entidad: {{.ProvNom.String}}</small>
+  <small>Entidad: {{.ProvNom}}</small>
 </div>
 <div class="card-header">
-  <small>Cédula: {{.ProvCed.String}}</small>
+  <small>Cédula: {{.ProvCed}}</small>
 </div>
 <div class="card-header">
-  <small>Dirección: {{.ProvDirec.String}}</small>
+  <small>Dirección: {{.ProvDirec}}</small>
 </div>
 <div class="card-header">
-  <small>Correo: {{.ProvEmail.String}}</small>
+  <small>Correo: {{.ProvEmail}}</small>
 </div>
 <div class="card-header">
-  <small>Tel: {{.ProvTel.String}}</small>
+  <small>Tel: {{.ProvTel}}</small>
 </div>
 <div class="card-header">
-  <small>Justificación: {{.ProvJustif.String}}</small>
+  <small>Justificación: {{.ProvJustif}}</small>
 </div>
 <br>
 {{end}}
@@ -162,31 +162,31 @@
       </div>
     </div>
   </span>
-  <div style="background-color: {{if .AcuseFecha.Valid}}seagreen{{end}}" class="tag {{if .AcuseFecha.Valid}}active{{end}}">Ejecutado</div>
+  <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
 </div>
-{{if .AcuseFecha.Valid}}
+{{if .Acuse}}
 <div class="card-header">
-  <small>Confirmado por: <i>{{.AcuseUsuario.String}}</i></small>
+  <small>Confirmado por: <i>{{.AcuseUsuario}}</i></small>
 </div>
 <div class="card-header">
-  <small>Ejecutado: <i>{{datetime .AcuseFecha.Value}}</i></small>
+  <small>Ejecutado: <i>{{datetime .AcuseFecha}}</i></small>
 </div>
 <br>
 <div class="card-header">
   <strong>Acuse</strong>
 </div>
 <div class="card-header">
-  <small>{{.Acuse.String}}</small>
+  <small>{{.Acuse}}</small>
 </div>
 {{else}}
 <br>
 <form id="ejecutar" hx-post="/api/ejecutar/servicio">
   <input type="hidden" id="id" name="id" value="{{ .ID }}">
   <div class="card-header">
-    <input type="datetime-local" id="fecha-ejecutado" name="fecha-ejecutado" {{if .GecoOCS.String}}required{{else}}disabled{{end}}>
+    <input type="datetime-local" id="fecha-ejecutado" name="fecha-ejecutado" {{if .GecoOCS}}required{{else}}disabled{{end}}>
   </div>
   <div class="card-header">
-    <textarea id="acuse-ejecutado" name="acuse-ejecutado" placeholder="Acuse de ejecución" {{if .GecoOCS.String}}required{{else}}disabled{{end}}></textarea>
+    <textarea id="acuse-ejecutado" name="acuse-ejecutado" placeholder="Acuse de ejecución" {{if .GecoOCS}}required{{else}}disabled{{end}}></textarea>
   </div>
   <br>
   <div class="card-header">
@@ -199,7 +199,7 @@
   <input type="hidden" id="firma-acuse" name="firma-acuse">
   <div class="card-header">
     <div class="htmx-button-div">
-      <button type="submit" {{if .GecoOCS.String}}required{{else}}disabled{{end}}>Confirmar</button>
+      <button type="submit" {{if .GecoOCS}}required{{else}}disabled{{end}}>Confirmar</button>
       <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
     </div>
     <div class="htmx-button-div">
@@ -302,7 +302,7 @@ function clearCanvas() {
 }
 </script>
 {{ end }}
-{{ if and .GecoOCS.String (not .AcuseFecha.Valid) }}
+{{ if and .GecoOCS (not .Acuse) }}
 <script>
 var canvas = document.getElementById("canvas-acuse");
 var ctx = canvas.getContext("2d");

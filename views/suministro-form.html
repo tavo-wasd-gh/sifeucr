@@ -1,63 +1,32 @@
-{{ define "servicio-form" }}
+{{ define "suministro-form" }}
 <main>
-  <h1>Solicitud de Servicios</h1>
+  <h1>Solicitud de Suministros</h1>
   <div>
-      <form id="sol-servicios" hx-post="/api/servicios" hx-target="#response" hx-swap="innerHTML">
+    <form id="sol-suministros" hx-post="/api/suministros" hx-target="#response" hx-swap="innerHTML">
       <div class="card-header">
         <small>Emite: <i>{{.Nombre}}</i></small>
       </div>
       <br>
       <hr>
-      <div class="card-header">
-        <span>
-          <small>Fecha para ejecutar el servicio:</small>
-          <div class="tooltip">
-            <i class='bx bxs-info-circle' ></i>
-            <div class="tooltip-text">
-              Fecha en la que se espera recibir el servicio. En caso de ser un rango de fechas, digitar la fecha más próxima y especificar las fechas en el detalle.
-            </div>
-          </div>
-        </span>
+      <div id="items">
+        <div class="card-header">
+          <input type="text" name="nombre[]" placeholder="Nombre">
+          <input type="text" name="articulo[]" placeholder="Artículo">
+          <input type="text" name="agrupacion[]" placeholder="Agrupación">
+          <input type="number" name="cantidad[]" placeholder="Cantidad">
+          <button style="margin:0.5em;" id="rem-item" type="button" disabled>Quitar</button>
+        </div>
       </div>
       <br>
       <div class="card-header">
-        <input type="datetime-local" id="por-ejecutar" name="por-ejecutar" required>
+        <button id="add-item" type="button" hx-on:click="addItem()">+</button>
       </div>
-      <div class="card-header">
-        <textarea id="detalle" name="detalle" placeholder="Detalle" required></textarea>
-      </div>
+      <br>
       <div class="card-header">
         <textarea id="justif" name="justif" placeholder="Justificación" required></textarea>
       </div>
       <br>
       <hr>
-      <div class="card-header">
-        <span>
-          <small>Suscriben:</small>
-          <div class="tooltip">
-            <i class='bx bxs-info-circle' ></i>
-            <div class="tooltip-text">
-              Asociaciones que participan en la contratación. La justificación debe expresar la distribución de los montos en caso de que participe más de una.
-              Ej: 50/50, monto máximo, etc.
-            </div>
-          </div>
-        </span>
-      </div>
-      <br>
-      <div id="suscriben">
-        <div class="select-group card-header">
-          <select name="suscriben" readonly>
-            <option value="{{.Cuenta.ID}}">{{.Cuenta.Nombre}}</option>
-          </select>
-        </div>
-      </div>
-      <div class="card-header">
-        <div class="htmx-button-div">
-          <button type="button" hx-get="/api/cuentas" hx-target="#suscriben" hx-swap="beforeend">+</button>
-          <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
-        </div>
-      </div>
-      <br>
       <div class="card-header">
         <small>Firma de <i>{{.ID}}</i> como <i>{{.Cuenta.ID}}:</i></small>
       </div>
@@ -139,7 +108,7 @@
   canvas.addEventListener("touchend", stopDraw);
   canvas.addEventListener("touchcancel", stopDraw);
 
-  document.getElementById("sol-servicios").addEventListener("submit", function () {
+  document.getElementById("sol-suministros").addEventListener("submit", function () {
     const tempCanvas = document.createElement("canvas");
     const tempCtx = tempCanvas.getContext("2d");
 
@@ -169,6 +138,26 @@
   function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
+
+  function addItem() {
+    let newCard = document.createElement('div');
+    newCard.classList.add('card-header');
+    newCard.innerHTML = `
+<input type="text" name="nombre[]" placeholder="Nombre">
+<input type="text" name="articulo[]" placeholder="Artículo">
+<input type="text" name="agrupacion[]" placeholder="Agrupación">
+<input type="number" name="cantidad[]" placeholder="Cantidad">
+<button style="margin:0.5em;" type="button" class="rem-item">Quitar</button>
+`;
+
+    document.getElementById('items').appendChild(newCard);
+  }
+
+  document.getElementById('items').addEventListener('click', function (event) {
+    if (event.target.classList.contains('rem-item')) {
+      event.target.closest('.card-header').remove();
+    }
+  });
   </script>
 </main>
 {{end}}

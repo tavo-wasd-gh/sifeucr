@@ -17,30 +17,30 @@ type Servicio struct {
 	// COES
 	COES bool
 	// OSUM
-	ProvNom    sql.NullString
-	ProvCed    sql.NullString
-	ProvDirec  sql.NullString
-	ProvEmail  sql.NullString
-	ProvTel    sql.NullString
-	ProvBanco  sql.NullString
-	ProvIBAN   sql.NullString
-	ProvJustif sql.NullString
-	MontoBruto sql.NullFloat64
-	MontoIVA   sql.NullFloat64
-	MontoDesc  sql.NullFloat64
-	GecoSol    sql.NullString
-	GecoOCS    sql.NullString
+	ProvNom    string
+	ProvCed    string
+	ProvDirec  string
+	ProvEmail  string
+	ProvTel    string
+	ProvBanco  string
+	ProvIBAN   string
+	ProvJustif string
+	MontoBruto float64
+	MontoIVA   float64
+	MontoDesc  float64
+	GecoSol    string
+	GecoOCS    string
 	// ViVE
-	OCSFirma     sql.NullString
-	OCSFirmaVive sql.NullString
+	OCSFirma     string
+	OCSFirmaVive string
 	// Ejecutado
-	AcuseUsuario sql.NullString
-	AcuseFecha   sql.NullTime
-	Acuse        sql.NullString
-	AcuseFirma   sql.NullString
+	AcuseUsuario string
+	AcuseFecha   time.Time
+	Acuse        string
+	AcuseFirma   string
 	// Final
-	Pagado sql.NullTime
-	Notas  sql.NullString
+	Pagado time.Time
+	Notas  string
 	// Runtime
 	Movimientos     []ServicioMovimiento
 	FirmasCompletas bool
@@ -51,31 +51,27 @@ type Servicio struct {
 type ServicioMovimiento struct {
 	ID          int
 	Servicio    int
-	Usuario     sql.NullString
+	Usuario     string
 	Cuenta      string
 	Presupuesto string
-	Monto       sql.NullFloat64
-	Firma       sql.NullString
+	Monto       float64
+	Firma       string
 }
 
 func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
-	query := `SELECT
-	s.id,
-	s.emitido,s.emisor,s.detalle,s.por_ejecutar,s.justif,
-	s.coes,
-	s.prov_nom,s.prov_ced,s.prov_direc,s.prov_email,s.prov_tel,s.prov_banco,s.prov_iban,s.prov_justif,s.monto_bruto,s.monto_iva,s.monto_desc,s.geco_sol,s.geco_ocs,
-	s.ocs_firma,s.ocs_firma_vive,
-	s.acuse_usuario, s.acuse_fecha, s.acuse, s.acuse_firma,
-	s.pagado, s.notas
-	FROM servicios s
-	JOIN servicios_movimientos sm
-	ON s.id = sm.servicio
-	JOIN presupuestos p
-	ON sm.presupuesto = p.id
-	JOIN cuentas c
-	ON p.cuenta = c.id
-	WHERE c.id = ?
-	ORDER BY s.emitido;`
+	query := `
+		SELECT s.id, s.emitido, s.emisor, s.detalle, s.por_ejecutar, s.justif, s.coes,
+		       s.prov_nom, s.prov_ced, s.prov_direc, s.prov_email, s.prov_tel,
+		       s.prov_banco, s.prov_iban, s.prov_justif, s.monto_bruto, s.monto_iva, s.monto_desc, 
+		       s.geco_sol, s.geco_ocs, s.ocs_firma, s.ocs_firma_vive,
+		       s.acuse_usuario, s.acuse_fecha, s.acuse, s.acuse_firma,
+		       s.pagado, s.notas
+		FROM servicios s
+		JOIN servicios_movimientos sm ON s.id = sm.servicio
+		JOIN presupuestos p ON sm.presupuesto = p.id
+		JOIN cuentas c ON p.cuenta = c.id
+		WHERE c.id = ?
+		ORDER BY s.emitido DESC;`
 
 	rows, err := db.Query(query, cuenta)
 	if err != nil {
@@ -87,20 +83,54 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 
 	for rows.Next() {
 		var s Servicio
+		var acuseFecha, pagado sql.NullTime
+		var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOCS sql.NullString
+		var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+		var montoBruto, montoIVA, montoDesc sql.NullFloat64
+		var ocsFirma, ocsFirmaVive sql.NullString
+		var justif sql.NullString
+		var notas sql.NullString
+
 		if err := rows.Scan(
-			&s.ID,
-			&s.Emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &s.Justif,
-			&s.COES,
-			&s.ProvNom, &s.ProvCed, &s.ProvDirec, &s.ProvEmail, &s.ProvTel, &s.ProvBanco, &s.ProvIBAN, &s.ProvJustif, &s.MontoBruto, &s.MontoIVA, &s.MontoDesc, &s.GecoSol, &s.GecoOCS,
-			&s.OCSFirma, &s.OCSFirmaVive,
-			&s.AcuseUsuario, &s.AcuseFecha, &s.Acuse, &s.AcuseFirma,
-			&s.Pagado, &s.Notas,
+			&s.ID, &s.Emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &justif, &s.COES,
+			&provNom, &provCed, &provDirec, &provEmail, &provTel,
+			&provBanco, &provIBAN, &provJustif, &montoBruto, &montoIVA, &montoDesc,
+			&gecoSol, &gecoOCS, &ocsFirma, &ocsFirmaVive,
+			&acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
 		); err != nil {
 			return nil, fmt.Errorf("serviciosInit: error scanning row: %w", err)
 		}
 
-		validez := s.Emitido.Year()
-		if validez == periodo {
+		s.Pagado = pagado.Time
+		s.AcuseFecha = acuseFecha.Time
+		s.AcuseUsuario = acuseUsuario.String
+		s.Acuse = acuse.String
+		s.AcuseFirma = acuseFirma.String
+		s.GecoSol = gecoSol.String
+		s.GecoOCS = gecoOCS.String
+		s.OCSFirma = ocsFirma.String
+		s.OCSFirmaVive = ocsFirmaVive.String
+		s.ProvNom = provNom.String
+		s.ProvCed = provCed.String
+		s.ProvDirec = provDirec.String
+		s.ProvEmail = provEmail.String
+		s.ProvTel = provTel.String
+		s.ProvBanco = provBanco.String
+		s.ProvIBAN = provIBAN.String
+		s.ProvJustif = provJustif.String
+		s.MontoBruto = montoBruto.Float64
+		s.MontoIVA = montoIVA.Float64
+		s.MontoDesc = montoDesc.Float64
+		s.Justif = justif.String
+		s.Notas = notas.String
+
+		if s.Emitido.Year() == periodo {
+			s.Movimientos, err = servicioMovimientosInit(db, s.ID)
+			if err != nil {
+				return nil, fmt.Errorf("serviciosInit: error fetching movimientos for servicio %d: %w", s.ID, err)
+			}
+
 			s.FirmasCompletas, err = firmasCompletas(db, "servicios_movimientos", "servicio", s.ID)
 			if err != nil {
 				return nil, err
@@ -113,7 +143,45 @@ func serviciosInit(db *sql.DB, cuenta string, periodo int) ([]Servicio, error) {
 	return servicios, nil
 }
 
-func NuevoServicio(db *sql.DB, servicio Servicio, movimientos []ServicioMovimiento) error {
+func servicioMovimientosInit(db *sql.DB, servicioID int) ([]ServicioMovimiento, error) {
+	var movimientos []ServicioMovimiento
+
+	query := `
+		SELECT id, servicio, usuario, cuenta, presupuesto, monto, firma
+		FROM servicios_movimientos
+		WHERE servicio = ?
+	`
+
+	rows, err := db.Query(query, servicioID)
+	if err != nil {
+		return nil, fmt.Errorf("servicioMovimientosInit: error querying movimientos: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var m ServicioMovimiento
+		var firma sql.NullString
+		var usuario sql.NullString
+		var monto sql.NullFloat64
+
+		err := rows.Scan(
+			&m.ID, &m.Servicio, &usuario, &m.Cuenta, &m.Presupuesto, &monto, &firma,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("servicioMovimientosInit: error scanning row: %w", err)
+		}
+
+		m.Usuario = usuario.String
+		m.Monto = monto.Float64
+		m.Firma = firma.String
+
+		movimientos = append(movimientos, m)
+	}
+
+	return movimientos, nil
+}
+
+func NuevoServicio(db *sql.DB, servicio Servicio) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("NuevoServicio: failed to begin transaction: %w", err)
@@ -139,7 +207,7 @@ func NuevoServicio(db *sql.DB, servicio Servicio, movimientos []ServicioMovimien
 	}
 	defer stmt.Close()
 
-	for i, mov := range movimientos {
+	for i, mov := range servicio.Movimientos {
 		presupuestoID, err := presupuestoActual(db, mov.Cuenta)
 		if err != nil {
 			tx.Rollback()
@@ -162,6 +230,14 @@ func NuevoServicio(db *sql.DB, servicio Servicio, movimientos []ServicioMovimien
 
 func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 	var s Servicio
+	var acuseFecha, pagado sql.NullTime
+	var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOCS sql.NullString
+	var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+	var montoBruto, montoIVA, montoDesc sql.NullFloat64
+	var ocsFirma, ocsFirmaVive sql.NullString
+	var justif sql.NullString
+	var notas sql.NullString
+
 	err := db.QueryRow(`
 		SELECT id, emitido, emisor, detalle, por_ejecutar, justif, coes,
 		prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, prov_justif,
@@ -170,12 +246,13 @@ func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 		pagado, notas
 		FROM servicios WHERE id = ?`, id).
 		Scan(
-			&s.ID, &s.Emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &s.Justif, &s.COES,
-			&s.ProvNom, &s.ProvCed, &s.ProvDirec, &s.ProvEmail, &s.ProvTel, &s.ProvBanco, &s.ProvIBAN, &s.ProvJustif,
-			&s.MontoBruto, &s.MontoIVA, &s.MontoDesc, &s.GecoSol, &s.GecoOCS,
-			&s.OCSFirma, &s.OCSFirmaVive, &s.AcuseUsuario, &s.AcuseFecha, &s.Acuse, &s.AcuseFirma,
-			&s.Pagado, &s.Notas,
+			&s.ID, &s.Emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &justif, &s.COES,
+			&provNom, &provCed, &provDirec, &provEmail, &provTel, &provBanco, &provIBAN, &provJustif,
+			&montoBruto, &montoIVA, &montoDesc, &gecoSol, &gecoOCS,
+			&ocsFirma, &ocsFirmaVive, &acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
 		)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return Servicio{}, fmt.Errorf("LeerServicio: servicio con ID '%s' no encontrado", id)
@@ -183,7 +260,33 @@ func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 		return Servicio{}, fmt.Errorf("LeerServicio: error al obtener servicio: %w", err)
 	}
 
-	rows, err := db.Query("SELECT id, servicio, usuario, cuenta, presupuesto, monto, firma FROM servicios_movimientos WHERE servicio = ?", id)
+	s.Pagado = pagado.Time
+	s.AcuseFecha = acuseFecha.Time
+	s.AcuseUsuario = acuseUsuario.String
+	s.Acuse = acuse.String
+	s.AcuseFirma = acuseFirma.String
+	s.GecoSol = gecoSol.String
+	s.GecoOCS = gecoOCS.String
+	s.OCSFirma = ocsFirma.String
+	s.OCSFirmaVive = ocsFirmaVive.String
+	s.ProvNom = provNom.String
+	s.ProvCed = provCed.String
+	s.ProvDirec = provDirec.String
+	s.ProvEmail = provEmail.String
+	s.ProvTel = provTel.String
+	s.ProvBanco = provBanco.String
+	s.ProvIBAN = provIBAN.String
+	s.ProvJustif = provJustif.String
+	s.MontoBruto = montoBruto.Float64
+	s.MontoIVA = montoIVA.Float64
+	s.MontoDesc = montoDesc.Float64
+	s.Justif = justif.String
+	s.Notas = notas.String
+
+	rows, err := db.Query(`
+		SELECT id, servicio, usuario, cuenta, presupuesto, monto, firma 
+		FROM servicios_movimientos 
+		WHERE servicio = ?`, id)
 	if err != nil {
 		return Servicio{}, fmt.Errorf("LeerServicio: error al obtener movimientos: %w", err)
 	}
@@ -195,12 +298,21 @@ func LeerServicio(db *sql.DB, id, cuenta string) (Servicio, error) {
 
 	for rows.Next() {
 		var m ServicioMovimiento
-		if err := rows.Scan(&m.ID, &m.Servicio, &m.Usuario, &m.Cuenta, &m.Presupuesto, &m.Monto, &m.Firma); err != nil {
+		var firma sql.NullString
+		var usuario sql.NullString
+		var monto sql.NullFloat64
+
+		if err := rows.Scan(&m.ID, &m.Servicio, &usuario, &m.Cuenta, &m.Presupuesto, &monto, &firma); err != nil {
 			return Servicio{}, fmt.Errorf("LeerServicio: error al escanear movimientos: %w", err)
 		}
+
+		m.Usuario = usuario.String
+		m.Monto = monto.Float64
+		m.Firma = firma.String
+
 		movimientos = append(movimientos, m)
 
-		if m.Firma.String == "" {
+		if m.Firma == "" {
 			firmasCompletas = false
 		}
 

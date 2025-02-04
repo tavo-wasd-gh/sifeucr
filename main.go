@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -41,10 +42,13 @@ func main() {
 	}
 
 	viewsMap := map[string]string{
-		"login":         "views/login.html",
-		"dashboard":     "views/dashboard.html",
-		"servicio":      "views/servicio.html",
-		"servicio-form": "views/servicio-form.html",
+		"login":           "views/login.html",
+		"dashboard":       "views/dashboard.html",
+		"servicio":        "views/servicio.html",
+		"servicio-form":   "views/servicio-form.html",
+		"suministro":      "views/suministro.html",
+		"suministro-form": "views/suministro-form.html",
+		"bien-form":       "views/bien-form.html",
 	}
 
 	views, err := views.Init(viewsMap)
@@ -67,16 +71,20 @@ func main() {
 	}
 
 	// Hacer Solicitudes
-	http.HandleFunc("/api/servicios", app.handleServiciosForm)
+	http.HandleFunc("/api/servicios", app.handleServicioForm)
+	http.HandleFunc("/api/suministros", app.handleSuministroForm)
+	http.HandleFunc("/api/bienes", app.handleBienForm)
 
 	// Leer Solicitudes
 	http.HandleFunc("/api/servicios/", app.handleServicios)
+	http.HandleFunc("/api/suministro/", app.handleSuministro)
 
 	// Suscribir a Solicitudes
 	http.HandleFunc("/api/suscribir/servicio", app.handleSuscribirServicio)
 
 	// Marcar como ejecutado/recibido
 	http.HandleFunc("/api/ejecutar/servicio", app.handleEjecutarServicio)
+	http.HandleFunc("/api/recibir/suministro", app.handleRecibirSuministro)
 
 	// Credenciales
 	http.HandleFunc("/api/cuentas", app.handleCuentas)
@@ -203,7 +211,54 @@ func (app *App) handleServicios(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
+func (app *App) handleSuministro(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleSuministros: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		var id string
+
+		path := r.URL.Path
+		segments := strings.Split(path, "/")
+
+		if len(segments) <= 2 {
+			http.Error(w, "ID not found in URL", http.StatusBadRequest)
+			return
+		}
+
+		id = segments[3]
+
+		s, err := database.LeerSuministro(app.DB, id, cuenta)
+		if err != nil {
+			app.log("handleSuministros: error loading sum: %v", err)
+			http.Error(w, "failed to load sum", http.StatusInternalServerError)
+			return
+		}
+
+		s.UsuarioLoggeado = correo
+
+		if err := app.Render(w, "suministro", s); err != nil {
+			app.log("handleSuministros: error rendering view: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		return
+	}
+
+	return
+}
+
+func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
 		return
 	}
@@ -211,7 +266,7 @@ func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("handleServiciosForm: error validating token: %v", err)
+			app.log("handleServicioForm: error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
@@ -219,41 +274,152 @@ func (app *App) handleServiciosForm(w http.ResponseWriter, r *http.Request) {
 
 		u, err := database.Login(app.DB, correo, cuenta)
 		if err != nil {
-			app.log("handleServiciosForm: error logging in: %v", err)
+			app.log("handleServicioForm: error logging in: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
 		if err := app.Render(w, "servicio-form", u); err != nil {
-			app.log("handleServiciosForm: error rendering view: %v", err)
+			app.log("handleServicioForm: error rendering view: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
+
+		return
 	}
 
 	if r.Method == http.MethodPost {
-		servicio, movimientos, err := app.ValidateServiciosForm(r, w)
+		servicio, err := app.validateServicioForm(r, w)
 		if err != nil {
-			app.log("handleServiciosForm: error validating token: %v", "")
+			app.log("handleServicioForm: error validating token: %v", "")
 
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
-		err = database.NuevoServicio(app.DB, servicio, movimientos) 
+		err = database.NuevoServicio(app.DB, servicio)
 		if err != nil {
-			app.log("handleServiciosForm: error registering service: %v", err)
+			app.log("handleServicioForm: error registering service: %v", err)
 			http.Error(w, "", http.StatusBadRequest)
-			// TODO View error
+			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando servicio</div>`)
 			return
 		}
 
 		w.Header().Set("HX-Redirect", "/dashboard")
 		w.WriteHeader(http.StatusSeeOther)
+
+		return
+	}
+}
+
+func (app *App) handleSuministroForm(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
 	}
 
-	return
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleSuministroForm: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		u, err := database.Login(app.DB, correo, cuenta)
+		if err != nil {
+			app.log("handleSuministroForm: error logging in: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		if err := app.Render(w, "suministro-form", u); err != nil {
+			app.log("handleSuministroForm: error rendering view: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		suministro, err := app.validateSuministroForm(r, w)
+		if err != nil {
+			app.log("handleSuministroForm: error validating token: %v", "")
+
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		err = database.NuevoSuministro(app.DB, suministro)
+		if err != nil {
+			app.log("handleSuministroForm: error registering sum: %v", err)
+			http.Error(w, "", http.StatusBadRequest)
+			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando servicio</div>`)
+			return
+		}
+
+		w.Header().Set("HX-Redirect", "/dashboard")
+		w.WriteHeader(http.StatusSeeOther)
+
+		return
+	}
+}
+
+func (app *App) handleBienForm(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+		if err != nil {
+			app.log("handleBienForm: error validating token: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		u, err := database.Login(app.DB, correo, cuenta)
+		if err != nil {
+			app.log("handleBienForm: error logging in: %v", err)
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
+		if err := app.Render(w, "bien-form", u); err != nil {
+			app.log("handleBienForm: error rendering view: %v", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		bien, err := app.validateBienForm(r, w)
+		if err != nil {
+			app.log("handleBienForm: error validating form: %v", err)
+			w.Header().Set("HX-Redirect", "/dashboard")
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		err = database.NuevoBien(app.DB, bien)
+		if err != nil {
+			app.log("handleBienForm: error registering bien: %v", err)
+			http.Error(w, "", http.StatusBadRequest)
+			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando bien</div>`)
+			return
+		}
+
+		w.Header().Set("HX-Redirect", "/dashboard")
+		w.WriteHeader(http.StatusSeeOther)
+
+		return
+	}
 }
 
 func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) {
@@ -331,6 +497,53 @@ func (app *App) handleEjecutarServicio(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.log("handleEjecutarServicio: error in confirmation: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la solicitud</div>`)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+	w.WriteHeader(http.StatusSeeOther)
+}
+
+func (app *App) handleRecibirSuministro(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleRecibirSuministro: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	err = r.ParseForm()
+	idSuministro := r.Form.Get("id")
+	fechaRecibidoStr := r.Form.Get("fecha-recibido")
+	acuseRecibido := r.Form.Get("acuse-recibido")
+	firmaAcuse := r.Form.Get("firma-acuse")
+
+	if err != nil ||
+		idSuministro == "" ||
+		fechaRecibidoStr == "" ||
+		acuseRecibido == "" ||
+		firmaAcuse == "" {
+		app.log("handleRecibirSuministro: error parsing form: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
+		return
+	}
+
+	fechaRecibido, err := time.Parse("2006-01-02T15:04", fechaRecibidoStr)
+	if err != nil {
+		app.log("handleRecibirSuministro: error parsing form: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
+		return
+	}
+
+	err = database.ConfirmarEjecutadoSuministros(app.DB, idSuministro, correo, cuenta, fechaRecibido, acuseRecibido, firmaAcuse)
+	if err != nil {
+		app.log("handleRecibirSuministro: error in confirmation: %v", err)
+		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la recepción</div>`)
 		return
 	}
 
@@ -457,17 +670,17 @@ func (app *App) ValidateLoginForm(r *http.Request, w http.ResponseWriter) (strin
 	return correo, cuenta, nil
 }
 
-func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (database.Servicio, []database.ServicioMovimiento, error) {
+func (app *App) validateServicioForm(r *http.Request, w http.ResponseWriter) (database.Servicio, error) {
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("validateServiciosForm: error validating token: %v", err)
+		app.log("validateServicioForm: error validating token: %v", err)
 		http.Error(w, "", http.StatusUnauthorized)
-		return database.Servicio{}, []database.ServicioMovimiento{}, err
+		return database.Servicio{}, err
 	}
 	
 	if err := r.ParseForm() ; err != nil {
 		http.Error(w, "", http.StatusBadRequest)
-		return database.Servicio{}, []database.ServicioMovimiento{}, err
+		return database.Servicio{}, err
 	}
 
 	// Servicio
@@ -483,7 +696,7 @@ func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (d
 
 	if porEjecutarStr == "" || detalle == "" || justif == "" || firma == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
-		return database.Servicio{}, []database.ServicioMovimiento{}, err
+		return database.Servicio{}, err
 	}
 
 	cuentaSuscribe := false
@@ -494,13 +707,13 @@ func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (d
 	}
 	if !cuentaSuscribe {
 		http.Error(w, "Missing default cuenta", http.StatusBadRequest)
-		return database.Servicio{}, []database.ServicioMovimiento{}, err
+		return database.Servicio{}, err
 	}
 
 	porEjecutar, err := time.Parse("2006-01-02T15:04", porEjecutarStr)
 	if err != nil {
 		http.Error(w, "Invalid datetime", http.StatusBadRequest)
-		return database.Servicio{}, []database.ServicioMovimiento{}, err
+		return database.Servicio{}, err
 	}
 
 	var s database.Servicio
@@ -515,9 +728,9 @@ func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (d
 
 	cuentas, err := database.ListaCuentas(app.DB)
 	if err != nil {
-		app.log("handleServiciosForm: error fetching accounts: %v", err)
+		app.log("handleServicioForm: error fetching accounts: %v", err)
 		http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
-		return database.Servicio{}, []database.ServicioMovimiento{}, err
+		return database.Servicio{}, err
 	}
 
 	cuentasStrgs := make([]string, 0, len(cuentas))
@@ -526,9 +739,9 @@ func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (d
 	}
 
 	if err := validateSuscriben(suscriben, cuentasStrgs) ; err != nil {
-		app.log("handleServiciosForm: error fetching accounts: %v", err)
+		app.log("handleServicioForm: error fetching accounts: %v", err)
 		http.Error(w, "Non-existent account", http.StatusUnauthorized)
-		return database.Servicio{}, []database.ServicioMovimiento{}, err
+		return database.Servicio{}, err
 	}
 	
 	for _, cuentaSuscrita := range suscriben {
@@ -537,20 +750,168 @@ func (app *App) ValidateServiciosForm(r *http.Request, w http.ResponseWriter) (d
 		m.Cuenta = cuentaSuscrita
 
 		if m.Cuenta == cuenta {
-			m.Usuario = sql.NullString{
-				String: emisor,
-				Valid:  emisor != "",
-			}
-			m.Firma = sql.NullString{
-				String: firma,
-				Valid:  firma != "",
-			}
+			m.Usuario = emisor
+			m.Firma = firma
 		}
 
 		mm = append(mm, m)
 	}
 
-	return s, mm, err
+	s.Movimientos = mm
+
+	return s, err
+}
+
+func (app *App) validateSuministroForm(r *http.Request, w http.ResponseWriter) (database.Suministros, error) {
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("validateServicioForm: error validating token: %v", err)
+		http.Error(w, "", http.StatusUnauthorized)
+		return database.Suministros{}, err
+	}
+
+	if err := r.ParseForm(); err != nil {
+		app.log("validateSuministroForm: error parsing form: %v", err)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return database.Suministros{}, err
+	}
+
+	justif := r.FormValue("justif")
+	firma := r.FormValue("firma")
+	nombres := r.Form["nombre[]"]
+	articulos := r.Form["articulo[]"]
+	agrupaciones := r.Form["agrupacion[]"]
+	cantidades := r.Form["cantidad[]"]
+
+	if justif == "" || firma == "" {
+		app.log("validateSuministroForm: missing fields")
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return database.Suministros{}, err
+	}
+
+	if len(nombres) == 0 || len(articulos) == 0 || len(agrupaciones) == 0 || len(cantidades) == 0 {
+		app.log("validateSuministroForm: missing fields")
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return database.Suministros{}, err
+	}
+
+	var desglose []database.SuministroDesglose
+	for i := range nombres {
+		cantidad, err := strconv.Atoi(cantidades[i])
+		if err != nil {
+			app.log("validateSuministroForm: error converting cantidad to int: %v", err)
+			http.Error(w, "Invalid cantidad value", http.StatusBadRequest)
+			return database.Suministros{}, err
+		}
+
+		desglose = append(desglose, database.SuministroDesglose{
+			Nombre:     nombres[i],
+			Articulo:   articulos[i],
+			Agrupacion: agrupaciones[i],
+			Cantidad:   cantidad,
+		})
+	}
+
+	suministro := database.Suministros{
+		Emitido:         time.Now(),
+		Emisor:          correo,
+		Cuenta:          cuenta,
+		Justif:          justif,
+		Firma:           firma,
+		Desglose:        desglose,
+	}
+
+	return suministro, nil
+}
+
+func (app *App) validateBienForm(r *http.Request, w http.ResponseWriter) (database.Bien, error) {
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("validateBienForm: error validating token: %v", err)
+		http.Error(w, "", http.StatusUnauthorized)
+		return database.Bien{}, err
+	}
+	
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return database.Bien{}, err
+	}
+
+	emitido := time.Now()
+	emisor := correo
+	detalle := r.Form.Get("detalle")
+	porRecibirStr := r.Form.Get("por-recibir")
+	justif := r.Form.Get("justif")
+
+	firma := r.Form.Get("firma")
+	suscriben := r.Form["suscriben"]
+
+	if porRecibirStr == "" || detalle == "" || justif == "" || firma == "" {
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return database.Bien{}, fmt.Errorf("missing required fields")
+	}
+
+	cuentaSuscribe := false
+	for _, cuentaID := range suscriben {
+		if cuentaID == cuenta {
+			cuentaSuscribe = true
+		}
+	}
+	if !cuentaSuscribe {
+		http.Error(w, "Missing default cuenta", http.StatusBadRequest)
+		return database.Bien{}, fmt.Errorf("missing default cuenta")
+	}
+
+	porRecibir, err := time.Parse("2006-01-02T15:04", porRecibirStr)
+	if err != nil {
+		http.Error(w, "Invalid datetime", http.StatusBadRequest)
+		return database.Bien{}, err
+	}
+
+	var b database.Bien
+
+	b.Emitido = emitido
+	b.Emisor = emisor
+	b.Detalle = detalle
+	b.PorRecibir = porRecibir
+	b.Justif = justif
+
+	var mm []database.BienMovimiento
+
+	cuentas, err := database.ListaCuentas(app.DB)
+	if err != nil {
+		app.log("validateBienForm: error fetching accounts: %v", err)
+		http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
+		return database.Bien{}, err
+	}
+
+	cuentasStrgs := make([]string, 0, len(cuentas))
+	for _, cuenta := range cuentas {
+		cuentasStrgs = append(cuentasStrgs, cuenta.ID)
+	}
+
+	if err := validateSuscriben(suscriben, cuentasStrgs); err != nil {
+		app.log("validateBienForm: error validating accounts: %v", err)
+		http.Error(w, "Non-existent account", http.StatusUnauthorized)
+		return database.Bien{}, err
+	}
+	
+	for _, cuentaSuscrita := range suscriben {
+		var m database.BienMovimiento
+
+		m.Cuenta = cuentaSuscrita
+
+		if m.Cuenta == cuenta {
+			m.Usuario = emisor
+			m.Firma = firma
+		}
+
+		mm = append(mm, m)
+	}
+
+	b.Movimientos = mm
+
+	return b, err
 }
 
 func validateSuscriben(suscriben []string, cuentas []string) error {
