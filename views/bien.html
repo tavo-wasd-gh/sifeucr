@@ -51,6 +51,7 @@
   </table>
 </div>
 {{if (eq .CuentaLoggeada "SF")}}
+{{if .GecoOC}}
 <br>
 <div class="card-header">
   <form hx-post="/api/movimientos/bien/{{.ID}}" hx-target="#api-mov-bien-id" hx-swap="innerHTML">
@@ -73,6 +74,7 @@
     {{end}}
   </form>
 </div>
+{{end}}
 {{ end }}
 {{ if $firmaPendiente }}
 <div class="suscribir">

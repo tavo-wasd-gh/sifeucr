@@ -140,7 +140,7 @@ func DonacionesPendientesCOES(db *sql.DB, periodo int) ([]Donacion, error) {
 		       carta_coes, notas
 		FROM donaciones
 		WHERE carta_coes IS NULL OR carta_coes = ''
-		ORDER BY emitido DESC
+		ORDER BY emitido
 	`
 
 	rows, err := db.Query(query)

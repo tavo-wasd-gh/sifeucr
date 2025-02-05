@@ -406,7 +406,7 @@ func ServiciosPendientesCOES(db *sql.DB, periodo int) ([]Servicio, error) {
 		       pagado, notas
 		FROM servicios
 		WHERE coes = FALSE
-		ORDER BY emitido DESC
+		ORDER BY emitido
 	`
 
 	rows, err := db.Query(query)
@@ -680,9 +680,189 @@ func (s *Servicio) RegistrarOCS(
 		return fmt.Errorf("RegistrarOCS: failed to update service ID %d: %w", s.ID, err)
 	}
 
+	if len(s.Movimientos) == 1 {
+		_, err = tx.Exec(`
+			UPDATE servicios_movimientos
+			SET monto = ? 
+			WHERE servicio = ?
+			`, montoBruto, s.ID)
+
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("RegistrarOCS: failed to update movimiento for bienes ID %d: %w", s.ID, err)
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("RegistrarOCS: failed to commit transaction: %w", err)
 	}
 
 	return nil
+}
+
+func ServiciosPendientesGECO(db *sql.DB, periodo int) ([]Servicio, error) {
+	query := `
+		SELECT id, emitido, emisor, detalle, por_ejecutar, justif, coes,
+		       prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, 
+		       prov_iban, prov_justif, monto_bruto, monto_iva, monto_desc, 
+		       geco_sol, geco_ocs, ocs_firma, ocs_firma_vive, 
+		       acuse_usuario, acuse_fecha, acuse, acuse_firma, 
+		       pagado, notas
+		FROM servicios
+		WHERE geco_sol IS NULL
+		AND coes = TRUE
+		ORDER BY emitido
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("ServiciosPendientesGECO: error fetching servicios: %w", err)
+	}
+	defer rows.Close()
+
+	var servicios []Servicio
+
+	for rows.Next() {
+		var s Servicio
+		var emitido time.Time
+		var acuseFecha, pagado sql.NullTime
+		var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOCS sql.NullString
+		var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+		var montoBruto, montoIVA, montoDesc sql.NullFloat64
+		var ocsFirma, ocsFirmaVive sql.NullString
+		var justif, notas sql.NullString
+
+		if err := rows.Scan(
+			&s.ID, &emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &justif, &s.COES,
+			&provNom, &provCed, &provDirec, &provEmail, &provTel, &provBanco, &provIBAN, &provJustif,
+			&montoBruto, &montoIVA, &montoDesc, &gecoSol, &gecoOCS,
+			&ocsFirma, &ocsFirmaVive, &acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
+		); err != nil {
+			return nil, fmt.Errorf("ServiciosPendientesGECO: error scanning row: %w", err)
+		}
+
+		s.FirmasCompletas, err = firmasCompletas(db, "servicios_movimientos", "servicio", s.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		if emitido.Year() == periodo && s.FirmasCompletas {
+			s.Emitido = emitido
+			s.Justif = justif.String
+			s.ProvNom = provNom.String
+			s.ProvCed = provCed.String
+			s.ProvDirec = provDirec.String
+			s.ProvEmail = provEmail.String
+			s.ProvTel = provTel.String
+			s.ProvBanco = provBanco.String
+			s.ProvIBAN = provIBAN.String
+			s.ProvJustif = provJustif.String
+			s.MontoBruto = montoBruto.Float64
+			s.MontoIVA = montoIVA.Float64
+			s.MontoDesc = montoDesc.Float64
+			s.GecoSol = gecoSol.String
+			s.GecoOCS = gecoOCS.String
+			s.OCSFirma = ocsFirma.String
+			s.OCSFirmaVive = ocsFirmaVive.String
+			s.AcuseUsuario = acuseUsuario.String
+			s.AcuseFecha = acuseFecha.Time
+			s.Acuse = acuse.String
+			s.AcuseFirma = acuseFirma.String
+			s.Pagado = pagado.Time
+			s.Notas = notas.String
+
+			servicios = append(servicios, s)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("ServiciosPendientesGECO: error iterating rows: %w", err)
+	}
+
+	return servicios, nil
+}
+
+func ServiciosPendientesOCS(db *sql.DB, periodo int) ([]Servicio, error) {
+	query := `
+		SELECT id, emitido, emisor, detalle, por_ejecutar, justif, coes,
+		       prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, 
+		       prov_iban, prov_justif, monto_bruto, monto_iva, monto_desc, 
+		       geco_sol, geco_ocs, ocs_firma, ocs_firma_vive, 
+		       acuse_usuario, acuse_fecha, acuse, acuse_firma, 
+		       pagado, notas
+		FROM servicios
+		WHERE geco_ocs IS NULL
+		AND geco_sol IS NOT NULL
+		AND coes = TRUE
+		ORDER BY emitido
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("ServiciosPendientesOCS: error fetching servicios: %w", err)
+	}
+	defer rows.Close()
+
+	var servicios []Servicio
+
+	for rows.Next() {
+		var s Servicio
+		var emitido time.Time
+		var acuseFecha, pagado sql.NullTime
+		var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOCS sql.NullString
+		var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+		var montoBruto, montoIVA, montoDesc sql.NullFloat64
+		var ocsFirma, ocsFirmaVive sql.NullString
+		var justif, notas sql.NullString
+
+		if err := rows.Scan(
+			&s.ID, &emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &justif, &s.COES,
+			&provNom, &provCed, &provDirec, &provEmail, &provTel, &provBanco, &provIBAN, &provJustif,
+			&montoBruto, &montoIVA, &montoDesc, &gecoSol, &gecoOCS,
+			&ocsFirma, &ocsFirmaVive, &acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
+		); err != nil {
+			return nil, fmt.Errorf("ServiciosPendientesOCS: error scanning row: %w", err)
+		}
+
+		s.FirmasCompletas, err = firmasCompletas(db, "servicios_movimientos", "servicio", s.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		if emitido.Year() == periodo && s.FirmasCompletas {
+			s.Emitido = emitido
+			s.Justif = justif.String
+			s.ProvNom = provNom.String
+			s.ProvCed = provCed.String
+			s.ProvDirec = provDirec.String
+			s.ProvEmail = provEmail.String
+			s.ProvTel = provTel.String
+			s.ProvBanco = provBanco.String
+			s.ProvIBAN = provIBAN.String
+			s.ProvJustif = provJustif.String
+			s.MontoBruto = montoBruto.Float64
+			s.MontoIVA = montoIVA.Float64
+			s.MontoDesc = montoDesc.Float64
+			s.GecoSol = gecoSol.String
+			s.GecoOCS = gecoOCS.String
+			s.OCSFirma = ocsFirma.String
+			s.OCSFirmaVive = ocsFirmaVive.String
+			s.AcuseUsuario = acuseUsuario.String
+			s.AcuseFecha = acuseFecha.Time
+			s.Acuse = acuse.String
+			s.AcuseFirma = acuseFirma.String
+			s.Pagado = pagado.Time
+			s.Notas = notas.String
+
+			servicios = append(servicios, s)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("ServiciosPendientesOCS: error iterating rows: %w", err)
+	}
+
+	return servicios, nil
 }

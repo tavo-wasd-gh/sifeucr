@@ -20,6 +20,18 @@ type Usuario struct {
 	ServiciosPendientesGECO   []Servicio
 	SuministrosPendientesGECO []Suministros
 	BienesPendientesGECO      []Bien
+	//     SF
+	ServiciosPendientesOCS   []Servicio
+	SuministrosPendientesOCS []Suministros
+	BienesPendientesOCS      []Bien
+	//     SF
+	ServiciosPendientesDist   []Servicio
+	SuministrosPendientesDist []Suministros
+	BienesPendientesDist      []Bien
+	//     SF
+	ServiciosPendientesEj   []Servicio
+	SuministrosPendientesRe []Suministros
+	BienesPendientesRe      []Bien
 	//     CC
 	AjustesCC []Ajuste
 }
@@ -69,26 +81,55 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
 		}
+		usuario.ServiciosPendientesCOES = tServ
 
 		tSum, err := SuministrosPendientesCOES(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
 		}
+		usuario.SuministrosPendientesCOES = tSum
 
 		tBien, err := BienesPendientesCOES(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
 		}
+		usuario.BienesPendientesCOES = tBien
 
 		tDona, err := DonacionesPendientesCOES(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load COES: %w", err)
 		}
-
-		usuario.ServiciosPendientesCOES = tServ
-		usuario.SuministrosPendientesCOES = tSum
-		usuario.BienesPendientesCOES = tBien
 		usuario.DonacionesPendientesCOES = tDona
+	} else if usuario.Cuenta.ID == "SF" {
+		tServ, err := ServiciosPendientesGECO(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+		usuario.ServiciosPendientesGECO = tServ
+
+		tSum, err := SuministrosPendientesGECO(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+		usuario.SuministrosPendientesGECO = tSum
+
+		tBien, err := BienesPendientesGECO(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+		usuario.BienesPendientesGECO = tBien
+
+		tServOCS, err := ServiciosPendientesOCS(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+		usuario.ServiciosPendientesOCS = tServOCS
+
+		tBienOCS, err := BienesPendientesOCS(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+		usuario.BienesPendientesOCS = tBienOCS
 	}
 
 	return usuario, nil

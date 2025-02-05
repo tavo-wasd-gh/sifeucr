@@ -302,7 +302,7 @@ func SuministrosPendientesCOES(db *sql.DB, periodo int) ([]Suministros, error) {
 		       acuse_usuario, acuse_fecha, acuse, acuse_firma, notas
 		FROM suministros
 		WHERE coes = FALSE
-		ORDER BY emitido DESC
+		ORDER BY emitido
 	`
 
 	rows, err := db.Query(query)
@@ -439,4 +439,59 @@ func (s *Suministros) RegistrarSolicitudGECO(db *sql.DB, solicitudGECO string, m
 	}
 
 	return nil
+}
+
+func SuministrosPendientesGECO(db *sql.DB, periodo int) ([]Suministros, error) {
+	query := `
+		SELECT id, emitido, emisor, cuenta, presupuesto, justif, firma,
+		       coes, monto_bruto_total, geco, 
+		       acuse_usuario, acuse_fecha, acuse, acuse_firma, notas
+		FROM suministros
+		WHERE geco IS NULL OR geco = ''
+		ORDER BY emitido
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("SuministrosPendientesGECO: error fetching suministros: %w", err)
+	}
+	defer rows.Close()
+
+	var suministros []Suministros
+
+	for rows.Next() {
+		var s Suministros
+		var emitido time.Time
+		var acuseFecha sql.NullTime
+		var acuseUsuario, acuse, acuseFirma, geco sql.NullString
+		var montoBrutoTotal sql.NullFloat64
+		var notas sql.NullString
+
+		if err := rows.Scan(
+			&s.ID, &emitido, &s.Emisor, &s.Cuenta, &s.Presupuesto, &s.Justif, &s.Firma,
+			&s.COES, &montoBrutoTotal, &geco,
+			&acuseUsuario, &acuseFecha, &acuse, &acuseFirma, &notas,
+		); err != nil {
+			return nil, fmt.Errorf("SuministrosPendientesGECO: error scanning row: %w", err)
+		}
+
+		if emitido.Year() == periodo {
+			s.Emitido = emitido
+			s.MontoBrutoTotal = montoBrutoTotal.Float64
+			s.GECO = geco.String
+			s.AcuseUsuario = acuseUsuario.String
+			s.AcuseFecha = acuseFecha.Time
+			s.Acuse = acuse.String
+			s.AcuseFirma = acuseFirma.String
+			s.Notas = notas.String
+
+			suministros = append(suministros, s)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("SuministrosPendientesGECO: error iterating rows: %w", err)
+	}
+
+	return suministros, nil
 }

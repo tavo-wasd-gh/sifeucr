@@ -51,28 +51,28 @@
   </table>
 </div>
 {{if (eq .CuentaLoggeada "SF")}}
+{{if .GecoOCS}}
 <br>
-<div class="card-header">
-  <form hx-post="/api/movimientos/servicio/{{.ID}}" hx-target="#api-mov-serv-id" hx-swap="innerHTML">
-    {{ $hayMovimientos := false }}
-    {{ range .Movimientos }}
-    {{if not .Monto}}
-    {{ $hayMovimientos = true }}
-    <select name="cuenta[]" readonly>
-      <option value="{{.Cuenta}}">{{.Cuenta}}</option>
-    </select>
-    <input name="monto[]" type="number" step="0.01" placeholder="Monto" required>
-    {{end}}
-    {{ end }}
-    {{if $hayMovimientos}}
-    <div id="api-mov-serv-id" class="app-error"></div>
-    <div class="htmx-button-div">
-      <button type="submit">Establecer Montos</button>
-      <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
-    </div>
-    {{end}}
-  </form>
-</div>
+<form hx-post="/api/movimientos/servicio/{{.ID}}" hx-target="#api-mov-serv-id" hx-swap="innerHTML">
+  {{ $hayMovimientos := false }}
+  {{ range .Movimientos }}
+  {{if not .Monto}}
+  {{ $hayMovimientos = true }}
+  <select name="cuenta[]" readonly>
+    <option value="{{.Cuenta}}">{{.Cuenta}}</option>
+  </select>
+  <input name="monto[]" type="number" step="0.01" placeholder="Monto" required>
+  {{end}}
+  {{ end }}
+  {{if $hayMovimientos}}
+  <div id="api-mov-serv-id" class="app-error"></div>
+  <div class="htmx-button-div">
+    <button type="submit">Establecer Montos</button>
+    <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+  </div>
+  {{end}}
+</form>
+{{end}}
 {{ end }}
 {{ if $firmaPendiente }}
 <div class="suscribir">

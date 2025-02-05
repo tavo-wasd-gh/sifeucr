@@ -214,7 +214,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Ajustes</span>
-          {{if (eq .Cuenta.ID "CC")}}
+          {{if or (eq .Cuenta.ID "CC") (eq .Cuenta.ID "SF")}}
           <a href="/ajustes">
             <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
           </a>
@@ -243,12 +243,12 @@
       </div>
     </div>
   </div>
-  {{if (eq .Cuenta.ID "COES")}}
+  {{if (eq .Cuenta.ID "SF")}}
   <br>
   <hr>
-  <strong>Servicios pendientes de aprobación</strong>
+  <strong>Solicitudes pendientes de registro en GECO</strong>
   <br>
-  {{range .ServiciosPendientesCOES}}
+  {{range .ServiciosPendientesGECO}}{{if and .FirmasCompletas .COES}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -263,11 +263,119 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}
+  {{end}}{{end}}
+  {{range .SuministrosPendientesGECO}}{{if .COES}}
+  <div class="card-item"
+    hx-get="/api/suministro/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .Firma}}goldenrod{{end}}" class="tag {{if .Firma}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GECO}}cornflowerblue{{end}}" class="tag {{if .GECO}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
+    <br>
+    <span class="label">Solicitud de suministros No. {{.ID}}</span>
+    <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}{{end}}
+  {{range .BienesPendientesGECO}}{{if and .FirmasCompletas .COES}}
+  <div class="card-item"
+    hx-get="/api/bienes/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
+    <br>
+    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
+    <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}{{end}}
   <br>
   <hr>
-  <strong>Suministros pendientes de aprobación</strong>
+  <strong>Solicitudes pendientes de OCS</strong>
   <br>
+  {{range .ServiciosPendientesOCS}}{{if and .FirmasCompletas .COES}}
+  <div class="card-item"
+    hx-get="/api/servicios/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
+    <br>
+    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
+    <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}{{end}}
+  {{range .SuministrosPendientesOCS}}{{if .COES}}
+  <div class="card-item"
+    hx-get="/api/suministro/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .Firma}}goldenrod{{end}}" class="tag {{if .Firma}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GECO}}cornflowerblue{{end}}" class="tag {{if .GECO}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
+    <br>
+    <span class="label">Solicitud de suministros No. {{.ID}}</span>
+    <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}{{end}}
+  {{range .BienesPendientesOCS}}{{if and .FirmasCompletas .COES}}
+  <div class="card-item"
+    hx-get="/api/bienes/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
+    <br>
+    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
+    <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}{{end}}
+  <br>
+  <hr>
+  <strong>Solicitudes pendientes de distribución</strong>
+  <br>
+  <br>
+  <hr>
+  <strong>Solicitudes pendientes de Ejecución/Recepción</strong>
+  <br>
+  {{end}}
+  {{if (eq .Cuenta.ID "COES")}}
+  <br>
+  <hr>
+  <strong>Solicitudes pendientes de aprobación</strong>
+  <br>
+  {{range .ServiciosPendientesCOES}}{{if .FirmasCompletas}}
+  <div class="card-item"
+    hx-get="/api/servicios/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
+    <br>
+    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
+    <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}{{end}}
   {{range .SuministrosPendientesCOES}}
   <div class="card-item"
     hx-get="/api/suministro/{{.ID}}"
@@ -283,11 +391,7 @@
     <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}
-  <br>
-  <hr>
-  <strong>Bienes pendientes de aprobación</strong>
-  <br>
-  {{range .BienesPendientesCOES}}
+  {{range .BienesPendientesCOES}}{{if .FirmasCompletas}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"
@@ -302,11 +406,7 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}
-  <br>
-  <hr>
-  <strong>Donaciones pendientes de aprobación</strong>
-  <br>
+  {{end}}{{end}}
   {{range .DonacionesPendientesCOES}}
   <div class="card-item"
     hx-get="/api/donaciones/{{.ID}}"
@@ -324,6 +424,8 @@
     </span>
   </div>
   {{end}}
+  {{end}}
+  {{if (eq .Cuenta.ID "CC")}}
   {{end}}
 </main>
 {{end}}
