@@ -22,11 +22,9 @@ type Usuario struct {
 	BienesPendientesGECO      []Bien
 	//     SF
 	ServiciosPendientesOCS   []Servicio
-	SuministrosPendientesOCS []Suministros
-	BienesPendientesOCS      []Bien
+	BienesPendientesOC       []Bien
 	//     SF
 	ServiciosPendientesDist   []Servicio
-	SuministrosPendientesDist []Suministros
 	BienesPendientesDist      []Bien
 	//     SF
 	ServiciosPendientesEj   []Servicio
@@ -125,11 +123,41 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 		}
 		usuario.ServiciosPendientesOCS = tServOCS
 
-		tBienOCS, err := BienesPendientesOCS(db, periodoActual)
+		tBienOC, err := BienesPendientesOC(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.BienesPendientesOCS = tBienOCS
+		usuario.BienesPendientesOC = tBienOC
+
+		tServDist, err := ServiciosPendientesDist(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+		usuario.ServiciosPendientesDist = tServDist
+
+		tBienDist, err := BienesPendientesDist(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+		usuario.BienesPendientesDist = tBienDist
+
+		// tServEj, err := ServiciosPendientesEjecucion(db, periodoActual)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		// }
+		// usuario.ServiciosPendientesEj = tServEj
+
+		// tBienRe, err := ServiciosPendientesRecepcion(db, periodoActual)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		// }
+		// usuario.BienesPendientesRe = tServRe
+
+		// tSumRe, err := SuministrosPendientesRecepcion(db, periodoActual)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		// }
+		// usuario.SuministrosPendientesRe = tSumRe
 	}
 
 	return usuario, nil
