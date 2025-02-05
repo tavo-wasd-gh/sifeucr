@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/tavo-wasd-gh/gocors"
+	"github.com/joho/godotenv"
 	"github.com/tavo-wasd-gh/sifeucr/auth"
 	"github.com/tavo-wasd-gh/sifeucr/database"
 	"github.com/tavo-wasd-gh/sifeucr/views"
@@ -29,6 +30,8 @@ type App struct {
 }
 
 func main() {
+	godotenv.Load()
+
 	var (
 		production = os.Getenv("PRODUCTION") == "1"
 		debug      = os.Getenv("DEBUG") == "1"
