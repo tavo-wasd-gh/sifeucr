@@ -636,3 +636,7 @@ tr:nth-child(even) {
   border: 1px solid #FCA5A5;
   box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
 }
+
+.app-error:empty {
+  display: none;
+}

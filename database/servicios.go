@@ -485,3 +485,204 @@ func AprobarServicioCOES(db *sql.DB, id string) error {
 	}
 	return nil
 }
+
+func ServicioPorID(db *sql.DB, usuarioLoggeado, cuentaLoggeada, id string) (Servicio, error) {
+	var s Servicio
+
+	s.UsuarioLoggeado = usuarioLoggeado
+	s.CuentaLoggeada = cuentaLoggeada
+
+	var acuseFecha, pagado sql.NullTime
+	var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOCS sql.NullString
+	var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+	var montoBruto, montoIVA, montoDesc sql.NullFloat64
+	var ocsFirma, ocsFirmaVive sql.NullString
+	var justif sql.NullString
+	var notas sql.NullString
+
+	err := db.QueryRow(`
+		SELECT id, emitido, emisor, detalle, por_ejecutar, justif, coes,
+		prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, prov_justif,
+		monto_bruto, monto_iva, monto_desc, geco_sol, geco_ocs, 
+		ocs_firma, ocs_firma_vive, acuse_usuario, acuse_fecha, acuse, acuse_firma,
+		pagado, notas
+		FROM servicios WHERE id = ?`, id).
+		Scan(
+			&s.ID, &s.Emitido, &s.Emisor, &s.Detalle, &s.PorEjecutar, &justif, &s.COES,
+			&provNom, &provCed, &provDirec, &provEmail, &provTel, &provBanco, &provIBAN, &provJustif,
+			&montoBruto, &montoIVA, &montoDesc, &gecoSol, &gecoOCS,
+			&ocsFirma, &ocsFirmaVive, &acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
+		)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Servicio{}, fmt.Errorf("LeerServicio: servicio con ID '%s' no encontrado", id)
+		}
+		return Servicio{}, fmt.Errorf("LeerServicio: error al obtener servicio: %w", err)
+	}
+
+	s.Pagado = pagado.Time
+	s.AcuseFecha = acuseFecha.Time
+	s.AcuseUsuario = acuseUsuario.String
+	s.Acuse = acuse.String
+	s.AcuseFirma = acuseFirma.String
+	s.GecoSol = gecoSol.String
+	s.GecoOCS = gecoOCS.String
+	s.OCSFirma = ocsFirma.String
+	s.OCSFirmaVive = ocsFirmaVive.String
+	s.ProvNom = provNom.String
+	s.ProvCed = provCed.String
+	s.ProvDirec = provDirec.String
+	s.ProvEmail = provEmail.String
+	s.ProvTel = provTel.String
+	s.ProvBanco = provBanco.String
+	s.ProvIBAN = provIBAN.String
+	s.ProvJustif = provJustif.String
+	s.MontoBruto = montoBruto.Float64
+	s.MontoIVA = montoIVA.Float64
+	s.MontoDesc = montoDesc.Float64
+	s.Justif = justif.String
+	s.Notas = notas.String
+
+	rows, err := db.Query(`
+		SELECT id, servicio, usuario, cuenta, presupuesto, monto, firma 
+		FROM servicios_movimientos 
+		WHERE servicio = ?`, id)
+	if err != nil {
+		return Servicio{}, fmt.Errorf("LeerServicio: error al obtener movimientos: %w", err)
+	}
+	defer rows.Close()
+
+	var movimientos []ServicioMovimiento
+	found := false
+	firmasCompletas := true
+
+	for rows.Next() {
+		var m ServicioMovimiento
+		var firma sql.NullString
+		var usuario sql.NullString
+		var monto sql.NullFloat64
+
+		if err := rows.Scan(&m.ID, &m.Servicio, &usuario, &m.Cuenta, &m.Presupuesto, &monto, &firma); err != nil {
+			return Servicio{}, fmt.Errorf("LeerServicio: error al escanear movimientos: %w", err)
+		}
+
+		m.Usuario = usuario.String
+		m.Monto = monto.Float64
+		m.Firma = firma.String
+
+		movimientos = append(movimientos, m)
+
+		if m.Firma == "" {
+			firmasCompletas = false
+		}
+
+		if m.Cuenta == cuentaLoggeada {
+			found = true
+		}
+	}
+
+	s.FirmasCompletas = firmasCompletas
+
+	if err := rows.Err(); err != nil {
+		return Servicio{}, fmt.Errorf("LeerServicio: error al recorrer movimientos: %w", err)
+	}
+
+	s.Movimientos = movimientos
+
+	if !found && cuentaLoggeada != "COES" && cuentaLoggeada != "SF" {
+		return Servicio{}, fmt.Errorf("LeerServicio: cuenta '%s' no encontrada en participantes", cuentaLoggeada)
+	}
+
+	return s, nil
+}
+
+// Registrar el número de solicitud de GECO en la base de datos
+// servicio.RegistrarGECO(db, solicitud)
+func (s *Servicio) RegistrarSolicitudGECO(db *sql.DB, sol string) error {
+	if s.CuentaLoggeada != "SF" {
+		return fmt.Errorf("RegistrarServicioGECO: failed to update service: unauthorized account")
+	}
+
+	_, err := db.Exec(`UPDATE servicios SET geco_sol = ? WHERE id = ?`, sol, s.ID)
+	if err != nil {
+		return fmt.Errorf("RegistrarServicioGECO: failed to update service: %w", err)
+	}
+
+	return nil
+}
+
+// Establecer la distribución de montos de un servicio segun cuentas participantes
+func (s *Servicio) EstablecerMontos(db *sql.DB, montos map[string]float64) error {
+	if s.MontoBruto <= 0 {
+		return fmt.Errorf("EstablecerMontos: monto bruto is not yet set")
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("EstablecerMontos: failed to begin transaction: %w", err)
+	}
+
+	var totalSum float64
+	for _, mov := range s.Movimientos {
+		if mov.Monto > 0 {
+			tx.Rollback()
+			return fmt.Errorf("EstablecerMontos: monto already set for movimiento ID %d", mov.ID)
+		}
+
+		monto, exists := montos[mov.Cuenta]
+		if !exists {
+			tx.Rollback()
+			return fmt.Errorf("EstablecerMontos: cuenta %s not found in request", mov.Cuenta)
+		}
+
+		totalSum += monto
+
+		_, err := tx.Exec(`UPDATE servicios_movimientos SET monto = ? WHERE id = ?`, monto, mov.ID)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("EstablecerMontos: failed to update movimiento ID %d: %w", mov.ID, err)
+		}
+	}
+
+	if totalSum != s.MontoBruto {
+		tx.Rollback()
+		return fmt.Errorf("EstablecerMontos: total montos (%.2f) do not match MontoBruto (%.2f)", totalSum, s.MontoBruto)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("EstablecerMontos: failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Servicio) RegistrarOCS(
+	db *sql.DB, gecoOCS, provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif string,
+	montoBruto, montoIVA, montoDesc float64,
+) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("RegistrarOCS: failed to begin transaction: %w", err)
+	}
+
+	_, err = tx.Exec(`
+		UPDATE servicios 
+		SET geco_ocs = ?, prov_nom = ?, prov_ced = ?, prov_direc = ?, prov_email = ?, prov_tel = ?, 
+		    prov_banco = ?, prov_iban = ?, prov_justif = ?, monto_bruto = ?, monto_iva = ?, monto_desc = ?
+		WHERE id = ?
+	`, gecoOCS, provNom, provCed, provDirec, provEmail, provTel,
+		provBanco, provIBAN, provJustif, montoBruto, montoIVA, montoDesc, s.ID)
+
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("RegistrarOCS: failed to update service ID %d: %w", s.ID, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("RegistrarOCS: failed to commit transaction: %w", err)
+	}
+
+	return nil
+}

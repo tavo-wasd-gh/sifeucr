@@ -102,7 +102,7 @@
             <br>
             <span class="label">{{summary .Detalle 50}}</span>
             <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
-            <span class="value">{{if .MontoBruto}}-{{currency .MontoBruto.Float64}}{{else}}<i>Por definir</i>{{end}}</span>
+            <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
           </div>
           {{ end }}
         </div>
@@ -214,6 +214,11 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Ajustes</span>
+          {{if (eq .Cuenta.ID "CC")}}
+          <a href="/ajustes">
+            <i style="font-size: 1.5em" class='bx bxs-edit' ></i>
+          </a>
+          {{end}}
         </div>
         <br>
         <div class="card-items">
@@ -256,7 +261,7 @@
     <br>
     <span class="label">{{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
-    <span class="value">{{if .MontoBruto}}-{{currency .MontoBruto.Float64}}{{else}}<i>Por definir</i>{{end}}</span>
+    <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}
   <br>
