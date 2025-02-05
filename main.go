@@ -107,15 +107,15 @@ func main() {
 
 	// Movimientos
 	http.HandleFunc("/api/movimientos/servicio/", app.handleMovimientosServicio)
-	// http.HandleFunc("/api/movimientos/bien/", app.handleMovimientosBien)
+	http.HandleFunc("/api/movimientos/bien/", app.handleMovimientosBien)
 
 	// Solicitud GECO
 	http.HandleFunc("/api/geco/servicio/", app.handleRegistrarSolicitudServicioGECO)
-	// http.HandleFunc("/api/geco/suministro/", app.handleSuministroGECO)
-	// http.HandleFunc("/api/geco/bien/", app.handleBienGECO)
+	http.HandleFunc("/api/geco/suministro/", app.handleRegistrarSolicitudSuministroGECO)
+	http.HandleFunc("/api/geco/bien/", app.handleRegistrarSolicitudBienGECO)
 	// OCS GECO
 	http.HandleFunc("/api/orden/servicio/", app.handleServicioOCS)
-	// http.HandleFunc("/api/orden/bien/", app.handleBienOC)
+	http.HandleFunc("/api/orden/bien/", app.handleBienOC)
 
 	// Credenciales
 	http.HandleFunc("/api/cuentas/suscriben", app.handleCuentasSuscriben)
@@ -1293,21 +1293,23 @@ func (app *App) validateSuministroForm(r *http.Request, w http.ResponseWriter) (
 	articulos := r.Form["articulo[]"]
 	agrupaciones := r.Form["agrupacion[]"]
 	cantidades := r.Form["cantidad[]"]
+	montos := r.Form["monto[]"]
 
 	if justif == "" || firma == "" {
 		app.log("missing fields")
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
-		return database.Suministros{}, err
+		return database.Suministros{}, fmt.Errorf("missing required fields")
 	}
 
-	if len(nombres) == 0 || len(articulos) == 0 || len(agrupaciones) == 0 || len(cantidades) == 0 {
-		app.log("missing fields")
-		http.Error(w, "Missing required fields", http.StatusBadRequest)
-		return database.Suministros{}, err
+	n := len(nombres)
+	if n == 0 || len(articulos) != n || len(agrupaciones) != n || len(cantidades) != n || len(montos) != n {
+		app.log("mismatched field lengths")
+		http.Error(w, "Mismatched field lengths", http.StatusBadRequest)
+		return database.Suministros{}, fmt.Errorf("mismatched field lengths")
 	}
 
 	var desglose []database.SuministroDesglose
-	for i := range nombres {
+	for i := 0; i < n; i++ {
 		cantidad, err := strconv.Atoi(cantidades[i])
 		if err != nil {
 			app.log("error converting cantidad to int: %v", err)
@@ -1315,21 +1317,29 @@ func (app *App) validateSuministroForm(r *http.Request, w http.ResponseWriter) (
 			return database.Suministros{}, err
 		}
 
+		montoUnitario, err := strconv.ParseFloat(montos[i], 64)
+		if err != nil {
+			app.log("error converting monto to float: %v", err)
+			http.Error(w, "Invalid monto value", http.StatusBadRequest)
+			return database.Suministros{}, err
+		}
+
 		desglose = append(desglose, database.SuministroDesglose{
-			Nombre:     nombres[i],
-			Articulo:   articulos[i],
-			Agrupacion: agrupaciones[i],
-			Cantidad:   cantidad,
+			Nombre:        nombres[i],
+			Articulo:      articulos[i],
+			Agrupacion:    agrupaciones[i],
+			Cantidad:      cantidad,
+			MontoUnitario: montoUnitario,
 		})
 	}
 
 	suministro := database.Suministros{
-		Emitido:         time.Now(),
-		Emisor:          correo,
-		Cuenta:          cuenta,
-		Justif:          justif,
-		Firma:           firma,
-		Desglose:        desglose,
+		Emitido:  time.Now(),
+		Emisor:   correo,
+		Cuenta:   cuenta,
+		Justif:   justif,
+		Firma:    firma,
+		Desglose: desglose,
 	}
 
 	return suministro, nil
@@ -1629,6 +1639,107 @@ func (app *App) handleRegistrarSolicitudServicioGECO(w http.ResponseWriter, r *h
 	w.Header().Set("HX-Redirect", "/dashboard")
 }
 
+func (app *App) handleRegistrarSolicitudSuministroGECO(w http.ResponseWriter, r *http.Request) {
+	const errResp = `<div class="app-error">Error registrando suministros</div>`
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 5 {
+		app.log("not enough segments in URL")
+		fmt.Fprint(w, errResp)
+		return
+	}
+	id := segments[4]
+
+	if err := r.ParseForm(); err != nil {
+		app.log("error parsing form: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	solicitudGECO := r.FormValue("solicitud-geco")
+	montoBrutoTotalStr := r.FormValue("monto-bruto-total")
+
+	montoBrutoTotal, err := strconv.ParseFloat(montoBrutoTotalStr, 64)
+	if err != nil {
+		app.log("invalid monto bruto total: %v", err)
+		fmt.Fprint(w, `<div class="app-error">Monto bruto total inválido</div>`)
+		return
+	}
+
+	suministro, err := database.SuministroPorID(app.DB, correo, cuenta, id)
+	if err != nil {
+		app.log("failed to get suministro: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	err = suministro.RegistrarSolicitudGECO(app.DB, solicitudGECO, montoBrutoTotal)
+	if err != nil {
+		app.log("failed to register solicitud GECO: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func (app *App) handleRegistrarSolicitudBienGECO(w http.ResponseWriter, r *http.Request) {
+	const errResp = "Error registrando bien"
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 5 {
+		app.log("not enough segments")
+		fmt.Fprint(w, errResp)
+		return
+	}
+	id := segments[4]
+
+	if err := r.ParseForm(); err != nil {
+		app.log("error parsing form")
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	solicitudGECO := r.FormValue("solicitud-geco")
+
+	bien, err := database.BienPorID(app.DB, correo, cuenta, id)
+	if err != nil {
+		app.log("failed to get service: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	err = bien.RegistrarSolicitudGECO(app.DB, solicitudGECO)
+	if err != nil {
+		app.log("failed to register service: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
 func (app *App) handleServicioOCS(w http.ResponseWriter, r *http.Request) {
 	const errResp = "Error registrando OCS"
 	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
@@ -1696,6 +1807,144 @@ func (app *App) handleServicioOCS(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		app.log("failed to register OCS: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func (app *App) handleBienOC(w http.ResponseWriter, r *http.Request) {
+	const errResp = "Error registrando OC"
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 5 {
+		app.log("not enough segments")
+		fmt.Fprint(w, errResp)
+		return
+	}
+	id := segments[4]
+
+	if err := r.ParseForm(); err != nil {
+		app.log("error parsing form: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	gecoOCS := r.FormValue("orden-geco")
+	provNom := r.FormValue("prov-nom")
+	provCed := r.FormValue("prov-ced")
+	provDirec := r.FormValue("prov-direc")
+	provEmail := r.FormValue("prov-email")
+	provTel := r.FormValue("prov-tel")
+	provBanco := r.FormValue("prov-banco")
+	provIBAN := r.FormValue("prov-iban")
+	provJustif := r.FormValue("prov-justif")
+
+	montoBruto, err := strconv.ParseFloat(r.FormValue("prov-monto-bruto"), 64)
+	if err != nil {
+		app.log("invalid monto bruto: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	montoIVA, err := strconv.ParseFloat(r.FormValue("prov-iva"), 64)
+	if err != nil {
+		app.log("invalid monto iva: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	montoDesc, _ := strconv.ParseFloat(r.FormValue("prov-monto-desc"), 64)
+
+	bien, err := database.BienPorID(app.DB, correo, cuenta, id)
+	if err != nil {
+		app.log("failed to get service: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	err = bien.RegistrarOC(
+		app.DB, gecoOCS, provNom, provCed, provDirec, provEmail, provTel,
+		provBanco, provIBAN, provJustif, montoBruto, montoIVA, montoDesc,
+	)
+
+	if err != nil {
+		app.log("failed to register OC: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func (app *App) handleMovimientosBien(w http.ResponseWriter, r *http.Request) {
+	const errResp = "Error estableciendo montos: Deben sumar el monto bruto total de la solicitud"
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 5 {
+		app.log("not enough segments")
+		fmt.Fprint(w, errResp)
+		return
+	}
+	id := segments[4]
+
+	if err := r.ParseForm(); err != nil {
+		app.log("error parsing form")
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	cuentas := r.Form["cuenta[]"]
+	montosStr := r.Form["monto[]"]
+
+	if len(cuentas) != len(montosStr) {
+		app.log("mismatch between cuentas and montos length")
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	montos := make(map[string]float64)
+	for i, cuenta := range cuentas {
+		monto, err := strconv.ParseFloat(montosStr[i], 64)
+		if err != nil {
+			app.log("invalid monto value: %v", err)
+			fmt.Fprint(w, errResp)
+			return
+		}
+		montos[cuenta] = monto
+	}
+
+	bien, err := database.BienPorID(app.DB, correo, cuenta, id)
+	if err != nil {
+		app.log("failed to get service: %v", err)
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	err = bien.EstablecerMontos(app.DB, montos)
+	if err != nil {
+		app.log("failed to set mov: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}

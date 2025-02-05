@@ -602,12 +602,12 @@ func ServicioPorID(db *sql.DB, usuarioLoggeado, cuentaLoggeada, id string) (Serv
 // servicio.RegistrarGECO(db, solicitud)
 func (s *Servicio) RegistrarSolicitudGECO(db *sql.DB, sol string) error {
 	if s.CuentaLoggeada != "SF" {
-		return fmt.Errorf("RegistrarServicioGECO: failed to update service: unauthorized account")
+		return fmt.Errorf("RegistrarSolicitudGECO: failed to update service: unauthorized account")
 	}
 
 	_, err := db.Exec(`UPDATE servicios SET geco_sol = ? WHERE id = ?`, sol, s.ID)
 	if err != nil {
-		return fmt.Errorf("RegistrarServicioGECO: failed to update service: %w", err)
+		return fmt.Errorf("RegistrarSolicitudGECO: failed to update service: %w", err)
 	}
 
 	return nil

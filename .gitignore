@@ -5,3 +5,4 @@ resources/
 .env
 tmp/
 db.db
+default.db

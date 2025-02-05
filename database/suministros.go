@@ -357,3 +357,86 @@ func AprobarSuministroCOES(db *sql.DB, id string) error {
 	}
 	return nil
 }
+
+func SuministroPorID(db *sql.DB, usuarioLoggeado, cuentaLoggeada, id string) (Suministros, error) {
+	var s Suministros
+
+	s.UsuarioLoggeado = usuarioLoggeado
+	s.CuentaLoggeada = cuentaLoggeada
+
+	var acuseFecha sql.NullTime
+	var acuseUsuario, acuse, acuseFirma, geco sql.NullString
+	var notas sql.NullString
+	var montoBrutoTotal sql.NullFloat64
+
+	err := db.QueryRow(`
+		SELECT id, emitido, emisor, cuenta, presupuesto, justif, firma, 
+		       coes, monto_bruto_total, geco, 
+		       acuse_usuario, acuse_fecha, acuse, acuse_firma, 
+		       notas
+		FROM suministros WHERE id = ?`, id).
+		Scan(
+			&s.ID, &s.Emitido, &s.Emisor, &s.Cuenta, &s.Presupuesto, &s.Justif, &s.Firma,
+			&s.COES, &montoBrutoTotal, &geco,
+			&acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&notas,
+		)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Suministros{}, fmt.Errorf("SuministroPorID: suministro con ID '%s' no encontrado", id)
+		}
+		return Suministros{}, fmt.Errorf("SuministroPorID: error al obtener suministro: %w", err)
+	}
+
+	s.MontoBrutoTotal = montoBrutoTotal.Float64
+	s.GECO = geco.String
+	s.AcuseUsuario = acuseUsuario.String
+	s.AcuseFecha = acuseFecha.Time
+	s.Acuse = acuse.String
+	s.AcuseFirma = acuseFirma.String
+	s.Notas = notas.String
+
+	rows, err := db.Query(`
+		SELECT id, suministros, nombre, articulo, agrupacion, cantidad, monto_unitario 
+		FROM suministros_desglose 
+		WHERE suministros = ?`, id)
+	if err != nil {
+		return Suministros{}, fmt.Errorf("SuministroPorID: error al obtener desglose: %w", err)
+	}
+	defer rows.Close()
+
+	var desglose []SuministroDesglose
+	for rows.Next() {
+		var d SuministroDesglose
+		if err := rows.Scan(&d.ID, &d.Suministros, &d.Nombre, &d.Articulo, &d.Agrupacion, &d.Cantidad, &d.MontoUnitario); err != nil {
+			return Suministros{}, fmt.Errorf("SuministroPorID: error al escanear desglose: %w", err)
+		}
+		desglose = append(desglose, d)
+	}
+
+	s.Desglose = desglose
+
+	if err := rows.Err(); err != nil {
+		return Suministros{}, fmt.Errorf("SuministroPorID: error al recorrer desglose: %w", err)
+	}
+
+	if cuentaLoggeada != s.Cuenta && cuentaLoggeada != "COES" && cuentaLoggeada != "SF" {
+		return Suministros{}, fmt.Errorf("SuministroPorID: cuenta '%s' no tiene acceso", cuentaLoggeada)
+	}
+
+	return s, nil
+}
+
+func (s *Suministros) RegistrarSolicitudGECO(db *sql.DB, solicitudGECO string, montoBrutoTotal float64) error {
+	if s.CuentaLoggeada != "SF" {
+		return fmt.Errorf("RegistrarSolicitudGECO: failed to update suministro: unauthorized account")
+	}
+
+	_, err := db.Exec(`UPDATE suministros SET geco = ?, monto_bruto_total = ? WHERE id = ?`, solicitudGECO, montoBrutoTotal, s.ID)
+	if err != nil {
+		return fmt.Errorf("RegistrarSolicitudGECO: failed to update suministro: %w", err)
+	}
+
+	return nil
+}

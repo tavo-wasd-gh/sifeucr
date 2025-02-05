@@ -476,3 +476,202 @@ func AprobarBienCOES(db *sql.DB, id string) error {
 	}
 	return nil
 }
+
+func BienPorID(db *sql.DB, usuarioLoggeado, cuentaLoggeada, id string) (Bien, error) {
+	var b Bien
+
+	b.UsuarioLoggeado = usuarioLoggeado
+	b.CuentaLoggeada = cuentaLoggeada
+
+	var acuseFecha, pagado sql.NullTime
+	var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOC sql.NullString
+	var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+	var montoBruto, montoIVA, montoDesc sql.NullFloat64
+	var ocFirma, ocFirmaVive sql.NullString
+	var justif, notas sql.NullString
+
+	err := db.QueryRow(`
+		SELECT id, emitido, emisor, detalle, por_recibir, justif, coes,
+		prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, prov_iban, prov_justif,
+		monto_bruto, monto_iva, monto_desc, geco_sol, geco_oc, 
+		oc_firma, oc_firma_vive, acuse_usuario, acuse_fecha, acuse, acuse_firma,
+		pagado, notas
+		FROM bienes WHERE id = ?`, id).
+		Scan(
+			&b.ID, &b.Emitido, &b.Emisor, &b.Detalle, &b.PorRecibir, &justif, &b.COES,
+			&provNom, &provCed, &provDirec, &provEmail, &provTel, &provBanco, &provIBAN, &provJustif,
+			&montoBruto, &montoIVA, &montoDesc, &gecoSol, &gecoOC,
+			&ocFirma, &ocFirmaVive, &acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
+		)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Bien{}, fmt.Errorf("LeerBien: bien con ID '%s' no encontrado", id)
+		}
+		return Bien{}, fmt.Errorf("LeerBien: error al obtener bien: %w", err)
+	}
+
+	b.Pagado = pagado.Time
+	b.AcuseFecha = acuseFecha.Time
+	b.AcuseUsuario = acuseUsuario.String
+	b.Acuse = acuse.String
+	b.AcuseFirma = acuseFirma.String
+	b.GecoSol = gecoSol.String
+	b.GecoOC = gecoOC.String
+	b.OCFirma = ocFirma.String
+	b.OCFirmaVive = ocFirmaVive.String
+	b.ProvNom = provNom.String
+	b.ProvCed = provCed.String
+	b.ProvDirec = provDirec.String
+	b.ProvEmail = provEmail.String
+	b.ProvTel = provTel.String
+	b.ProvBanco = provBanco.String
+	b.ProvIBAN = provIBAN.String
+	b.ProvJustif = provJustif.String
+	b.MontoBruto = montoBruto.Float64
+	b.MontoIVA = montoIVA.Float64
+	b.MontoDesc = montoDesc.Float64
+	b.Justif = justif.String
+	b.Notas = notas.String
+
+	rows, err := db.Query(`
+		SELECT id, bien, usuario, cuenta, presupuesto, monto, firma 
+		FROM bienes_movimientos 
+		WHERE bien = ?`, id)
+	if err != nil {
+		return Bien{}, fmt.Errorf("LeerBien: error al obtener movimientos: %w", err)
+	}
+	defer rows.Close()
+
+	var movimientos []BienMovimiento
+	found := false
+	firmasCompletas := true
+
+	for rows.Next() {
+		var m BienMovimiento
+		var firma sql.NullString
+		var usuario sql.NullString
+		var monto sql.NullFloat64
+
+		if err := rows.Scan(&m.ID, &m.Bien, &usuario, &m.Cuenta, &m.Presupuesto, &monto, &firma); err != nil {
+			return Bien{}, fmt.Errorf("LeerBien: error al escanear movimientos: %w", err)
+		}
+
+		m.Usuario = usuario.String
+		m.Monto = monto.Float64
+		m.Firma = firma.String
+
+		movimientos = append(movimientos, m)
+
+		if m.Firma == "" {
+			firmasCompletas = false
+		}
+
+		if m.Cuenta == cuentaLoggeada {
+			found = true
+		}
+	}
+
+	b.FirmasCompletas = firmasCompletas
+
+	if err := rows.Err(); err != nil {
+		return Bien{}, fmt.Errorf("LeerBien: error al recorrer movimientos: %w", err)
+	}
+
+	b.Movimientos = movimientos
+
+	if !found && cuentaLoggeada != "COES" && cuentaLoggeada != "SF" {
+		return Bien{}, fmt.Errorf("LeerBien: cuenta '%s' no encontrada en participantes", cuentaLoggeada)
+	}
+
+	return b, nil
+}
+
+func (b *Bien) EstablecerMontos(db *sql.DB, montos map[string]float64) error {
+	if b.MontoBruto <= 0 {
+		return fmt.Errorf("EstablecerMontos: monto bruto is not yet set")
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("EstablecerMontos: failed to begin transaction: %w", err)
+	}
+
+	var totalSum float64
+	for _, mov := range b.Movimientos {
+		if mov.Monto > 0 {
+			tx.Rollback()
+			return fmt.Errorf("EstablecerMontos: monto already set for movimiento ID %d", mov.ID)
+		}
+
+		monto, exists := montos[mov.Cuenta]
+		if !exists {
+			tx.Rollback()
+			return fmt.Errorf("EstablecerMontos: cuenta %s not found in request", mov.Cuenta)
+		}
+
+		totalSum += monto
+
+		_, err := tx.Exec(`UPDATE bienes_movimientos SET monto = ? WHERE id = ?`, monto, mov.ID)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("EstablecerMontos: failed to update movimiento ID %d: %w", mov.ID, err)
+		}
+	}
+
+	if totalSum != b.MontoBruto {
+		tx.Rollback()
+		return fmt.Errorf("EstablecerMontos: total montos (%.2f) do not match MontoBruto (%.2f)", totalSum, b.MontoBruto)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("EstablecerMontos: failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+// Registrar el número de solicitud de GECO en la base de datos
+// bien.RegistrarGECO(db, solicitud)
+func (b *Bien) RegistrarSolicitudGECO(db *sql.DB, sol string) error {
+	if b.CuentaLoggeada != "SF" {
+		return fmt.Errorf("RegistrarSolicitudGECO: failed to update bien: unauthorized account")
+	}
+
+	_, err := db.Exec(`UPDATE bienes SET geco_sol = ? WHERE id = ?`, sol, b.ID)
+	if err != nil {
+		return fmt.Errorf("RegistrarSolicitudGECO: failed to update bien: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bien) RegistrarOC(
+	db *sql.DB, gecoOCS, provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif string,
+	montoBruto, montoIVA, montoDesc float64,
+) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("RegistrarOC: failed to begin transaction: %w", err)
+	}
+
+	_, err = tx.Exec(`
+		UPDATE bienes 
+		SET geco_oc = ?, prov_nom = ?, prov_ced = ?, prov_direc = ?, prov_email = ?, prov_tel = ?, 
+		    prov_banco = ?, prov_iban = ?, prov_justif = ?, monto_bruto = ?, monto_iva = ?, monto_desc = ?
+		WHERE id = ?
+	`, gecoOCS, provNom, provCed, provDirec, provEmail, provTel,
+		provBanco, provIBAN, provJustif, montoBruto, montoIVA, montoDesc, b.ID)
+
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("RegistrarOC: failed to update service ID %d: %w", b.ID, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("RegistrarOC: failed to commit transaction: %w", err)
+	}
+
+	return nil
+}

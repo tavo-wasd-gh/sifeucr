@@ -53,7 +53,7 @@
 {{if (eq .CuentaLoggeada "SF")}}
 <br>
 <div class="card-header">
-  <form hx-post="/api/movimientos/servicio/{{.ID}}" hx-target=".app-error" hx-swap="innerHTML">
+  <form hx-post="/api/movimientos/servicio/{{.ID}}" hx-target="#api-mov-serv-id" hx-swap="innerHTML">
     {{ $hayMovimientos := false }}
     {{ range .Movimientos }}
     {{if not .Monto}}
@@ -64,8 +64,8 @@
     <input name="monto[]" type="number" step="0.01" placeholder="Monto" required>
     {{end}}
     {{ end }}
-    <div class="app-error"></div>
     {{if $hayMovimientos}}
+    <div id="api-mov-serv-id" class="app-error"></div>
     <div class="htmx-button-div">
       <button type="submit">Establecer Montos</button>
       <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
@@ -147,6 +147,7 @@
       </div>
     </div>
   </span>
+  <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
 </div>
 <div class="card-header">
   <span>
@@ -157,12 +158,12 @@
       {{.GecoSol}}
     </small>
   </span>
-  <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
 </div>
 {{if and (eq .CuentaLoggeada "SF") (not .GecoSol)}}
 <br>
-<form hx-post="/api/geco/servicio/{{.ID}}">
-    <input id="solicitud-geco" name="solicitud-geco" placeholder="No. Solicitud GECO" required>
+<form hx-post="/api/geco/servicio/{{.ID}}" hx-target="#api-geco-servicio-id" hx-swap="innerHTML">
+    <input id="solicitud-geco" name="solicitud-geco" placeholder="ID Solicitud Servicios GECO" required>
+    <div id="api-geco-servicio-id" class="app-error"></div>
     <div class="htmx-button-div">
       <button type="submit">Registrar Solicitud</button>
       <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
@@ -196,8 +197,8 @@
 <br>
 {{end}}
 {{if and (eq .CuentaLoggeada "SF") (not .GecoOCS)}}
-<form hx-post="/api/orden/servicio/{{.ID}}">
-  <input id="orden-geco"  name="orden-geco"  placeholder="No. OCS GECO" required>
+<form hx-post="/api/orden/servicio/{{.ID}}" hx-target="#api-orden-serv-id" hx-swap="innerHTML">
+  <input id="orden-geco"  name="orden-geco"  placeholder="ID OCS GECO" required>
   <input id="prov-nom"    name="prov-nom"    placeholder="Nombre" required>
   <input id="prov-ced"    name="prov-ced"    placeholder="Cédula" required>
   <input id="prov-direc"  name="prov-direc"  placeholder="Dirección" required>
@@ -209,6 +210,7 @@
   <input id="prov-monto-bruto" name="prov-monto-bruto" type="number" placeholder="Monto Bruto" required>
   <input id="prov-iva"         name="prov-iva"         type="number" placeholder="% IVA" value="2.00" required>
   <input id="prov-monto-desc"  name="prov-monto-desc"  type="number" placeholder="Monto Descuento (Opcional)">
+  <div id="api-orden-serv-id" class="app-error"></div>
   <div class="htmx-button-div">
     <button type="submit">Registrar OCS</button>
     <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
