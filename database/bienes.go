@@ -428,8 +428,12 @@ func BienesPendientesCOES(db *sql.DB, periodo int) ([]Bien, error) {
 			return nil, fmt.Errorf("BienesPendientesCOES: error scanning row: %w", err)
 		}
 
-		// ✅ Filter by year (in Go)
-		if emitido.Year() == periodo {
+		b.FirmasCompletas, err = firmasCompletas(db, "bienes_movimientos", "bien", b.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		if emitido.Year() == periodo && b.FirmasCompletas {
 			b.Emitido = emitido
 			b.Justif = justif.String
 			b.ProvNom = provNom.String

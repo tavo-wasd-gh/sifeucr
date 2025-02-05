@@ -329,7 +329,6 @@ func SuministrosPendientesCOES(db *sql.DB, periodo int) ([]Suministros, error) {
 			return nil, fmt.Errorf("SuministrosPendientesCOES: error scanning row: %w", err)
 		}
 
-		// ✅ Filter by year (in Go)
 		if emitido.Year() == periodo {
 			s.Emitido = emitido
 			s.MontoBrutoTotal = montoBrutoTotal.Float64

@@ -179,3 +179,11 @@ func DonacionesPendientesCOES(db *sql.DB, periodo int) ([]Donacion, error) {
 
 	return donaciones, nil
 }
+
+func AprobarDonacionCOES(db *sql.DB, id string) error {
+	_, err := db.Exec(`UPDATE donaciones SET carta_coes = TRUE WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("AprobarServicioCOES: failed to update service: %w", err)
+	}
+	return nil
+}

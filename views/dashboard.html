@@ -159,7 +159,7 @@
             <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
             <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
             <br>
-            <span class="label">{{.Detalle}}</span>
+            <span class="label">{{summary .Detalle 50}}</span>
             <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
             <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
           </div>
@@ -189,7 +189,7 @@
             onclick="showDialog()">
             <div style="background-color: {{if .CartaCOES}}peru{{end}}" class="tag {{if .CartaCOES}}active{{end}}">COES</div>
             <br>
-            <span class="label">{{.Detalle}}</span>
+            <span class="label">{{summary .Detalle 50}}</span>
             <span class="value">
               {{if eq .CuentaEntrada $parentIDCuenta}}
               {{if eq .PartidaEntrada "servicios"}}Servicios{{end}}
@@ -224,7 +224,7 @@
             hx-target="#dialog-content"
             hx-swap="innerHTML"
             onclick="showDialog()">
-            <span class="label">{{.Detalle}}</span>
+            <span class="label">{{summary .Detalle 50}}</span>
             <span class="value">
               {{if eq .Partida "servicios"}}Servicios{{end}}
               {{if eq .Partida "suministros"}}Suministros{{end}}
@@ -293,7 +293,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
     <br>
-    <span class="label">{{.Detalle}}</span>
+    <span class="label">{{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -310,7 +310,7 @@
     onclick="showDialog()">
     <div style="background-color: {{if .CartaCOES}}peru{{end}}" class="tag {{if .CartaCOES}}active{{end}}">COES</div>
     <br>
-    <span class="label">{{.Detalle}}</span>
+    <span class="label">{{summary .Detalle 50}}</span>
     <span class="value">
       {{.CuentaSalida}} / {{.PartidaSalida}} / -{{currency .MontoBruto}}
     </span>

@@ -437,7 +437,12 @@ func ServiciosPendientesCOES(db *sql.DB, periodo int) ([]Servicio, error) {
 			return nil, fmt.Errorf("ServiciosPendientesCOES: error scanning row: %w", err)
 		}
 
-		if emitido.Year() == periodo {
+		s.FirmasCompletas, err = firmasCompletas(db, "servicios_movimientos", "servicio", s.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		if emitido.Year() == periodo && s.FirmasCompletas {
 			s.Emitido = emitido
 			s.Justif = justif.String
 			s.ProvNom = provNom.String
@@ -461,12 +466,6 @@ func ServiciosPendientesCOES(db *sql.DB, periodo int) ([]Servicio, error) {
 			s.AcuseFirma = acuseFirma.String
 			s.Pagado = pagado.Time
 			s.Notas = notas.String
-
-			firmasCompletas, err := firmasCompletas(db, "servicios_movimientos", "firma", s.ID)
-			if err != nil {
-				return nil, err
-			}
-			s.FirmasCompletas = firmasCompletas
 
 			servicios = append(servicios, s)
 		}

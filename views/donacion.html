@@ -54,4 +54,12 @@
 <div class="card-header">
   <small>{{.Detalle}}</small>
 </div>
+{{if (eq .CuentaLoggeada "COES")}}
+<form hx-post="/api/aprobar/donacion/{{.ID}}">
+  <div class="htmx-button-div">
+    <button type="submit">Aprobar</button>
+    <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+  </div>
+</form>
+{{end}}
 {{end}}

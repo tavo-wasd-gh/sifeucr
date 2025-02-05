@@ -102,6 +102,7 @@ func main() {
 	http.HandleFunc("/api/aprobar/servicio/", app.handleAprobarServicioCOES)
 	http.HandleFunc("/api/aprobar/suministro/", app.handleAprobarSuministroCOES)
 	http.HandleFunc("/api/aprobar/bien/", app.handleAprobarBienCOES)
+	http.HandleFunc("/api/aprobar/donacion/", app.handleAprobarDonacionCOES)
 
 	// Credenciales
 	http.HandleFunc("/api/cuentas/suscriben", app.handleCuentasSuscriben)
@@ -1526,6 +1527,42 @@ func (app *App) handleAprobarBienCOES(w http.ResponseWriter, r *http.Request) {
 	id := segments[4]
 
 	err = database.AprobarBienCOES(app.DB, id)
+	if err != nil {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func (app *App) handleAprobarDonacionCOES(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("handleDashboard: error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	if cuenta != "COES" {
+		app.log("handleAprobarServicioCOES: error approving service: %v", err)
+		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
+		return
+	}
+
+	path := r.URL.Path
+	segments := strings.Split(path, "/")
+	if len(segments) < 5 {
+		http.Error(w, "ID not found in URL", http.StatusBadRequest)
+		return
+	}
+	id := segments[4]
+
+	err = database.AprobarDonacionCOES(app.DB, id)
 	if err != nil {
 		app.log("handleAprobarServicioCOES: error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
