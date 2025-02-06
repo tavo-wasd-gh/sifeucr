@@ -1,23 +1,34 @@
 # SIFEUCR
 
-## Roadmap:
+# v.1.2.0
 
-### Etapa 1
+- [ ] Manejo de usuarios
+- [ ] Manejo de cuentas
+- [ ] Manejo de presupuestos
 
-- [ ] Llenar struct de Presupuestos (Emitido, Restante)
-- [ ] Llenar structs de Servicios, Suministros, Bienes
-- [ ] Dashboard view nuevo
+# v.1.1.0
 
-### Etapa 2
+- [ ] Pistas de auditoría
+- [ ] Adjuntar pruebas prov al día en entidades públicas
+- [ ] Adjuntar OCS firmada
+- [ ] Adjuntar OCS firmada ViVE
 
-- [ ] Solicitudes Servicios y Bienes
-- [ ] Publicar
+# v.1.0.2
 
-### Etapa 3
+- [ ] Presentar errores en `app-error`, quitar `http.Error` y responder con texto
+- [ ] `db.go`: (poner aqui las llamadas, idealmente tomar TODOS los datos y filtrar en Go por cada solicitud)
+- [ ] `usuario.go`: `UsuarioAcreditado` debería ir en `db.go` y deberia ser privada, solamente llamarla al momento de login
+- [ ] `cuenta.go`: `cuentaInit` debería estar en `db.go` y aquí solamente el struct y funciones ayuda futuras (cuenta.Registrar, cuenta.Eliminar, etc)
+- [ ] `servicios.go`: Todo mal, no tuve tiempo
+- [ ] `servicios.go` Todo mal, no tuve tiempo
+- [ ] `bienes.go` Todo mal, no tuve tiempo
+- [ ] `suministros.go` Todo mal, no tuve tiempo
 
-- [ ] Subir OCSs con MinIO
+# v.1.0.1
 
-### Etapa 4
+- [ ] Sanitizar datos (Mínimo de caracteres, números de solicitudes, OC y OCS de GECO, datos de entidad proveedora, etc)
+- [ ] Restricciones de fechas, word-lists, extension para crear nuevas solicitudes
 
-- [ ] Solicitudes Suministros
-- [ ] Donaciones COES
+# v.1.0.0
+
+- [X] Funcionalidad mínima

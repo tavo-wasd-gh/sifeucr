@@ -115,3 +115,40 @@ func LeerAjuste(db *sql.DB, id, cuenta string) (Ajuste, error) {
 
 	return a, nil
 }
+
+func AjustesCC(db *sql.DB, periodo int) ([]Ajuste, error) {
+	query := `SELECT id, emitido, emisor, cuenta_emisora, cuenta, partida, presupuesto, detalle, monto_bruto, notas FROM ajustes`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ajustes []Ajuste
+
+	for rows.Next() {
+		var a Ajuste
+		var notas sql.NullString
+
+		err := rows.Scan(&a.ID, &a.Emitido, &a.Emisor, &a.CuentaEmisora, &a.Cuenta, &a.Partida, &a.Presupuesto, &a.Detalle, &a.MontoBruto, &notas)
+		if err != nil {
+			return nil, err
+		}
+
+		if notas.Valid {
+			a.Notas = notas.String
+		} else {
+			a.Notas = ""
+		}
+
+		if a.Emitido.Year() == periodo {
+			ajustes = append(ajustes, a)
+		}
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ajustes, nil
+}

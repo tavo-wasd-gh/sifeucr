@@ -943,3 +943,86 @@ func BienesPendientesDist(db *sql.DB, periodo int) ([]Bien, error) {
 
 	return bienes, nil
 }
+
+func BienesPendientesRecepcion(db *sql.DB, periodo int) ([]Bien, error) {
+	query := `
+		SELECT id, emitido, emisor, detalle, por_recibir, justif, coes,
+		       prov_nom, prov_ced, prov_direc, prov_email, prov_tel, prov_banco, 
+		       prov_iban, prov_justif, monto_bruto, monto_iva, monto_desc, 
+		       geco_sol, geco_oc, oc_firma, oc_firma_vive, 
+		       acuse_usuario, acuse_fecha, acuse, acuse_firma, 
+		       pagado, notas
+		FROM bienes
+		WHERE geco_oc IS NOT NULL
+		AND acuse IS NULL
+		ORDER BY emitido
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("BienesPendientesRecepcion: error fetching servicios: %w", err)
+	}
+	defer rows.Close()
+
+	var bienes []Bien
+
+	for rows.Next() {
+		var b Bien
+		var emitido time.Time
+		var acuseFecha, pagado sql.NullTime
+		var acuseUsuario, acuse, acuseFirma, gecoSol, gecoOC sql.NullString
+		var provNom, provCed, provDirec, provEmail, provTel, provBanco, provIBAN, provJustif sql.NullString
+		var montoBruto, montoIVA, montoDesc sql.NullFloat64
+		var ocsFirma, ocsFirmaVive sql.NullString
+		var justif, notas sql.NullString
+
+		if err := rows.Scan(
+			&b.ID, &emitido, &b.Emisor, &b.Detalle, &b.PorRecibir, &justif, &b.COES,
+			&provNom, &provCed, &provDirec, &provEmail, &provTel, &provBanco, &provIBAN, &provJustif,
+			&montoBruto, &montoIVA, &montoDesc, &gecoSol, &gecoOC,
+			&ocsFirma, &ocsFirmaVive, &acuseUsuario, &acuseFecha, &acuse, &acuseFirma,
+			&pagado, &notas,
+		); err != nil {
+			return nil, fmt.Errorf("BienesPendientesRecepcion: error scanning row: %w", err)
+		}
+
+		b.FirmasCompletas, err = firmasCompletas(db, "bienes_movimientos", "bien", b.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		if emitido.Year() == periodo && b.FirmasCompletas {
+			b.Emitido = emitido
+			b.Justif = justif.String
+			b.ProvNom = provNom.String
+			b.ProvCed = provCed.String
+			b.ProvDirec = provDirec.String
+			b.ProvEmail = provEmail.String
+			b.ProvTel = provTel.String
+			b.ProvBanco = provBanco.String
+			b.ProvIBAN = provIBAN.String
+			b.ProvJustif = provJustif.String
+			b.MontoBruto = montoBruto.Float64
+			b.MontoIVA = montoIVA.Float64
+			b.MontoDesc = montoDesc.Float64
+			b.GecoSol = gecoSol.String
+			b.GecoOC = gecoOC.String
+			b.OCFirma = ocsFirma.String
+			b.OCFirmaVive = ocsFirmaVive.String
+			b.AcuseUsuario = acuseUsuario.String
+			b.AcuseFecha = acuseFecha.Time
+			b.Acuse = acuse.String
+			b.AcuseFirma = acuseFirma.String
+			b.Pagado = pagado.Time
+			b.Notas = notas.String
+
+			bienes = append(bienes, b)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("BienesPendientesRecepcion: error iterating rows: %w", err)
+	}
+
+	return bienes, nil
+}

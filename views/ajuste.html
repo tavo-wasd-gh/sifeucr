@@ -5,6 +5,9 @@
 <div class="card-header">
   <small>Emitido por: <i>{{.CuentaEmisora}}</i></small>
 </div>
+<div class="card-header">
+  <small>Fecha emitido: <i>{{datetime .Emitido}}</i></small>
+</div>
 <br>
 <hr>
 <div class="card-header">
@@ -26,7 +29,7 @@
         <td><small>{{.Cuenta}}</small></td>
         <td><small>{{.Presupuesto}}</small></td>
         <td><small>{{.Partida}}</small></td>
-        <td><span class="value">-{{currency .MontoBruto}}</span></td>
+        <td><span class="value">{{if gt .MontoBruto 0.00}}+{{end}}{{currency .MontoBruto}}</span></td>
       </tr>
     </tbody>
   </table>

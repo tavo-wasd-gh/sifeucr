@@ -259,7 +259,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Servicio | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -275,7 +275,7 @@
     <div style="background-color: {{if .GECO}}cornflowerblue{{end}}" class="tag {{if .GECO}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
     <br>
-    <span class="label">Solicitud de suministros No. {{.ID}}</span>
+    <span class="label">Suministros | Solicitud de suministros No. {{.ID}}</span>
     <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}{{end}}
@@ -290,14 +290,14 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Bien | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}{{end}}
   <br>
   <hr>
-  <strong>Solicitudes pendientes de OCS</strong>
+  <strong>Solicitudes pendientes de Orden</strong>
   <br>
   {{range .ServiciosPendientesOCS}}{{if and .FirmasCompletas .COES}}
   <div class="card-item"
@@ -310,7 +310,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Servicio | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -326,7 +326,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Bien | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -346,7 +346,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Servicio | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -362,7 +362,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Bien | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -371,6 +371,53 @@
   <hr>
   <strong>Solicitudes pendientes de Ejecución/Recepción</strong>
   <br>
+  {{range .ServiciosPendientesEj}}
+  <div class="card-item"
+    hx-get="/api/servicios/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
+    <br>
+    <span class="label">Servicio | {{summary .Detalle 50}}</span>
+    <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
+    <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}
+  {{range .SuministrosPendientesRe}}
+  <div class="card-item"
+    hx-get="/api/suministro/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .Firma}}goldenrod{{end}}" class="tag {{if .Firma}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GECO}}cornflowerblue{{end}}" class="tag {{if .GECO}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
+    <br>
+    <span class="label">Suministros | Solicitud de suministros No. {{.ID}}</span>
+    <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}
+  {{range .BienesPendientesRe}}
+  <div class="card-item"
+    hx-get="/api/bienes/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <div style="background-color: {{if .FirmasCompletas}}goldenrod{{end}}" class="tag {{if .FirmasCompletas}}active{{end}}">Firmado</div>
+    <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
+    <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
+    <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
+    <br>
+    <span class="label">Bien | {{summary .Detalle 50}}</span>
+    <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
+    <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
+  </div>
+  {{end}}
   {{end}}
   {{if (eq .Cuenta.ID "COES")}}
   <br>
@@ -388,7 +435,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Ejecutado</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Servicio | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -404,7 +451,7 @@
     <div style="background-color: {{if .GECO}}cornflowerblue{{end}}" class="tag {{if .GECO}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
     <br>
-    <span class="label">Solicitud de suministros No. {{.ID}}</span>
+    <span class="label">Suministros | Solicitud de suministros No. {{.ID}}</span>
     <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}
@@ -419,7 +466,7 @@
     <div style="background-color: {{if .GecoSol}}cornflowerblue{{end}}" class="tag {{if .GecoSol}}active{{end}}">SF</div>
     <div style="background-color: {{if .Acuse}}seagreen{{end}}" class="tag {{if .Acuse}}active{{end}}">Recibido</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Bien | {{summary .Detalle 50}}</span>
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
@@ -432,7 +479,7 @@
     onclick="showDialog()">
     <div style="background-color: {{if .CartaCOES}}peru{{end}}" class="tag {{if .CartaCOES}}active{{end}}">COES</div>
     <br>
-    <span class="label">{{summary .Detalle 50}}</span>
+    <span class="label">Donación | {{summary .Detalle 50}}</span>
     <span class="value">
       {{.CuentaSalida}} / {{.PartidaSalida}} / -{{currency .MontoBruto}}
     </span>
@@ -443,6 +490,26 @@
   {{end}}
   {{end}}
   {{if (eq .Cuenta.ID "CC")}}
+  <br>
+  <hr>
+  <strong>Ajustes realizados</strong>
+  <br>
+  {{range .AjustesCC}}
+  <div class="card-item"
+    hx-get="/api/ajustes/{{.ID}}"
+    hx-target="#dialog-content"
+    hx-swap="innerHTML"
+    onclick="showDialog()">
+    <span class="label">Ajuste | {{.Cuenta}} | {{summary .Detalle 50}}</span>
+    <span class="value">
+      {{if eq .Partida "servicios"}}Servicios{{end}}
+      {{if eq .Partida "suministros"}}Suministros{{end}}
+      {{if eq .Partida "bienes"}}Bienes{{end}}
+      {{if eq .Partida "general"}}General{{end}}
+      / {{if gt .MontoBruto 0.00}}+{{end}}{{currency .MontoBruto}}
+    </span>
+  </div>
+  {{end}}
   {{end}}
 </main>
 {{end}}

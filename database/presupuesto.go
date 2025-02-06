@@ -83,47 +83,80 @@ func (p *Presupuesto) calcularPresupuesto(db *sql.DB) error {
 		return fmt.Errorf("calcularPresupuesto: error calculating presupuesto general %s: %w", p.ID, err)
 	}
 
-	if p.General <= 0 {
-		queryServicios := `SELECT COALESCE(SUM(monto), 0) FROM servicios_movimientos WHERE presupuesto = ?`
-		if err := db.QueryRow(queryServicios, p.ID).Scan(&p.ServiciosEmitido); err != nil {
-			return fmt.Errorf("calcularPresupuesto: error calculating ServiciosEmitido for presupuesto %s: %w", p.ID, err)
-		}
-		p.ServiciosRestante = p.Servicios - p.ServiciosEmitido
+	var donacionesServiciosSalida, donacionesSuministrosSalida, donacionesBienesSalida float64
+	var donacionesServiciosEntrada, donacionesSuministrosEntrada, donacionesBienesEntrada float64
 
-		querySuministros := `SELECT COALESCE(SUM(monto_bruto_total), 0) FROM suministros WHERE presupuesto = ?`
-		if err := db.QueryRow(querySuministros, p.ID).Scan(&p.SuministrosEmitido); err != nil {
-			return fmt.Errorf("calcularPresupuesto: error calculating SuministrosEmitido for presupuesto %s: %w", p.ID, err)
-		}
-		p.SuministrosRestante = p.Suministros - p.SuministrosEmitido
+	queryDonacionesSalida := `SELECT COALESCE(SUM(monto_bruto), 0) 
+	FROM donaciones 
+	WHERE presupuesto_salida = ? AND partida_salida = ?`
 
-		queryBienes := `SELECT COALESCE(SUM(monto), 0) FROM bienes_movimientos WHERE presupuesto = ?`
-		if err := db.QueryRow(queryBienes, p.ID).Scan(&p.BienesEmitido); err != nil {
-			return fmt.Errorf("calcularPresupuesto: error calculating BienesEmitido for presupuesto %s: %w", p.ID, err)
-		}
-		p.BienesRestante = p.Bienes - p.BienesEmitido
-
-		p.TotalEmitido = p.ServiciosEmitido + p.SuministrosEmitido + p.BienesEmitido
-		p.TotalRestante = p.ServiciosRestante + p.SuministrosRestante + p.BienesRestante
-	} else {
-		queryServicios := `SELECT COALESCE(SUM(monto), 0) FROM servicios_movimientos WHERE presupuesto = ?`
-		if err := db.QueryRow(queryServicios, p.ID).Scan(&p.ServiciosEmitido); err != nil {
-			return fmt.Errorf("calcularPresupuesto: error calculating ServiciosEmitido for presupuesto %s: %w", p.ID, err)
-		}
-
-		querySuministros := `SELECT COALESCE(SUM(monto_bruto_total), 0) FROM suministros WHERE presupuesto = ?`
-		if err := db.QueryRow(querySuministros, p.ID).Scan(&p.SuministrosEmitido); err != nil {
-			return fmt.Errorf("calcularPresupuesto: error calculating SuministrosEmitido for presupuesto %s: %w", p.ID, err)
-		}
-
-		queryBienes := `SELECT COALESCE(SUM(monto), 0) FROM bienes_movimientos WHERE presupuesto = ?`
-		if err := db.QueryRow(queryBienes, p.ID).Scan(&p.BienesEmitido); err != nil {
-			return fmt.Errorf("calcularPresupuesto: error calculating BienesEmitido for presupuesto %s: %w", p.ID, err)
-		}
-
-		p.TotalEmitido = p.ServiciosEmitido + p.SuministrosEmitido + p.BienesEmitido
-		p.TotalRestante = p.General - p.TotalEmitido
+	if err := db.QueryRow(queryDonacionesSalida, p.ID, "servicios").Scan(&donacionesServiciosSalida); err != nil {
+		return fmt.Errorf("error calculating DonacionesServicios: %w", err)
 	}
 
+	if err := db.QueryRow(queryDonacionesSalida, p.ID, "suministros").Scan(&donacionesSuministrosSalida); err != nil {
+		return fmt.Errorf("error calculating DonacionesSuministros: %w", err)
+	}
+
+	if err := db.QueryRow(queryDonacionesSalida, p.ID, "bienes").Scan(&donacionesBienesSalida); err != nil {
+		return fmt.Errorf("error calculating DonacionesBienes: %w", err)
+	}
+
+	queryDonacionesEntrada := `SELECT COALESCE(SUM(monto_bruto), 0) 
+	FROM donaciones 
+	WHERE presupuesto_entrada = ? AND partida_entrada = ?`
+
+	if err := db.QueryRow(queryDonacionesEntrada, p.ID, "servicios").Scan(&donacionesServiciosEntrada); err != nil {
+		return fmt.Errorf("error calculating DonacionesServicios: %w", err)
+	}
+
+	if err := db.QueryRow(queryDonacionesEntrada, p.ID, "suministros").Scan(&donacionesSuministrosEntrada); err != nil {
+		return fmt.Errorf("error calculating DonacionesSuministros: %w", err)
+	}
+
+	if err := db.QueryRow(queryDonacionesEntrada, p.ID, "bienes").Scan(&donacionesBienesEntrada); err != nil {
+		return fmt.Errorf("error calculating DonacionesBienes: %w", err)
+	}
+
+	queryAjustes := `SELECT COALESCE(SUM(monto_bruto), 0) 
+	FROM ajustes 
+	WHERE presupuesto = ? AND partida = ?`
+
+	var ajustesServicios, ajustesSuministros, ajustesBienes float64
+
+	if err := db.QueryRow(queryAjustes, p.ID, "servicios").Scan(&ajustesServicios); err != nil {
+		return fmt.Errorf("error calculating AjustesServicios: %w", err)
+	}
+
+	if err := db.QueryRow(queryAjustes, p.ID, "suministros").Scan(&ajustesSuministros); err != nil {
+		return fmt.Errorf("error calculating AjustesSuministros: %w", err)
+	}
+
+	if err := db.QueryRow(queryAjustes, p.ID, "bienes").Scan(&ajustesBienes); err != nil {
+		return fmt.Errorf("error calculating AjustesBienes: %w", err)
+	}
+
+	queryServicios := `SELECT COALESCE(SUM(monto), 0) FROM servicios_movimientos WHERE presupuesto = ?`
+	if err := db.QueryRow(queryServicios, p.ID).Scan(&p.ServiciosEmitido); err != nil {
+		return fmt.Errorf("calcularPresupuesto: error calculating ServiciosEmitido for presupuesto %s: %w", p.ID, err)
+	}
+
+	querySuministros := `SELECT COALESCE(SUM(monto_bruto_total), 0) FROM suministros WHERE presupuesto = ?`
+	if err := db.QueryRow(querySuministros, p.ID).Scan(&p.SuministrosEmitido); err != nil {
+		return fmt.Errorf("calcularPresupuesto: error calculating SuministrosEmitido for presupuesto %s: %w", p.ID, err)
+	}
+
+	queryBienes := `SELECT COALESCE(SUM(monto), 0) FROM bienes_movimientos WHERE presupuesto = ?`
+	if err := db.QueryRow(queryBienes, p.ID).Scan(&p.BienesEmitido); err != nil {
+		return fmt.Errorf("calcularPresupuesto: error calculating BienesEmitido for presupuesto %s: %w", p.ID, err)
+	}
+
+	p.ServiciosRestante = p.Servicios - p.ServiciosEmitido + ajustesServicios + donacionesServiciosEntrada - donacionesServiciosSalida
+	p.SuministrosRestante = p.Suministros - p.SuministrosEmitido + ajustesSuministros + donacionesSuministrosEntrada - donacionesSuministrosSalida
+	p.BienesRestante = p.Bienes - p.BienesEmitido + ajustesBienes + donacionesBienesEntrada - donacionesBienesSalida
+
+	p.TotalEmitido = p.ServiciosEmitido + p.SuministrosEmitido + p.BienesEmitido
+	p.TotalRestante = p.ServiciosRestante + p.SuministrosRestante + p.BienesRestante
 
 	return nil
 }

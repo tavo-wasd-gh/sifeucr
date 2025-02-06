@@ -99,65 +99,60 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 		}
 		usuario.DonacionesPendientesCOES = tDona
 	} else if usuario.Cuenta.ID == "SF" {
-		tServ, err := ServiciosPendientesGECO(db, periodoActual)
+		usuario.ServiciosPendientesGECO, err = ServiciosPendientesGECO(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.ServiciosPendientesGECO = tServ
 
-		tSum, err := SuministrosPendientesGECO(db, periodoActual)
+		usuario.SuministrosPendientesGECO, err = SuministrosPendientesGECO(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.SuministrosPendientesGECO = tSum
-
-		tBien, err := BienesPendientesGECO(db, periodoActual)
+		
+		usuario.BienesPendientesGECO, err = BienesPendientesGECO(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.BienesPendientesGECO = tBien
 
-		tServOCS, err := ServiciosPendientesOCS(db, periodoActual)
+		usuario.ServiciosPendientesOCS, err = ServiciosPendientesOCS(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.ServiciosPendientesOCS = tServOCS
-
-		tBienOC, err := BienesPendientesOC(db, periodoActual)
+		
+		usuario.BienesPendientesOC, err = BienesPendientesOC(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.BienesPendientesOC = tBienOC
 
-		tServDist, err := ServiciosPendientesDist(db, periodoActual)
+		usuario.ServiciosPendientesDist, err = ServiciosPendientesDist(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.ServiciosPendientesDist = tServDist
 
-		tBienDist, err := BienesPendientesDist(db, periodoActual)
+		usuario.BienesPendientesDist, err = BienesPendientesDist(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		usuario.BienesPendientesDist = tBienDist
 
-		// tServEj, err := ServiciosPendientesEjecucion(db, periodoActual)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("Login: failed to load SF: %w", err)
-		// }
-		// usuario.ServiciosPendientesEj = tServEj
+		usuario.ServiciosPendientesEj, err = ServiciosPendientesEjecucion(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
 
-		// tBienRe, err := ServiciosPendientesRecepcion(db, periodoActual)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("Login: failed to load SF: %w", err)
-		// }
-		// usuario.BienesPendientesRe = tServRe
+		usuario.BienesPendientesRe, err = BienesPendientesRecepcion(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
 
-		// tSumRe, err := SuministrosPendientesRecepcion(db, periodoActual)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("Login: failed to load SF: %w", err)
-		// }
-		// usuario.SuministrosPendientesRe = tSumRe
+		usuario.SuministrosPendientesRe, err = SuministrosPendientesRecepcion(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
+		}
+	} else if usuario.Cuenta.ID == "CC" {
+		usuario.AjustesCC, err = AjustesCC(db, periodoActual)
+		if err != nil {
+			return nil, fmt.Errorf("Login: failed to load CC: %w", err)
+		}
 	}
 
 	return usuario, nil
