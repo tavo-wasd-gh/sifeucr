@@ -15,4 +15,4 @@ default.db: .data docs/schema.sql
 	sqlite3 default.db ".import .data/presupuestos.csv presupuestos --csv"
 
 clean:
-	rm -rf default.db release sifeucr.tar.gz
+	rm -rf default.db release sifeucr.tar.gz tmp public
