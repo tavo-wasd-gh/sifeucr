@@ -1,19 +1,19 @@
 # SIFEUCR
 
-# v0.3.0 Abstraer gestión de bd
+## v0.3.0 Abstraer gestión de bd
 
 - [ ] Manejo de usuarios
 - [ ] Manejo de cuentas
 - [ ] Manejo de presupuestos
 
-# v0.2.0 Implementar MinIO
+## v0.2.0 Implementar MinIO
 
 - [ ] Pistas de auditoría
 - [ ] Adjuntar pruebas prov al día en entidades públicas
 - [ ] Adjuntar OCS firmada
 - [ ] Adjuntar OCS firmada ViVE
 
-# v0.1.3 Limpiar
+## v0.1.3 Limpiar
 
 - [ ] Presentar errores en `app-error`, quitar `http.Error` y responder con texto
 - [ ] `db.go`: (poner aqui las llamadas, idealmente tomar TODOS los datos y filtrar en Go por cada solicitud)
@@ -24,15 +24,15 @@
 - [ ] `bienes.go` Todo mal, no tuve tiempo
 - [ ] `suministros.go` Todo mal, no tuve tiempo
 
-# v0.1.2 Sanitizar datos
+## v0.1.2 Sanitizar datos
 
 - [ ] Sanitizar datos (Mínimo de caracteres, números de solicitudes, OC y OCS de GECO, datos de entidad proveedora, etc)
 - [ ] Restricciones de fechas, word-lists, extension para crear nuevas solicitudes
 
-# v0.1.1 Correcciones inmediatas
+## v0.1.1 Correcciones inmediatas
 
 - [ ] Corregir errores inmediatos que puedan revelarse en el proceso de pruebas
 
-# v0.1.0 Primera versión
+## v0.1.0 Primera versión
 
 - [X] Funcionalidad mínima
