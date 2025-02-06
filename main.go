@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
-	"strconv"
-	"syscall"
 	"runtime"
+	"strconv"
+	"strings"
+	"syscall"
 	"time"
 
-	"github.com/tavo-wasd-gh/gocors"
 	"github.com/joho/godotenv"
+	"github.com/tavo-wasd-gh/gocors"
 	"github.com/tavo-wasd-gh/sifeucr/auth"
 	"github.com/tavo-wasd-gh/sifeucr/database"
 	"github.com/tavo-wasd-gh/sifeucr/views"
@@ -723,13 +723,13 @@ func (app *App) validateAjusteForm(r *http.Request, w http.ResponseWriter) (data
 	}
 
 	ajuste := database.Ajuste{
-		Emitido:    emitido,
-		Emisor:     correo,
+		Emitido:       emitido,
+		Emisor:        correo,
 		CuentaEmisora: cuentaEmisora,
-		Cuenta:     cuentaDestino,
-		Partida:    partida,
-		Detalle:    detalle,
-		MontoBruto: montoBruto,
+		Cuenta:        cuentaDestino,
+		Partida:       partida,
+		Detalle:       detalle,
+		MontoBruto:    montoBruto,
 	}
 
 	return ajuste, nil
@@ -878,10 +878,10 @@ func (app *App) handleEjecutarServicio(w http.ResponseWriter, r *http.Request) {
 	firmaAcuse := r.Form.Get("firma-acuse")
 
 	if err != nil ||
-	idServ == "" ||
-	fechaEjecutadoStr == "" ||
-	acuseEjecutado == "" ||
-	firmaAcuse == "" {
+		idServ == "" ||
+		fechaEjecutadoStr == "" ||
+		acuseEjecutado == "" ||
+		firmaAcuse == "" {
 		app.log("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
 		return
@@ -1191,8 +1191,8 @@ func (app *App) validateServicioForm(r *http.Request, w http.ResponseWriter) (da
 		http.Error(w, "", http.StatusUnauthorized)
 		return database.Servicio{}, err
 	}
-	
-	if err := r.ParseForm() ; err != nil {
+
+	if err := r.ParseForm(); err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return database.Servicio{}, err
 	}
@@ -1252,12 +1252,12 @@ func (app *App) validateServicioForm(r *http.Request, w http.ResponseWriter) (da
 		cuentasStrgs = append(cuentasStrgs, cuenta.ID)
 	}
 
-	if err := validateSuscriben(suscriben, cuentasStrgs) ; err != nil {
+	if err := validateSuscriben(suscriben, cuentasStrgs); err != nil {
 		app.log("error fetching accounts: %v", err)
 		http.Error(w, "Non-existent account", http.StatusUnauthorized)
 		return database.Servicio{}, err
 	}
-	
+
 	for _, cuentaSuscrita := range suscriben {
 		var m database.ServicioMovimiento
 
@@ -1355,7 +1355,7 @@ func (app *App) validateBienForm(r *http.Request, w http.ResponseWriter) (databa
 		http.Error(w, "", http.StatusUnauthorized)
 		return database.Bien{}, err
 	}
-	
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return database.Bien{}, err
@@ -1419,7 +1419,7 @@ func (app *App) validateBienForm(r *http.Request, w http.ResponseWriter) (databa
 		http.Error(w, "Non-existent account", http.StatusUnauthorized)
 		return database.Bien{}, err
 	}
-	
+
 	for _, cuentaSuscrita := range suscriben {
 		var m database.BienMovimiento
 
@@ -2021,11 +2021,11 @@ func (app *App) handleMovimientosServicio(w http.ResponseWriter, r *http.Request
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
-		Value:   "",
-		Expires: time.Now().Add(-1 * time.Hour),
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Hour),
 		HttpOnly: true,
-		Path:    "/api",
+		Path:     "/api",
 	})
 
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)

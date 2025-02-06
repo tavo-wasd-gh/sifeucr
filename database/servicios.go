@@ -192,7 +192,7 @@ func NuevoServicio(db *sql.DB, servicio Servicio) error {
 		INSERT INTO servicios (emitido, emisor, detalle, por_ejecutar, justif, coes) 
 		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
 		time.Now(), servicio.Emisor, servicio.Detalle, servicio.PorEjecutar, servicio.Justif, false,
-		).Scan(&servicioID)
+	).Scan(&servicioID)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("NuevoServicio: failed to insert servicio: %w", err)
@@ -355,7 +355,7 @@ func FirmarMovimientoServicios(db *sql.DB, id, usuario, cuenta, firma string) er
 	SET usuario = ?, firma = ?
 	WHERE id = ?;`
 
-	if _, err = db.Exec(query, usuario, firma, id) ; err != nil {
+	if _, err = db.Exec(query, usuario, firma, id); err != nil {
 		return fmt.Errorf("FirmarMovimientoServicios: failed to update servicio_movimiento with id %s: %w", id, err)
 	}
 

@@ -9,11 +9,11 @@ import (
 type Bien struct {
 	ID int
 	// Solicitud
-	Emitido     time.Time
-	Emisor      string
-	Detalle     string
-	PorRecibir  time.Time
-	Justif      string
+	Emitido    time.Time
+	Emisor     string
+	Detalle    string
+	PorRecibir time.Time
+	Justif     string
 	// COES
 	COES bool
 	// OSUM
@@ -193,7 +193,7 @@ func NuevoBien(db *sql.DB, bien Bien) error {
 		INSERT INTO bienes (emitido, emisor, detalle, por_recibir, justif, coes) 
 		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
 		time.Now(), bien.Emisor, bien.Detalle, bien.PorRecibir, bien.Justif, false,
-		).Scan(&bienID)
+	).Scan(&bienID)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("NuevoBien: failed to insert bien: %w", err)
@@ -355,7 +355,7 @@ func FirmarMovimientoBienes(db *sql.DB, id, usuario, cuenta, firma string) error
 	SET usuario = ?, firma = ?
 	WHERE id = ?;`
 
-	if _, err = db.Exec(query, usuario, firma, id) ; err != nil {
+	if _, err = db.Exec(query, usuario, firma, id); err != nil {
 		return fmt.Errorf("FirmarMovimientoBienes: failed to update bien_movimiento with id %s: %w", id, err)
 	}
 

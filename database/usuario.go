@@ -21,11 +21,11 @@ type Usuario struct {
 	SuministrosPendientesGECO []Suministros
 	BienesPendientesGECO      []Bien
 	//     SF
-	ServiciosPendientesOCS   []Servicio
-	BienesPendientesOC       []Bien
+	ServiciosPendientesOCS []Servicio
+	BienesPendientesOC     []Bien
 	//     SF
-	ServiciosPendientesDist   []Servicio
-	BienesPendientesDist      []Bien
+	ServiciosPendientesDist []Servicio
+	BienesPendientesDist    []Bien
 	//     SF
 	ServiciosPendientesEj   []Servicio
 	SuministrosPendientesRe []Suministros
@@ -108,7 +108,7 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		
+
 		usuario.BienesPendientesGECO, err = BienesPendientesGECO(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
@@ -118,7 +118,7 @@ func Login(db *sql.DB, u, c string) (*Usuario, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)
 		}
-		
+
 		usuario.BienesPendientesOC, err = BienesPendientesOC(db, periodoActual)
 		if err != nil {
 			return nil, fmt.Errorf("Login: failed to load SF: %w", err)

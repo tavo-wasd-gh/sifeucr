@@ -1,25 +1,25 @@
 package database
 
 import (
-	"time"
-	"fmt"
 	"database/sql"
+	"fmt"
+	"time"
 )
 
 type Ajuste struct {
-	ID        int
-	Emitido   time.Time
-	Emisor    string
+	ID            int
+	Emitido       time.Time
+	Emisor        string
 	CuentaEmisora string
-	Cuenta    string
-	Partida   string
-	Presupuesto string
-	Detalle   string
-	MontoBruto float64
-	Notas     string
+	Cuenta        string
+	Partida       string
+	Presupuesto   string
+	Detalle       string
+	MontoBruto    float64
+	Notas         string
 	// Runtime
 	UsuarioLoggeado string
-	CuentaLoggeada string
+	CuentaLoggeada  string
 }
 
 func ajustesInit(db *sql.DB, cuenta string, periodo int) ([]Ajuste, error) {

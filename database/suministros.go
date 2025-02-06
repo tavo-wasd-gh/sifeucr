@@ -1,9 +1,9 @@
 package database
 
 import (
-	"time"
-	"fmt"
 	"database/sql"
+	"fmt"
+	"time"
 )
 
 type Suministros struct {
@@ -28,9 +28,9 @@ type Suministros struct {
 	// Final
 	Notas string
 	// Runtime
-	Desglose []SuministroDesglose
+	Desglose        []SuministroDesglose
 	UsuarioLoggeado string
-	CuentaLoggeada string
+	CuentaLoggeada  string
 }
 
 type SuministroDesglose struct {
