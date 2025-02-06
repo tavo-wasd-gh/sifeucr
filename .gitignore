@@ -6,3 +6,6 @@ resources/
 tmp/
 db.db
 default.db
+.data
+release/
+sifeucr.tar.gz
