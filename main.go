@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -16,17 +15,19 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/tavo-wasd-gh/gocors"
+	"github.com/tavo-wasd-gh/gosmtp"
 	"github.com/tavo-wasd-gh/sifeucr/auth"
 	"github.com/tavo-wasd-gh/sifeucr/database"
 	"github.com/tavo-wasd-gh/sifeucr/views"
+	"github.com/tavo-wasd-gh/sifeucr/logger"
 )
 
 type App struct {
 	Production bool
-	Debug      bool
+	Log        *logger.Logger
+	DB         *sql.DB
 	Secret     string
 	Views      map[string]*template.Template
-	DB         *sql.DB
 }
 
 func main() {
@@ -73,10 +74,10 @@ func main() {
 
 	app := &App{
 		Production: production,
-		Debug:      debug,
+		Log:        &logger.Logger{Enabled: debug},
+		DB:         db,
 		Secret:     secret,
 		Views:      views,
-		DB:         db,
 	}
 
 	// Hacer Solicitudes
@@ -125,19 +126,28 @@ func main() {
 	http.HandleFunc("/api/cuentas/donacion", app.handleCuentasDonacion)
 	http.HandleFunc("/api/cuentas/ajuste", app.handleCuentasAjuste)
 
-	// ---
 	http.HandleFunc("/api/dashboard", app.handleDashboard)
-	http.HandleFunc("/logout", logoutHandler)
+
+	// Logout
+	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token",
+			Value:    "",
+			Expires:  time.Now().Add(-1 * time.Hour),
+			HttpOnly: true,
+			Path:     "/api",
+		})
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	})
+
+	// Static files in ./public
 	http.Handle("/", http.FileServer(http.Dir("public")))
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		// app.log("privilegio SF: %d", auth.SF)
-		// app.log("privilegio COES: %d", auth.COES)
-		// app.log("privilegio Regular: %d", auth.Regular)
-		app.log("starting on :%s...", port)
+		app.Log.Printf("starting on :%s...", port)
 
 		if err := http.ListenAndServe(":"+port, nil); err != nil {
 			log.Fatalf("fatal: failed to start on port %s: %v", port, err)
@@ -146,7 +156,7 @@ func main() {
 
 	<-stop
 
-	app.log("shutting down...")
+	app.Log.Printf("shutting down...")
 }
 
 func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -157,20 +167,20 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			app.Render(w, "login", nil)
 			return
 		}
 
 		u, err := database.Login(app.DB, correo, cuenta)
 		if err != nil {
-			app.log("error logging in: %v", err)
+			app.Log.Printf("error logging in: %v", err)
 			app.Render(w, "login", nil)
 			return
 		}
 
 		if err := app.Render(w, "dashboard", u); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			return
 		}
 
@@ -178,23 +188,63 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		correo, cuenta, err := app.ValidateLoginForm(r, w)
-		if err != nil {
-			app.log("error validating form: %v", err)
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "error parsing form", http.StatusBadRequest)
 			return
 		}
 
-		u, err := database.Login(app.DB, correo, cuenta)
+		correo := r.FormValue("correo")
+		cuenta := r.FormValue("cuenta")
+		passwd := r.FormValue("passwd")
+
+		cuentas, err := database.CuentasPorUsuario(app.DB, correo)
 		if err != nil {
-			app.log("error logging in: %v", err)
-			app.Render(w, "login", nil)
+			http.Error(w, "error validating form", http.StatusUnauthorized)
 			return
 		}
 
-		if err := app.Render(w, "dashboard", u); err != nil {
-			app.log("error rendering view: %v", err)
+		allow := false
+
+		if cuenta == "" {
+			if len(cuentas) == 1 {
+				allow = true
+			} else if len(cuentas) > 1 {
+				// TODO caso múltiples cuentas
+				app.Render(w, "login", cuentas)
+				return
+			}
+		} else if cuenta != "" {
+			for _, c := range cuentas {
+				if c == cuenta {
+					allow = true
+					break
+				}
+			}
 		}
 
+		if !allow {
+			http.Error(w, "error validating form", http.StatusUnauthorized)
+			return
+		}
+
+		if app.Production {
+			s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
+			if err := s.Validate(correo); err != nil {
+				http.Error(w, "error validating email", http.StatusUnauthorized)
+				return
+			}
+		}
+
+		auth.JwtSet(w,
+			app.Production,
+			"token",
+			correo,
+			cuenta,
+			time.Now().Add(1*time.Hour),
+			app.Secret,
+		)
+
+		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 }
@@ -207,7 +257,7 @@ func (app *App) handleServicio(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
@@ -227,7 +277,7 @@ func (app *App) handleServicio(w http.ResponseWriter, r *http.Request) {
 
 		s, err := database.LeerServicio(app.DB, id, cuenta)
 		if err != nil {
-			app.log("error loading service: %v", err)
+			app.Log.Printf("error loading service: %v", err)
 			http.Error(w, "failed to load servicio", http.StatusInternalServerError)
 			return
 		}
@@ -236,7 +286,7 @@ func (app *App) handleServicio(w http.ResponseWriter, r *http.Request) {
 		s.CuentaLoggeada = cuenta
 
 		if err := app.Render(w, "servicio", s); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
@@ -255,7 +305,7 @@ func (app *App) handleSuministro(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
@@ -275,7 +325,7 @@ func (app *App) handleSuministro(w http.ResponseWriter, r *http.Request) {
 
 		s, err := database.LeerSuministro(app.DB, id, cuenta)
 		if err != nil {
-			app.log("error loading sum: %v", err)
+			app.Log.Printf("error loading sum: %v", err)
 			http.Error(w, "failed to load sum", http.StatusInternalServerError)
 			return
 		}
@@ -283,7 +333,7 @@ func (app *App) handleSuministro(w http.ResponseWriter, r *http.Request) {
 		s.UsuarioLoggeado = correo
 
 		if err := app.Render(w, "suministro", s); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
@@ -302,7 +352,7 @@ func (app *App) handleBien(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
@@ -319,7 +369,7 @@ func (app *App) handleBien(w http.ResponseWriter, r *http.Request) {
 
 		b, err := database.LeerBien(app.DB, id, cuenta)
 		if err != nil {
-			app.log("error loading bien: %v", err)
+			app.Log.Printf("error loading bien: %v", err)
 			http.Error(w, "failed to load bien", http.StatusInternalServerError)
 			return
 		}
@@ -328,7 +378,7 @@ func (app *App) handleBien(w http.ResponseWriter, r *http.Request) {
 		b.CuentaLoggeada = cuenta
 
 		if err := app.Render(w, "bien", b); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
@@ -343,7 +393,7 @@ func (app *App) handleDonacion(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			w.WriteHeader(http.StatusSeeOther)
 			return
@@ -360,7 +410,7 @@ func (app *App) handleDonacion(w http.ResponseWriter, r *http.Request) {
 
 		d, err := database.LeerDonacion(app.DB, id, cuenta)
 		if err != nil {
-			app.log("error loading donacion: %v", err)
+			app.Log.Printf("error loading donacion: %v", err)
 			http.Error(w, "failed to load donacion", http.StatusInternalServerError)
 			return
 		}
@@ -369,7 +419,7 @@ func (app *App) handleDonacion(w http.ResponseWriter, r *http.Request) {
 		d.CuentaLoggeada = cuenta
 
 		if err := app.Render(w, "donacion", d); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
@@ -384,7 +434,7 @@ func (app *App) handleAjuste(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			w.WriteHeader(http.StatusSeeOther)
 			return
@@ -401,7 +451,7 @@ func (app *App) handleAjuste(w http.ResponseWriter, r *http.Request) {
 
 		ajuste, err := database.LeerAjuste(app.DB, id, cuenta)
 		if err != nil {
-			app.log("error loading ajuste: %v", err)
+			app.Log.Printf("error loading ajuste: %v", err)
 			http.Error(w, "failed to load ajuste", http.StatusInternalServerError)
 			return
 		}
@@ -410,7 +460,7 @@ func (app *App) handleAjuste(w http.ResponseWriter, r *http.Request) {
 		ajuste.CuentaLoggeada = cuenta
 
 		if err := app.Render(w, "ajuste", ajuste); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
@@ -425,7 +475,7 @@ func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			w.WriteHeader(http.StatusSeeOther)
 			return
@@ -433,13 +483,13 @@ func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 
 		u, err := database.Login(app.DB, correo, cuenta)
 		if err != nil {
-			app.log("error logging in: %v", err)
+			app.Log.Printf("error logging in: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
 		if err := app.Render(w, "servicio-form", u); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
@@ -450,7 +500,7 @@ func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		servicio, err := app.validateServicioForm(r, w)
 		if err != nil {
-			app.log("error validating token: %v", "")
+			app.Log.Printf("error validating token: %v", "")
 			w.Header().Set("HX-Redirect", "/dashboard")
 			w.WriteHeader(http.StatusSeeOther)
 			return
@@ -458,7 +508,7 @@ func (app *App) handleServicioForm(w http.ResponseWriter, r *http.Request) {
 
 		err = database.NuevoServicio(app.DB, servicio)
 		if err != nil {
-			app.log("error registering service: %v", err)
+			app.Log.Printf("error registering service: %v", err)
 			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando servicio</div>`)
 			return
 		}
@@ -478,7 +528,7 @@ func (app *App) handleSuministroForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
@@ -486,13 +536,13 @@ func (app *App) handleSuministroForm(w http.ResponseWriter, r *http.Request) {
 
 		u, err := database.Login(app.DB, correo, cuenta)
 		if err != nil {
-			app.log("error logging in: %v", err)
+			app.Log.Printf("error logging in: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
 		if err := app.Render(w, "suministro-form", u); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
@@ -503,7 +553,7 @@ func (app *App) handleSuministroForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		suministro, err := app.validateSuministroForm(r, w)
 		if err != nil {
-			app.log("error validating token: %v", "")
+			app.Log.Printf("error validating token: %v", "")
 			w.Header().Set("HX-Redirect", "/dashboard")
 			w.WriteHeader(http.StatusSeeOther)
 			return
@@ -511,7 +561,7 @@ func (app *App) handleSuministroForm(w http.ResponseWriter, r *http.Request) {
 
 		err = database.NuevoSuministro(app.DB, suministro)
 		if err != nil {
-			app.log("error registering sum: %v", err)
+			app.Log.Printf("error registering sum: %v", err)
 			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando servicio</div>`)
 			return
 		}
@@ -531,7 +581,7 @@ func (app *App) handleBienForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
@@ -539,13 +589,13 @@ func (app *App) handleBienForm(w http.ResponseWriter, r *http.Request) {
 
 		u, err := database.Login(app.DB, correo, cuenta)
 		if err != nil {
-			app.log("error logging in: %v", err)
+			app.Log.Printf("error logging in: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
 		if err := app.Render(w, "bien-form", u); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
@@ -556,7 +606,7 @@ func (app *App) handleBienForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		bien, err := app.validateBienForm(r, w)
 		if err != nil {
-			app.log("error validating form: %v", err)
+			app.Log.Printf("error validating form: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusBadRequest)
 			return
@@ -564,7 +614,7 @@ func (app *App) handleBienForm(w http.ResponseWriter, r *http.Request) {
 
 		err = database.NuevoBien(app.DB, bien)
 		if err != nil {
-			app.log("error registering bien: %v", err)
+			app.Log.Printf("error registering bien: %v", err)
 			http.Error(w, "", http.StatusBadRequest)
 			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando bien</div>`)
 			return
@@ -585,7 +635,7 @@ func (app *App) handleDonacionForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
@@ -593,13 +643,13 @@ func (app *App) handleDonacionForm(w http.ResponseWriter, r *http.Request) {
 
 		u, err := database.Login(app.DB, correo, cuenta)
 		if err != nil {
-			app.log("error logging in: %v", err)
+			app.Log.Printf("error logging in: %v", err)
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
 		if err := app.Render(w, "donacion-form", u); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
@@ -610,14 +660,14 @@ func (app *App) handleDonacionForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		donacion, err := app.validateDonacionForm(r, w)
 		if err != nil {
-			app.log("error validating form: %v", err)
+			app.Log.Printf("error validating form: %v", err)
 			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando donación</div>`)
 			return
 		}
 
 		err = database.NuevoDonacion(app.DB, donacion)
 		if err != nil {
-			app.log("error registering donacion: %v", err)
+			app.Log.Printf("error registering donacion: %v", err)
 			fmt.Fprint(w, `<div class="card-header app-error">Error solicitando donación</div>`)
 			return
 		}
@@ -638,20 +688,20 @@ func (app *App) handleAjusteForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 		if err != nil {
-			app.log("error validating token: %v", err)
+			app.Log.Printf("error validating token: %v", err)
 			w.Header().Set("HX-Redirect", "/dashboard")
 			return
 		}
 
 		u, err := database.Login(app.DB, correo, cuenta)
 		if err != nil {
-			app.log("error logging in: %v", err)
+			app.Log.Printf("error logging in: %v", err)
 			fmt.Fprint(w, errResp)
 			return
 		}
 
 		if err := app.Render(w, "ajuste-form", u); err != nil {
-			app.log("error rendering view: %v", err)
+			app.Log.Printf("error rendering view: %v", err)
 			fmt.Fprint(w, errResp)
 			return
 		}
@@ -662,14 +712,14 @@ func (app *App) handleAjusteForm(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		ajuste, err := app.validateAjusteForm(r, w)
 		if err != nil {
-			app.log("error validating form: %v", err)
+			app.Log.Printf("error validating form: %v", err)
 			fmt.Fprint(w, errResp)
 			return
 		}
 
 		err = database.NuevoAjuste(app.DB, ajuste)
 		if err != nil {
-			app.log("error registering ajuste: %v", err)
+			app.Log.Printf("error registering ajuste: %v", err)
 			fmt.Fprint(w, errResp)
 			return
 		}
@@ -682,7 +732,7 @@ func (app *App) handleAjusteForm(w http.ResponseWriter, r *http.Request) {
 func (app *App) validateAjusteForm(r *http.Request, w http.ResponseWriter) (database.Ajuste, error) {
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		return database.Ajuste{}, err
 	}
 
@@ -738,7 +788,7 @@ func (app *App) validateAjusteForm(r *http.Request, w http.ResponseWriter) (data
 func (app *App) validateDonacionForm(r *http.Request, w http.ResponseWriter) (database.Donacion, error) {
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		http.Error(w, "", http.StatusUnauthorized)
 		return database.Donacion{}, err
 	}
@@ -797,7 +847,7 @@ func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) 
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		http.Error(w, "", http.StatusUnauthorized)
 		return
@@ -808,14 +858,14 @@ func (app *App) handleSuscribirServicio(w http.ResponseWriter, r *http.Request) 
 	firmaForm := r.Form.Get("firma-suscribir")
 
 	if err != nil || idMov == "" || firmaForm == "" {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
 		return
 	}
 
 	err = database.FirmarMovimientoServicios(app.DB, idMov, correo, cuenta, firmaForm)
 	if err != nil {
-		app.log("error signing service: %v", err)
+		app.Log.Printf("error signing service: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
 		return
 	}
@@ -831,7 +881,7 @@ func (app *App) handleSuscribirBien(w http.ResponseWriter, r *http.Request) {
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		w.WriteHeader(http.StatusSeeOther)
 		return
@@ -842,14 +892,14 @@ func (app *App) handleSuscribirBien(w http.ResponseWriter, r *http.Request) {
 	firmaForm := r.Form.Get("firma-suscribir")
 
 	if err != nil || idMov == "" || firmaForm == "" {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
 		return
 	}
 
 	err = database.FirmarMovimientoBienes(app.DB, idMov, correo, cuenta, firmaForm)
 	if err != nil {
-		app.log("error signing bien: %v", err)
+		app.Log.Printf("error signing bien: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
 		return
 	}
@@ -865,7 +915,7 @@ func (app *App) handleEjecutarServicio(w http.ResponseWriter, r *http.Request) {
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		http.Error(w, "", http.StatusUnauthorized)
 		return
@@ -882,21 +932,21 @@ func (app *App) handleEjecutarServicio(w http.ResponseWriter, r *http.Request) {
 		fechaEjecutadoStr == "" ||
 		acuseEjecutado == "" ||
 		firmaAcuse == "" {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
 		return
 	}
 
 	fechaEjecutado, err := time.Parse("2006-01-02T15:04", fechaEjecutadoStr)
 	if err != nil {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la solicitud</div>`)
 		return
 	}
 
 	err = database.ConfirmarEjecutadoServicios(app.DB, idServ, correo, cuenta, fechaEjecutado, acuseEjecutado, firmaAcuse)
 	if err != nil {
-		app.log("error in confirmation: %v", err)
+		app.Log.Printf("error in confirmation: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la solicitud</div>`)
 		return
 	}
@@ -912,7 +962,7 @@ func (app *App) handleRecibirSuministro(w http.ResponseWriter, r *http.Request) 
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		http.Error(w, "", http.StatusUnauthorized)
 		return
@@ -929,21 +979,21 @@ func (app *App) handleRecibirSuministro(w http.ResponseWriter, r *http.Request) 
 		fechaRecibidoStr == "" ||
 		acuseRecibido == "" ||
 		firmaAcuse == "" {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
 		return
 	}
 
 	fechaRecibido, err := time.Parse("2006-01-02T15:04", fechaRecibidoStr)
 	if err != nil {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
 		return
 	}
 
 	err = database.ConfirmarEjecutadoSuministros(app.DB, idSuministro, correo, cuenta, fechaRecibido, acuseRecibido, firmaAcuse)
 	if err != nil {
-		app.log("error in confirmation: %v", err)
+		app.Log.Printf("error in confirmation: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la recepción</div>`)
 		return
 	}
@@ -959,7 +1009,7 @@ func (app *App) handleRecibirBien(w http.ResponseWriter, r *http.Request) {
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		http.Error(w, "", http.StatusUnauthorized)
 		return
@@ -976,21 +1026,21 @@ func (app *App) handleRecibirBien(w http.ResponseWriter, r *http.Request) {
 		fechaRecibidoStr == "" ||
 		acuseRecibido == "" ||
 		firmaAcuse == "" {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error firmando la recepción</div>`)
 		return
 	}
 
 	fechaRecibido, err := time.Parse("2006-01-02T15:04", fechaRecibidoStr)
 	if err != nil {
-		app.log("error parsing date: %v", err)
+		app.Log.Printf("error parsing date: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error en la fecha de recepción</div>`)
 		return
 	}
 
 	err = database.ConfirmarRecibidoBienes(app.DB, idBien, correo, cuenta, fechaRecibido, acuseRecibido, firmaAcuse)
 	if err != nil {
-		app.log("error in confirmation: %v", err)
+		app.Log.Printf("error in confirmation: %v", err)
 		fmt.Fprint(w, `<div class="card-header app-error">Error confirmando la recepción</div>`)
 		return
 	}
@@ -1006,7 +1056,7 @@ func (app *App) handleCuentasSuscriben(w http.ResponseWriter, r *http.Request) {
 
 	_, _, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
@@ -1014,7 +1064,7 @@ func (app *App) handleCuentasSuscriben(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		cuentas, err := database.ListaCuentas(app.DB)
 		if err != nil {
-			app.log("error fetching accounts: %v", err)
+			app.Log.Printf("error fetching accounts: %v", err)
 			http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
 			return
 		}
@@ -1039,7 +1089,7 @@ func (app *App) handleCuentasDonacion(w http.ResponseWriter, r *http.Request) {
 
 	_, _, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
@@ -1047,7 +1097,7 @@ func (app *App) handleCuentasDonacion(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		cuentas, err := database.ListaCuentas(app.DB)
 		if err != nil {
-			app.log("error fetching accounts: %v", err)
+			app.Log.Printf("error fetching accounts: %v", err)
 			http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
 			return
 		}
@@ -1072,7 +1122,7 @@ func (app *App) handleCuentasAjuste(w http.ResponseWriter, r *http.Request) {
 
 	_, _, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		w.WriteHeader(http.StatusSeeOther)
 		return
@@ -1081,7 +1131,7 @@ func (app *App) handleCuentasAjuste(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		cuentas, err := database.ListaCuentas(app.DB)
 		if err != nil {
-			app.log("error fetching accounts: %v", err)
+			app.Log.Printf("error fetching accounts: %v", err)
 			http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
 			return
 		}
@@ -1117,77 +1167,10 @@ func (app *App) Render(w http.ResponseWriter, name string, data interface{}) err
 	return nil
 }
 
-func (app *App) ValidateLoginForm(r *http.Request, w http.ResponseWriter) (string, string, error) {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "", http.StatusBadRequest)
-		return "", "", err
-	}
-
-	cuenta := ""
-	correo := r.FormValue("correo")
-	passwd := r.FormValue("passwd")
-	cuentaPedida := r.FormValue("cuenta")
-
-	if !strings.Contains(correo, "@ucr.ac.cr") {
-		correo = correo + "@ucr.ac.cr"
-	}
-
-	cuentas, err := database.CuentasActivas(app.DB, correo)
-	if err != nil {
-		http.Error(w, "", http.StatusUnauthorized)
-		return "", "", err
-	}
-
-	if len(cuentas) > 1 {
-		found := false
-		if cuentaPedida == "" {
-			// TODO
-			// Falta el caso en el que hay multiples cuentas, mostrar
-			// login con opciones de las cuentas activas
-			app.Render(w, "login", nil)
-			return "", "", fmt.Errorf("more than 1 available account")
-		} else {
-			for _, i := range cuentas {
-				if i == cuentaPedida {
-					found = true
-					cuenta = cuentaPedida
-					break
-				}
-			}
-			if !found {
-				http.Error(w, "", http.StatusUnauthorized)
-				return "", "", fmt.Errorf("user not authorized for this account")
-			}
-		}
-	} else if len(cuentas) == 1 {
-		cuenta = cuentas[0]
-	} else {
-		http.Error(w, "", http.StatusUnauthorized)
-		return "", "", fmt.Errorf("no accounts available")
-	}
-
-	if !auth.IsStudent(app.Production, correo, passwd) {
-		http.Error(w, "", http.StatusUnauthorized)
-		return "", "", err
-	}
-
-	auth.JwtSet(w,
-		app.Production,
-		"token",
-		correo,
-		cuenta,
-		time.Now().Add(1*time.Hour),
-		app.Secret,
-	)
-
-	return correo, cuenta, nil
-}
-
 func (app *App) validateServicioForm(r *http.Request, w http.ResponseWriter) (database.Servicio, error) {
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		http.Error(w, "", http.StatusUnauthorized)
 		return database.Servicio{}, err
 	}
@@ -1242,7 +1225,7 @@ func (app *App) validateServicioForm(r *http.Request, w http.ResponseWriter) (da
 
 	cuentas, err := database.ListaCuentas(app.DB)
 	if err != nil {
-		app.log("error fetching accounts: %v", err)
+		app.Log.Printf("error fetching accounts: %v", err)
 		http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
 		return database.Servicio{}, err
 	}
@@ -1253,7 +1236,7 @@ func (app *App) validateServicioForm(r *http.Request, w http.ResponseWriter) (da
 	}
 
 	if err := validateSuscriben(suscriben, cuentasStrgs); err != nil {
-		app.log("error fetching accounts: %v", err)
+		app.Log.Printf("error fetching accounts: %v", err)
 		http.Error(w, "Non-existent account", http.StatusUnauthorized)
 		return database.Servicio{}, err
 	}
@@ -1279,13 +1262,13 @@ func (app *App) validateServicioForm(r *http.Request, w http.ResponseWriter) (da
 func (app *App) validateSuministroForm(r *http.Request, w http.ResponseWriter) (database.Suministros, error) {
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		http.Error(w, "", http.StatusUnauthorized)
 		return database.Suministros{}, err
 	}
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return database.Suministros{}, err
 	}
@@ -1299,14 +1282,14 @@ func (app *App) validateSuministroForm(r *http.Request, w http.ResponseWriter) (
 	montos := r.Form["monto[]"]
 
 	if justif == "" || firma == "" {
-		app.log("missing fields")
+		app.Log.Printf("missing fields")
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return database.Suministros{}, fmt.Errorf("missing required fields")
 	}
 
 	n := len(nombres)
 	if n == 0 || len(articulos) != n || len(agrupaciones) != n || len(cantidades) != n || len(montos) != n {
-		app.log("mismatched field lengths")
+		app.Log.Printf("mismatched field lengths")
 		http.Error(w, "Mismatched field lengths", http.StatusBadRequest)
 		return database.Suministros{}, fmt.Errorf("mismatched field lengths")
 	}
@@ -1315,14 +1298,14 @@ func (app *App) validateSuministroForm(r *http.Request, w http.ResponseWriter) (
 	for i := 0; i < n; i++ {
 		cantidad, err := strconv.Atoi(cantidades[i])
 		if err != nil {
-			app.log("error converting cantidad to int: %v", err)
+			app.Log.Printf("error converting cantidad to int: %v", err)
 			http.Error(w, "Invalid cantidad value", http.StatusBadRequest)
 			return database.Suministros{}, err
 		}
 
 		montoUnitario, err := strconv.ParseFloat(montos[i], 64)
 		if err != nil {
-			app.log("error converting monto to float: %v", err)
+			app.Log.Printf("error converting monto to float: %v", err)
 			http.Error(w, "Invalid monto value", http.StatusBadRequest)
 			return database.Suministros{}, err
 		}
@@ -1351,7 +1334,7 @@ func (app *App) validateSuministroForm(r *http.Request, w http.ResponseWriter) (
 func (app *App) validateBienForm(r *http.Request, w http.ResponseWriter) (database.Bien, error) {
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		http.Error(w, "", http.StatusUnauthorized)
 		return database.Bien{}, err
 	}
@@ -1404,7 +1387,7 @@ func (app *App) validateBienForm(r *http.Request, w http.ResponseWriter) (databa
 
 	cuentas, err := database.ListaCuentas(app.DB)
 	if err != nil {
-		app.log("error fetching accounts: %v", err)
+		app.Log.Printf("error fetching accounts: %v", err)
 		http.Error(w, "Error fetching accounts", http.StatusInternalServerError)
 		return database.Bien{}, err
 	}
@@ -1415,7 +1398,7 @@ func (app *App) validateBienForm(r *http.Request, w http.ResponseWriter) (databa
 	}
 
 	if err := validateSuscriben(suscriben, cuentasStrgs); err != nil {
-		app.log("error validating accounts: %v", err)
+		app.Log.Printf("error validating accounts: %v", err)
 		http.Error(w, "Non-existent account", http.StatusUnauthorized)
 		return database.Bien{}, err
 	}
@@ -1460,13 +1443,13 @@ func (app *App) handleAprobarServicioCOES(w http.ResponseWriter, r *http.Request
 
 	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	if cuenta != "COES" {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
 		return
 	}
@@ -1481,7 +1464,7 @@ func (app *App) handleAprobarServicioCOES(w http.ResponseWriter, r *http.Request
 
 	err = database.AprobarServicioCOES(app.DB, id)
 	if err != nil {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
 		return
 	}
@@ -1496,13 +1479,13 @@ func (app *App) handleAprobarSuministroCOES(w http.ResponseWriter, r *http.Reque
 
 	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	if cuenta != "COES" {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
 		return
 	}
@@ -1517,7 +1500,7 @@ func (app *App) handleAprobarSuministroCOES(w http.ResponseWriter, r *http.Reque
 
 	err = database.AprobarSuministroCOES(app.DB, id)
 	if err != nil {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
 		return
 	}
@@ -1531,13 +1514,13 @@ func (app *App) handleAprobarBienCOES(w http.ResponseWriter, r *http.Request) {
 
 	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	if cuenta != "COES" {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
 		return
 	}
@@ -1552,7 +1535,7 @@ func (app *App) handleAprobarBienCOES(w http.ResponseWriter, r *http.Request) {
 
 	err = database.AprobarBienCOES(app.DB, id)
 	if err != nil {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
 		return
 	}
@@ -1567,13 +1550,13 @@ func (app *App) handleAprobarDonacionCOES(w http.ResponseWriter, r *http.Request
 
 	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	if cuenta != "COES" {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusUnauthorized)
 		return
 	}
@@ -1588,7 +1571,7 @@ func (app *App) handleAprobarDonacionCOES(w http.ResponseWriter, r *http.Request
 
 	err = database.AprobarDonacionCOES(app.DB, id)
 	if err != nil {
-		app.log("error approving service: %v", err)
+		app.Log.Printf("error approving service: %v", err)
 		http.Error(w, "Failed to approve service", http.StatusInternalServerError)
 		return
 	}
@@ -1604,21 +1587,21 @@ func (app *App) handleRegistrarSolicitudServicioGECO(w http.ResponseWriter, r *h
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 5 {
-		app.log("not enough segments")
+		app.Log.Printf("not enough segments")
 		fmt.Fprint(w, errResp)
 		return
 	}
 	id := segments[4]
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form")
+		app.Log.Printf("error parsing form")
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1627,14 +1610,14 @@ func (app *App) handleRegistrarSolicitudServicioGECO(w http.ResponseWriter, r *h
 
 	servicio, err := database.ServicioPorID(app.DB, correo, cuenta, id)
 	if err != nil {
-		app.log("failed to get service: %v", err)
+		app.Log.Printf("failed to get service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
 
 	err = servicio.RegistrarSolicitudGECO(app.DB, solicitudGECO)
 	if err != nil {
-		app.log("failed to register service: %v", err)
+		app.Log.Printf("failed to register service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1650,7 +1633,7 @@ func (app *App) handleRegistrarSolicitudSuministroGECO(w http.ResponseWriter, r 
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		fmt.Fprint(w, errResp)
 		return
@@ -1658,14 +1641,14 @@ func (app *App) handleRegistrarSolicitudSuministroGECO(w http.ResponseWriter, r 
 
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 5 {
-		app.log("not enough segments in URL")
+		app.Log.Printf("not enough segments in URL")
 		fmt.Fprint(w, errResp)
 		return
 	}
 	id := segments[4]
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1675,21 +1658,21 @@ func (app *App) handleRegistrarSolicitudSuministroGECO(w http.ResponseWriter, r 
 
 	montoBrutoTotal, err := strconv.ParseFloat(montoBrutoTotalStr, 64)
 	if err != nil {
-		app.log("invalid monto bruto total: %v", err)
+		app.Log.Printf("invalid monto bruto total: %v", err)
 		fmt.Fprint(w, `<div class="app-error">Monto bruto total inválido</div>`)
 		return
 	}
 
 	suministro, err := database.SuministroPorID(app.DB, correo, cuenta, id)
 	if err != nil {
-		app.log("failed to get suministro: %v", err)
+		app.Log.Printf("failed to get suministro: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
 
 	err = suministro.RegistrarSolicitudGECO(app.DB, solicitudGECO, montoBrutoTotal)
 	if err != nil {
-		app.log("failed to register solicitud GECO: %v", err)
+		app.Log.Printf("failed to register solicitud GECO: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1705,21 +1688,21 @@ func (app *App) handleRegistrarSolicitudBienGECO(w http.ResponseWriter, r *http.
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 5 {
-		app.log("not enough segments")
+		app.Log.Printf("not enough segments")
 		fmt.Fprint(w, errResp)
 		return
 	}
 	id := segments[4]
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form")
+		app.Log.Printf("error parsing form")
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1728,14 +1711,14 @@ func (app *App) handleRegistrarSolicitudBienGECO(w http.ResponseWriter, r *http.
 
 	bien, err := database.BienPorID(app.DB, correo, cuenta, id)
 	if err != nil {
-		app.log("failed to get service: %v", err)
+		app.Log.Printf("failed to get service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
 
 	err = bien.RegistrarSolicitudGECO(app.DB, solicitudGECO)
 	if err != nil {
-		app.log("failed to register service: %v", err)
+		app.Log.Printf("failed to register service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1751,21 +1734,21 @@ func (app *App) handleServicioOCS(w http.ResponseWriter, r *http.Request) {
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 5 {
-		app.log("not enough segments")
+		app.Log.Printf("not enough segments")
 		fmt.Fprint(w, errResp)
 		return
 	}
 	id := segments[4]
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1782,14 +1765,14 @@ func (app *App) handleServicioOCS(w http.ResponseWriter, r *http.Request) {
 
 	montoBruto, err := strconv.ParseFloat(r.FormValue("prov-monto-bruto"), 64)
 	if err != nil {
-		app.log("invalid monto bruto: %v", err)
+		app.Log.Printf("invalid monto bruto: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
 
 	montoIVA, err := strconv.ParseFloat(r.FormValue("prov-iva"), 64)
 	if err != nil {
-		app.log("invalid monto iva: %v", err)
+		app.Log.Printf("invalid monto iva: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1798,7 +1781,7 @@ func (app *App) handleServicioOCS(w http.ResponseWriter, r *http.Request) {
 
 	servicio, err := database.ServicioPorID(app.DB, correo, cuenta, id)
 	if err != nil {
-		app.log("failed to get service: %v", err)
+		app.Log.Printf("failed to get service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1809,7 +1792,7 @@ func (app *App) handleServicioOCS(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		app.log("failed to register OCS: %v", err)
+		app.Log.Printf("failed to register OCS: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1825,21 +1808,21 @@ func (app *App) handleBienOC(w http.ResponseWriter, r *http.Request) {
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 5 {
-		app.log("not enough segments")
+		app.Log.Printf("not enough segments")
 		fmt.Fprint(w, errResp)
 		return
 	}
 	id := segments[4]
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form: %v", err)
+		app.Log.Printf("error parsing form: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1856,14 +1839,14 @@ func (app *App) handleBienOC(w http.ResponseWriter, r *http.Request) {
 
 	montoBruto, err := strconv.ParseFloat(r.FormValue("prov-monto-bruto"), 64)
 	if err != nil {
-		app.log("invalid monto bruto: %v", err)
+		app.Log.Printf("invalid monto bruto: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
 
 	montoIVA, err := strconv.ParseFloat(r.FormValue("prov-iva"), 64)
 	if err != nil {
-		app.log("invalid monto iva: %v", err)
+		app.Log.Printf("invalid monto iva: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1872,7 +1855,7 @@ func (app *App) handleBienOC(w http.ResponseWriter, r *http.Request) {
 
 	bien, err := database.BienPorID(app.DB, correo, cuenta, id)
 	if err != nil {
-		app.log("failed to get service: %v", err)
+		app.Log.Printf("failed to get service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1883,7 +1866,7 @@ func (app *App) handleBienOC(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		app.log("failed to register OC: %v", err)
+		app.Log.Printf("failed to register OC: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1899,21 +1882,21 @@ func (app *App) handleMovimientosBien(w http.ResponseWriter, r *http.Request) {
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 5 {
-		app.log("not enough segments")
+		app.Log.Printf("not enough segments")
 		fmt.Fprint(w, errResp)
 		return
 	}
 	id := segments[4]
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form")
+		app.Log.Printf("error parsing form")
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1922,7 +1905,7 @@ func (app *App) handleMovimientosBien(w http.ResponseWriter, r *http.Request) {
 	montosStr := r.Form["monto[]"]
 
 	if len(cuentas) != len(montosStr) {
-		app.log("mismatch between cuentas and montos length")
+		app.Log.Printf("mismatch between cuentas and montos length")
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1931,7 +1914,7 @@ func (app *App) handleMovimientosBien(w http.ResponseWriter, r *http.Request) {
 	for i, cuenta := range cuentas {
 		monto, err := strconv.ParseFloat(montosStr[i], 64)
 		if err != nil {
-			app.log("invalid monto value: %v", err)
+			app.Log.Printf("invalid monto value: %v", err)
 			fmt.Fprint(w, errResp)
 			return
 		}
@@ -1940,14 +1923,14 @@ func (app *App) handleMovimientosBien(w http.ResponseWriter, r *http.Request) {
 
 	bien, err := database.BienPorID(app.DB, correo, cuenta, id)
 	if err != nil {
-		app.log("failed to get service: %v", err)
+		app.Log.Printf("failed to get service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
 
 	err = bien.EstablecerMontos(app.DB, montos)
 	if err != nil {
-		app.log("failed to set mov: %v", err)
+		app.Log.Printf("failed to set mov: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1963,21 +1946,21 @@ func (app *App) handleMovimientosServicio(w http.ResponseWriter, r *http.Request
 
 	correo, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
 	if err != nil {
-		app.log("error validating token: %v", err)
+		app.Log.Printf("error validating token: %v", err)
 		w.Header().Set("HX-Redirect", "/dashboard")
 		return
 	}
 
 	segments := strings.Split(r.URL.Path, "/")
 	if len(segments) < 5 {
-		app.log("not enough segments")
+		app.Log.Printf("not enough segments")
 		fmt.Fprint(w, errResp)
 		return
 	}
 	id := segments[4]
 
 	if err := r.ParseForm(); err != nil {
-		app.log("error parsing form")
+		app.Log.Printf("error parsing form")
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1986,7 +1969,7 @@ func (app *App) handleMovimientosServicio(w http.ResponseWriter, r *http.Request
 	montosStr := r.Form["monto[]"]
 
 	if len(cuentas) != len(montosStr) {
-		app.log("mismatch between cuentas and montos length")
+		app.Log.Printf("mismatch between cuentas and montos length")
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -1995,7 +1978,7 @@ func (app *App) handleMovimientosServicio(w http.ResponseWriter, r *http.Request
 	for i, cuenta := range cuentas {
 		monto, err := strconv.ParseFloat(montosStr[i], 64)
 		if err != nil {
-			app.log("invalid monto value: %v", err)
+			app.Log.Printf("invalid monto value: %v", err)
 			fmt.Fprint(w, errResp)
 			return
 		}
@@ -2004,14 +1987,14 @@ func (app *App) handleMovimientosServicio(w http.ResponseWriter, r *http.Request
 
 	servicio, err := database.ServicioPorID(app.DB, correo, cuenta, id)
 	if err != nil {
-		app.log("failed to get service: %v", err)
+		app.Log.Printf("failed to get service: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
 
 	err = servicio.EstablecerMontos(app.DB, montos)
 	if err != nil {
-		app.log("failed to set mov: %v", err)
+		app.Log.Printf("failed to set mov: %v", err)
 		fmt.Fprint(w, errResp)
 		return
 	}
@@ -2029,13 +2012,4 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-}
-
-func (app *App) log(format string, args ...interface{}) {
-	if app.Debug {
-		pc, _, _, _ := runtime.Caller(1)
-		funcName := runtime.FuncForPC(pc).Name()
-
-		log.Printf("%s: %s", funcName, fmt.Sprintf(format, args...))
-	}
 }

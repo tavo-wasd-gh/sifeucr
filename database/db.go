@@ -20,7 +20,7 @@ func Init(connDvr, connStr string) (*sql.DB, error) {
 	return db, nil
 }
 
-func CuentasActivas(db *sql.DB, correo string) ([]string, error) {
+func CuentasPorUsuario(db *sql.DB, correo string) ([]string, error) {
 	query := `SELECT id FROM cuentas WHERE presidencia = $1 OR tesoreria = $1`
 
 	rows, err := db.Query(query, correo)
