@@ -1,4 +1,4 @@
-FROM debian:10
+FROM debian:12
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 

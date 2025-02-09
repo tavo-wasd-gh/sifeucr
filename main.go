@@ -1169,7 +1169,7 @@ func (app *App) ValidateLoginForm(r *http.Request, w http.ResponseWriter) (strin
 
 	if !auth.IsStudent(app.Production, correo, passwd) {
 		http.Error(w, "", http.StatusUnauthorized)
-		return "", "", err
+		return "", "", fmt.Errorf("unauthorized email")
 	}
 
 	auth.JwtSet(w,
