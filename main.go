@@ -2036,6 +2036,7 @@ func (app *App) log(format string, args ...interface{}) {
 		pc, _, _, _ := runtime.Caller(1)
 		funcName := runtime.FuncForPC(pc).Name()
 
+		log.SetOutput(os.Stdout)
 		log.Printf("%s: %s", funcName, fmt.Sprintf(format, args...))
 	}
 }
