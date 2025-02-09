@@ -48,8 +48,8 @@ CREATE TABLE servicios (
   monto_bruto decimal,
   monto_iva decimal,
   monto_desc decimal,
-  geco_sol varchar(20) UNIQUE,
-  geco_ocs varchar(20) UNIQUE,
+  geco_sol varchar(20),
+  geco_ocs varchar(20),
   -- ViVE
   ocs_firma varchar(500),
   ocs_firma_vive varchar(500),
@@ -139,8 +139,8 @@ CREATE TABLE bienes (
   monto_bruto decimal,
   monto_iva decimal,
   monto_desc decimal,
-  geco_sol varchar(20) UNIQUE,
-  geco_oc varchar(20) UNIQUE,
+  geco_sol varchar(20),
+  geco_oc varchar(20),
   -- ViVE
   oc_firma varchar(500),
   oc_firma_vive varchar(500),

@@ -117,7 +117,8 @@ func main() {
 	http.HandleFunc("/api/geco/servicio/", app.handleRegistrarSolicitudServicioGECO)
 	http.HandleFunc("/api/geco/suministro/", app.handleRegistrarSolicitudSuministroGECO)
 	http.HandleFunc("/api/geco/bien/", app.handleRegistrarSolicitudBienGECO)
-	// OCS GECO
+
+	// GECO
 	http.HandleFunc("/api/orden/servicio/", app.handleServicioOCS)
 	http.HandleFunc("/api/orden/bien/", app.handleBienOC)
 
