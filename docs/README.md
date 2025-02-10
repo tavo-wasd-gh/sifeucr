@@ -31,7 +31,7 @@
 
 ## v0.1.1 Correcciones inmediatas
 
-- [ ] Corregir errores inmediatos que puedan revelarse en el proceso de pruebas
+- [X] Corregir errores inmediatos que puedan revelarse en el proceso de pruebas
 
 ## v0.1.0 Primera versión
 
