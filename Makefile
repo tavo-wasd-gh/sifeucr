@@ -27,9 +27,20 @@ db.db: .data docs/schema.sql default.db
 install:
 	mkdir -p /usr/local/bin
 	cp sifeucr /usr/local/bin/
-	cp sifeucr.service /etc/systemd/system/)
-	useradd -m sifeucr
-	cp -r sifeucr /home/sifeucr/
+	cp sifeucr.service /etc/systemd/system/
+	@if ! id -u sifeucr >/dev/null 2>&1; then \
+		echo "Creating user sifeucr"; \
+		sudo useradd -m sifeucr; \
+		fi
+	mkdir -p /home/sifeucr/sifeucr
+	cp .env.example /home/sifeucr/sifeucr/
+	cp default.db /home/sifeucr/sifeucr/
+	rm -rf /home/sifeucr/sifeucr/views && \
+		cp -r views /home/sifeucr/sifeucr/
+	rm -rf /home/sifeucr/sifeucr/templates && \
+		cp -r templates /home/sifeucr/sifeucr/
+	rm -rf /home/sifeucr/sifeucr/public && \
+		cp -r public /home/sifeucr/sifeucr/
 
 clean:
 	rm -rf default.db release sifeucr.tar.gz tmp public sifeucr
