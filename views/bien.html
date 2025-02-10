@@ -209,9 +209,9 @@
   <input id="prov-banco"  name="prov-banco"  placeholder="Banco (Opcional)">
   <input id="prov-iban"   name="prov-iban"   placeholder="IBAN (Opcional)">
   <input id="prov-justif" name="prov-justif" placeholder="Justificación" required>
-  <input id="prov-monto-bruto" name="prov-monto-bruto" type="number" placeholder="Monto Bruto" required>
-  <input id="prov-iva"         name="prov-iva"         type="number" placeholder="% IVA" value="2.00" required>
-  <input id="prov-monto-desc"  name="prov-monto-desc"  type="number" placeholder="Monto Descuento (Opcional)">
+  <input id="prov-monto-bruto" name="prov-monto-bruto" type="number" step="0.01" placeholder="Monto Bruto" required>
+  <input id="prov-iva"         name="prov-iva"         type="number" step="0.01" placeholder="% IVA" value="2.00" required>
+  <input id="prov-monto-desc"  name="prov-monto-desc"  type="number" step="0.01" placeholder="Monto Descuento (Opcional)">
   <div id="api-orden-bien-id" class="app-error"></div>
   <div class="htmx-button-div">
     <button type="submit">Registrar OC</button>
