@@ -3,6 +3,7 @@
 ## Instalar
 
 ```sh
+systemctl stop sifeucr # En caso de que una versión anterior esté corriendo
 curl -sLO "$(curl -s https://api.github.com/repos/tavo-wasd-gh/sifeucr/releases/latest | grep 'browser_download_url' | cut -d '"' -f 4)"
 tar xvf sifeucr.tar.gz
 cd sifeucr
