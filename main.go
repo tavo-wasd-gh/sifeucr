@@ -37,8 +37,8 @@ func main() {
 		debug      = os.Getenv("DEBUG") == "1"
 		secret     = os.Getenv("SECRET")
 		port       = os.Getenv("PORT")
-		connStr    = os.Getenv("DB_CONNSTR")
-		connDvr    = os.Getenv("DB_CONNDVR")
+		connStr    = "./db.db"
+		connDvr    = "sqlite3"
 	)
 
 	if port == "" || connStr == "" || connDvr == "" || secret == "" {
