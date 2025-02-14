@@ -28,6 +28,7 @@
 
 - [ ] Sanitizar datos (Mínimo de caracteres, números de solicitudes, OC y OCS de GECO, datos de entidad proveedora, etc)
 - [ ] Restricciones de fechas, word-lists, extension para crear nuevas solicitudes
+- [ ] Facilitar solicitud (front-end helpers, manipular usuario en login para permitir mayúsculas)
 
 ## v0.1.1 Correcciones inmediatas
 
