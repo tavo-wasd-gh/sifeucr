@@ -36,6 +36,10 @@ type Usuario struct {
 
 func Login(db *sql.DB, u, c string) (*Usuario, error) {
 	usuario, err := UsuarioAcreditado(db, u, c)
+	if err != nil {
+		return nil, fmt.Errorf("Login: unauthorized: %v", err)
+	}
+
 	periodoActual := time.Now().Year()
 
 	presupuestos, err := presupuestosInit(db, c, periodoActual)
