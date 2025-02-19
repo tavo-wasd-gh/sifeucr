@@ -1,219 +1,175 @@
-CREATE TABLE usuarios (
-  id varchar(80) NOT NULL PRIMARY KEY,
-  nombre varchar(80) NOT NULL
+CREATE TABLE accounts (
+  id VARCHAR(20) PRIMARY KEY NOT NULL,
+  name VARCHAR(120) UNIQUE NOT NULL,
+  teeu BOOLEAN DEFAULT 0 NOT NULL,
+  coes BOOLEAN DEFAULT 0 NOT NULL
 );
 
-CREATE TABLE cuentas (
-  id varchar(20) PRIMARY KEY,
-  privilegio usuarios NOT NULL,
-  nombre varchar(120) NOT NULL,
-  presidencia varchar(80),
-  tesoreria varchar(80),
-  teeu boolean NOT NULL,
-  coes boolean NOT NULL,
-  FOREIGN KEY (presidencia) REFERENCES usuarios (id),
-  FOREIGN KEY (tesoreria) REFERENCES usuarios (id)
+CREATE TABLE budgets (
+  id VARCHAR(50) PRIMARY KEY,
+  account VARCHAR(20) NOT NULL,
+  valid DATETIME NOT NULL,
+  services DECIMAL NOT NULL,
+  supplies DECIMAL NOT NULL,
+  goods DECIMAL NOT NULL,
+  FOREIGN KEY (account) REFERENCES accounts(id)
 );
 
-CREATE TABLE presupuestos (
-  id varchar(50) PRIMARY KEY,
-  cuenta varchar(20) NOT NULL,
-  validez datetime NOT NULL,
-  general decimal NOT NULL,
-  servicios decimal NOT NULL,
-  suministros decimal NOT NULL,
-  bienes decimal NOT NULL,
-  FOREIGN KEY (cuenta) REFERENCES cuentas (id)
+CREATE TABLE budget_lines (
+  -- services, supplies, goods
+  line VARCHAR(20) PRIMARY KEY NOT NULL
+);
+INSERT INTO budget_lines (line) VALUES
+  ('services'),
+  ('supplies'),
+  ('goods');
+
+CREATE TABLE users (
+  email VARCHAR(80) PRIMARY KEY NOT NULL,
+  name VARCHAR(80) NOT NULL,
+  created DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  disabled DATETIME
 );
 
-CREATE TABLE servicios (
-  id integer PRIMARY KEY,
-  -- Solicitud
-  emitido datetime NOT NULL,
-  emisor varchar(80) NOT NULL,
-  detalle varchar(10000) NOT NULL,
-  por_ejecutar datetime NOT NULL,
-  justif varchar(10000) NOT NULL,
+CREATE TABLE permissions (
+  id INTEGER PRIMARY KEY NOT NULL,
+  account VARCHAR(20) NOT NULL,
+  user VARCHAR(80) NOT NULL,
+  permission_integer INT NOT NULL,
+  FOREIGN KEY (account) REFERENCES accounts(id) ON DELETE CASCADE,
+  FOREIGN KEY (user) REFERENCES users(email) ON DELETE CASCADE,
+  UNIQUE (account, user)
+);
+
+CREATE TABLE request_types (
+  -- service, supply, good
+  type VARCHAR(20) PRIMARY KEY NOT NULL
+);
+INSERT INTO request_types (type) VALUES
+  ('service'),
+  ('supply'),
+  ('good');
+
+CREATE TABLE requests (
+  id INTEGER PRIMARY KEY NOT NULL,
+  type VARCHAR(20) NOT NULL,
+  -- Request
+  issued DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  wanted DATETIME NOT NULL,
+  issuer VARCHAR(80) NOT NULL,
+  description varchar(10000) NOT NULL,
+  justification VARCHAR(10000) NOT NULL,
   -- COES
-  coes boolean NOT NULL,
+  coes BOOLEAN DEFAULT 0 NOT NULL,
+  correction VARCHAR(10000),
   -- OSUM
-  prov_nom varchar(120),
-  prov_ced varchar(20),
-  prov_direc varchar(300),
-  prov_email varchar(80),
-  prov_tel varchar(30),
-  prov_banco varchar(500),
-  prov_iban varchar(500),
-  prov_justif varchar(10000),
-  monto_bruto decimal,
-  monto_iva decimal,
-  monto_desc decimal,
-  geco_sol varchar(20),
-  geco_ocs varchar(20),
+  geco_id VARCHAR(20),
+  supplier_name VARCHAR(120),
+  supplier_id VARCHAR(20),
+  supplier_address VARCHAR(300),
+  supplier_email VARCHAR(80),
+  supplier_phone VARCHAR(30),
+  supplier_bank VARCHAR(500),
+  supplier_iban VARCHAR(500),
+  supplier_justification VARCHAR(10000),
+  gross_amount DECIMAL,
+  tax_percentage DECIMAL,
+  discount_amount DECIMAL,
   -- ViVE
-  ocs_firma varchar(500),
-  ocs_firma_vive varchar(500),
-  -- Ejecutado
-  acuse_usuario varchar(80),
-  acuse_fecha datetime,
-  acuse varchar(10000),
-  acuse_firma text,
+  order_document VARCHAR(500),
+  order_signed_vive VARCHAR(500),
+  -- Executed
+  recieved DATETIME,
+  acknowledgement VARCHAR(10000),
+  acknowledged_by VARCHAR(80),
+  acknowledgement_signature TEXT,
   -- Final
-  pagado datetime,
-  notas varchar(10000),
-  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id),
-  FOREIGN KEY (emisor) REFERENCES usuarios (id)
+  payed DATETIME,
+  notes VARCHAR(10000),
+  -- Conditions
+  void BOOLEAN DEFAULT 0 NOT NULL,
+  deleted BOOLEAN DEFAULT 0 NOT NULL,
+  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (acknowledged_by) REFERENCES users(email)
 );
 
-CREATE TABLE servicios_movimientos (
-  id integer PRIMARY KEY,
-  servicio integer,
-  usuario varchar(80),
-  cuenta varchar(20) NOT NULL,
-  presupuesto varchar(50) NOT NULL,
-  monto decimal,
-  firma text,
-  FOREIGN KEY (servicio) REFERENCES servicios (id),
-  FOREIGN KEY (usuario) REFERENCES usuarios (id),
-  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
-  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
+CREATE TABLE movements (
+  id INTEGER PRIMARY KEY NOT NULL,
+  request INTEGER NOT NULL,
+  type VARCHAR(20) NOT NULL,
+  issuer VARCHAR(80) NOT NULL,
+  account VARCHAR(20) NOT NULL,
+  budget VARCHAR(50) NOT NULL,
+  line VARCHAR(20) NOT NULL,
+  gross_amount DECIMAL,
+  signature TEXT,
+  FOREIGN KEY (request, type) REFERENCES requests(id, type) ON DELETE CASCADE,
+  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (account) REFERENCES accounts(id),
+  FOREIGN KEY (budget) REFERENCES budgets(id),
+  FOREIGN KEY (line) REFERENCES budget_lines(line)
 );
 
-CREATE TABLE suministros (
-  id integer PRIMARY KEY,
-  -- Solicitud
-  emitido datetime NOT NULL,
-  emisor varchar(80) NOT NULL,
-  cuenta varchar(20) NOT NULL,
-  presupuesto varchar(50) NOT NULL,
-  justif varchar(10000) NOT NULL,
-  firma text,
-  -- COES
-  coes boolean,
-  -- OSUM
-  monto_bruto_total decimal,
-  geco varchar(20),
-  -- Recibido
-  acuse_usuario varchar(80),
-  acuse_fecha datetime,
-  acuse varchar(10000),
-  acuse_firma text,
-  -- Final
-  notas varchar(10000),
-  FOREIGN KEY (emisor) REFERENCES usuarios (id),
-  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
-  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id),
-  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
+CREATE TABLE supplies_breakdown (
+  id INTEGER PRIMARY KEY NOT NULL,
+  request INTEGER NOT NULL,
+  group_id VARCHAR(40) NOT NULL,
+  item_id VARCHAR(40) NOT NULL,
+  description VARCHAR(500) NOT NULL,
+  number INTEGER NOT NULL,
+  gross_amount DECIMAL NOT NULL,
+  FOREIGN KEY (request) REFERENCES requests(id)
 );
 
-CREATE TABLE suministros_desglose (
-  id integer PRIMARY KEY,
-  suministros integer NOT NULL,
-  nombre varchar(120) NOT NULL,
-  articulo varchar(40) NOT NULL,
-  agrupacion varchar(40) NOT NULL,
-  cantidad integer NOT NULL,
-  monto_unitario decimal NOT NULL,
-  FOREIGN KEY (suministros) REFERENCES suministros (id)
+CREATE TABLE adjustments (
+  id INTEGER PRIMARY KEY NOT NULL,
+  issued DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  issuer VARCHAR(80) NOT NULL,
+  issuer_account VARCHAR(20) NOT NULL,
+  affected_account VARCHAR(20) NOT NULL,
+  affected_budget VARCHAR(50) NOT NULL,
+  affected_line VARCHAR(20) NOT NULL,
+  description VARCHAR(10000) NOT NULL,
+  gross_amount DECIMAL NOT NULL,
+  notes VARCHAR(10000),
+  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (issuer_account) REFERENCES accounts(id),
+  FOREIGN KEY (affected_account) REFERENCES accounts(id),
+  FOREIGN KEY (affected_budget) REFERENCES budgets(id),
+  FOREIGN KEY (affected_line) REFERENCES budget_lines(line)
 );
 
-CREATE TABLE bienes (
-  id integer PRIMARY KEY,
-  -- Solicitud
-  emitido datetime NOT NULL,
-  emisor varchar(80) NOT NULL,
-  detalle varchar(10000) NOT NULL,
-  por_recibir datetime NOT NULL,
-  justif varchar(10000) NOT NULL,
-  -- COES
-  coes boolean,
-  -- OSUM
-  prov_nom varchar(120),
-  prov_ced varchar(20),
-  prov_direc varchar(300),
-  prov_email varchar(80),
-  prov_tel varchar(30),
-  prov_banco varchar(500),
-  prov_iban varchar(500),
-  prov_justif varchar(10000),
-  monto_bruto decimal,
-  monto_iva decimal,
-  monto_desc decimal,
-  geco_sol varchar(20),
-  geco_oc varchar(20),
-  -- ViVE
-  oc_firma varchar(500),
-  oc_firma_vive varchar(500),
-  -- Recibido
-  acuse_usuario varchar(80),
-  acuse_fecha datetime,
-  acuse varchar(10000),
-  acuse_firma text,
-  -- Final
-  pagado datetime,
-  notas varchar(10000),
-  FOREIGN KEY (acuse_usuario) REFERENCES usuarios (id),
-  FOREIGN KEY (emisor) REFERENCES usuarios (id)
+CREATE TABLE donations (
+  id INTEGER PRIMARY KEY,
+  issued DATETIME NOT NULL,
+  issuer VARCHAR(80) NOT NULL,
+  issuer_account VARCHAR(20) NOT NULL,
+  debited_account VARCHAR(20) NOT NULL,
+  debited_budget VARCHAR(50) NOT NULL,
+  debited_line VARCHAR(20) NOT NULL,
+  credited_account VARCHAR(20) NOT NULL,
+  credited_budget VARCHAR(50) NOT NULL,
+  credited_line VARCHAR(20) NOT NULL,
+  justification VARCHAR(10000) NOT NULL,
+  gross_amount DECIMAL NOT NULL,
+  coes_letter VARCHAR(500),
+  notas VARCHAR(10000),
+  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (issuer_account) REFERENCES accounts(id),
+  FOREIGN KEY (debited_account) REFERENCES accounts(id),
+  FOREIGN KEY (debited_budget) REFERENCES budgets(id),
+  FOREIGN KEY (debited_line) REFERENCES budget_lines(line),
+  FOREIGN KEY (credited_account) REFERENCES accounts(id),
+  FOREIGN KEY (credited_budget) REFERENCES budgets(id),
+  FOREIGN KEY (credited_line) REFERENCES budget_lines(line)
 );
 
-CREATE TABLE bienes_movimientos (
-  id integer PRIMARY KEY,
-  bien integer,
-  usuario varchar(80),
-  cuenta varchar(20) NOT NULL,
-  presupuesto varchar(50),
-  monto decimal,
-  firma text,
-  FOREIGN KEY (bien) REFERENCES bienes (id),
-  FOREIGN KEY (usuario) REFERENCES usuarios (id),
-  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
-  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
-);
-
-CREATE TABLE ajustes (
-  id integer PRIMARY KEY,
-  emitido datetime NOT NULL,
-  emisor varchar(80) NOT NULL,
-  cuenta_emisora varchar(20) NOT NULL,
-  cuenta varchar(20) NOT NULL,
-  presupuesto varchar(50) NOT NULL,
-  partida varchar(10) NOT NULL,
-  detalle varchar(10000) NOT NULL,
-  monto_bruto decimal NOT NULL,
-  notas varchar(10000),
-  FOREIGN KEY (emisor) REFERENCES usuarios (id),
-  FOREIGN KEY (cuenta_emisora) REFERENCES cuentas (id),
-  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
-  FOREIGN KEY (presupuesto) REFERENCES presupuestos (id)
-);
-
-CREATE TABLE donaciones (
-  id integer PRIMARY KEY,
-  emitido datetime NOT NULL,
-  emisor varchar(80) NOT NULL,
-  cuenta varchar(20) NOT NULL,
-  cuenta_salida varchar(20) NOT NULL,
-  presupuesto_salida varchar(20) NOT NULL,
-  partida_salida varchar(10) NOT NULL,
-  cuenta_entrada varchar(20) NOT NULL,
-  presupuesto_entrada varchar(20) NOT NULL,
-  partida_entrada varchar(10) NOT NULL,
-  detalle varchar(10000) NOT NULL,
-  monto_bruto decimal NOT NULL,
-  carta_coes varchar(500),
-  notas varchar(10000),
-  FOREIGN KEY (emisor) REFERENCES usuarios (id),
-  FOREIGN KEY (cuenta) REFERENCES cuentas (id),
-  FOREIGN KEY (cuenta_salida) REFERENCES cuentas (id),
-  FOREIGN KEY (cuenta_entrada) REFERENCES cuentas (id),
-  FOREIGN KEY (presupuesto_salida) REFERENCES presupuestos (id),
-  FOREIGN KEY (presupuesto_entrada) REFERENCES presupuestos (id)
-);
-
-CREATE TABLE historial (
-  id integer PRIMARY KEY,
-  emitido datetime NOT NULL,
-  usuario varchar(80) NOT NULL,
-  cuenta varchar(20) NOT NULL,
-  detalle varchar(500) NOT NULL
+CREATE TABLE history (
+  id INTEGER PRIMARY KEY NOT NULL,
+  issued DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  issuer VARCHAR(80) NOT NULL,
+  issuer_account VARCHAR(20) NOT NULL,
+  description VARCHAR(10000) NOT NULL,
+  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (issuer_account) REFERENCES accounts(id)
 );

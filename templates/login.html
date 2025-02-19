@@ -1,0 +1,28 @@
+{{define "login.html"}}
+<main>
+  <h1>Inicio de sesión</h1>
+  <div class="login">
+    <form hx-post="/api/login" hx-target="closest main" hx-swap="outerHTML">
+      <input type="text" id="email" name="email" placeholder="Correo electrónico" required>
+      <br>
+      <input type="password" id="passwd" name="passwd" placeholder="Contraseña" required>
+      <br>
+      {{if .AvailableAccounts}}
+      {{if gt (len .AvailableAccounts) 1}}
+      <br>
+      <select id="account" name="account" required>
+        {{range .AvailableAccounts}}
+        <option value="{{.ID}}">{{.Name}}</option>
+        {{end}}
+      </select>
+      <br>
+      {{end}}
+      {{end}}
+      <div class="htmx-button-div">
+        <button type="submit">Iniciar</button>
+        <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+      </div>
+    </form>
+  </div>
+</main>
+{{end}}

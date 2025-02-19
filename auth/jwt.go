@@ -15,6 +15,10 @@ type Claims struct {
 }
 
 func JwtSet(w http.ResponseWriter, secure bool, name, usuario, cuenta string, expires time.Time, secret string) error {
+	if name == "" || usuario == "" || cuenta == "" {
+		return fmt.Errorf("missing claims")
+	}
+
 	claims := &Claims{
 		usuario,
 		cuenta,

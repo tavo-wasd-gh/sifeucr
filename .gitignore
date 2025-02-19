@@ -1,11 +1,6 @@
 sifeucr
-public/
-.hugo_build.lock
-resources/
 .env
-tmp/
 db.db
-default.db
-.data
-release/
-sifeucr.tar.gz
+.hugo_build.lock
+tmp/
+public/
