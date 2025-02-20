@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/jmoiron/sqlx"
@@ -66,6 +67,7 @@ func main() {
 	http.HandleFunc("/api/dashboard", app.handleDashboard)
 	http.HandleFunc("/api/panel", app.handlePanel)
 	http.HandleFunc("/api/login", app.handleLogin)
+	http.HandleFunc("/api/setup", app.handleSetup)
 
 	// Serve files in public/
 	staticFiles, err := fs.Sub(publicFS, "public")
@@ -95,6 +97,12 @@ func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
+		_, _, err := auth.JwtValidate(r, "token", app.Secret)
+		if err == nil {
+			w.Header().Set("HX-Redirect", "/dashboard")
+			return
+		}
+
 		if err := views.Render(w, app.Views["login"], nil); err != nil {
 			app.Log.Errorf("error rendering template: %v", err)
 			http.Error(w, "", http.StatusInternalServerError)
@@ -113,17 +121,22 @@ func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
 		account := r.FormValue("account")
 		passwd := r.FormValue("passwd")
 
+		email = strings.ToLower(email)
+		if atIndex := strings.Index(email, "@"); atIndex != -1 {
+			email = email[:atIndex]
+		}
+
 		if app.Production {
 			s := smtp.Client("smtp.ucr.ac.cr", "587", passwd)
-			if err := s.Validate(email); err != nil {
-				app.Log.Errorf("error validating email: %v", err)
+			if err := s.Validate(email + "@ucr.ac.cr"); err != nil {
+				app.Log.Errorf("error validating user '%s': %v", email, err)
 				http.Error(w, "", http.StatusUnauthorized)
 				return
 			}
 		}
 
 		user := database.User{
-			Email: email,
+			ID: email,
 			Account: database.Account{
 				ID: account,
 			},
@@ -149,14 +162,20 @@ func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		auth.JwtSet(w,
+		if err := auth.JwtSet(w,
 			app.Production,
 			"token",
-			email,
-			account,
+			user.ID,
+			user.Account.ID,
 			config.CookieTimeout(),
 			app.Secret,
-		)
+		); err != nil {
+			app.Log.Errorf("error setting jwt: %v", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("HX-Redirect", "/dashboard")
 	}
 }
 
@@ -172,7 +191,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := database.User{
-		Email: email,
+		ID: email,
 		Account: database.Account{
 			ID: account,
 		},
@@ -192,4 +211,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) handlePanel(w http.ResponseWriter, r *http.Request) {
+}
+
+func (app *App) handleSetup(w http.ResponseWriter, r *http.Request) {
 }

@@ -9,6 +9,7 @@ import (
 
 type Budget struct {
 	ID       string     `db:"id"`
+	Account  string     `db:"account"`
 	Valid    *time.Time `db:"valid"`
 	Services float64    `db:"services"`
 	Supplies float64    `db:"supplies"`

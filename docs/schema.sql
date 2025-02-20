@@ -25,7 +25,7 @@ INSERT INTO budget_lines (line) VALUES
   ('goods');
 
 CREATE TABLE users (
-  email VARCHAR(80) PRIMARY KEY NOT NULL,
+  id VARCHAR(80) PRIMARY KEY NOT NULL,
   name VARCHAR(80) NOT NULL,
   created DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
   disabled DATETIME
@@ -33,11 +33,11 @@ CREATE TABLE users (
 
 CREATE TABLE permissions (
   id INTEGER PRIMARY KEY NOT NULL,
-  account VARCHAR(20) NOT NULL,
   user VARCHAR(80) NOT NULL,
+  account VARCHAR(20) NOT NULL,
   permission_integer INT NOT NULL,
   FOREIGN KEY (account) REFERENCES accounts(id) ON DELETE CASCADE,
-  FOREIGN KEY (user) REFERENCES users(email) ON DELETE CASCADE,
+  FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE (account, user)
 );
 
@@ -89,8 +89,8 @@ CREATE TABLE requests (
   -- Conditions
   void BOOLEAN DEFAULT 0 NOT NULL,
   deleted BOOLEAN DEFAULT 0 NOT NULL,
-  FOREIGN KEY (issuer) REFERENCES users(email),
-  FOREIGN KEY (acknowledged_by) REFERENCES users(email)
+  FOREIGN KEY (issuer) REFERENCES users(id),
+  FOREIGN KEY (acknowledged_by) REFERENCES users(id)
 );
 
 CREATE TABLE movements (
@@ -104,7 +104,7 @@ CREATE TABLE movements (
   gross_amount DECIMAL,
   signature TEXT,
   FOREIGN KEY (request, type) REFERENCES requests(id, type) ON DELETE CASCADE,
-  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (issuer) REFERENCES users(id),
   FOREIGN KEY (account) REFERENCES accounts(id),
   FOREIGN KEY (budget) REFERENCES budgets(id),
   FOREIGN KEY (line) REFERENCES budget_lines(line)
@@ -132,7 +132,7 @@ CREATE TABLE adjustments (
   description VARCHAR(10000) NOT NULL,
   gross_amount DECIMAL NOT NULL,
   notes VARCHAR(10000),
-  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (issuer) REFERENCES users(id),
   FOREIGN KEY (issuer_account) REFERENCES accounts(id),
   FOREIGN KEY (affected_account) REFERENCES accounts(id),
   FOREIGN KEY (affected_budget) REFERENCES budgets(id),
@@ -154,7 +154,7 @@ CREATE TABLE donations (
   gross_amount DECIMAL NOT NULL,
   coes_letter VARCHAR(500),
   notas VARCHAR(10000),
-  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (issuer) REFERENCES users(id),
   FOREIGN KEY (issuer_account) REFERENCES accounts(id),
   FOREIGN KEY (debited_account) REFERENCES accounts(id),
   FOREIGN KEY (debited_budget) REFERENCES budgets(id),
@@ -170,6 +170,6 @@ CREATE TABLE history (
   issuer VARCHAR(80) NOT NULL,
   issuer_account VARCHAR(20) NOT NULL,
   description VARCHAR(10000) NOT NULL,
-  FOREIGN KEY (issuer) REFERENCES users(email),
+  FOREIGN KEY (issuer) REFERENCES users(id),
   FOREIGN KEY (issuer_account) REFERENCES accounts(id)
 );

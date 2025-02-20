@@ -35,10 +35,10 @@ func accountsByUser(db *sqlx.DB, email string) ([]Account, error) {
 	var accounts []Account
 
 	query := `
-	SELECT a.id, a.name, a.teeu, a.coes
+	SELECT a.*
 	FROM accounts a
-	INNER JOIN permissions p ON a.id = p.account
-	WHERE p.user = ?
+	JOIN permissions p ON a.id = p.account
+	WHERE p.user = ?;
 	`
 
 	if err := db.Select(&accounts, query, email); err != nil {
