@@ -248,7 +248,7 @@
   <hr>
   <strong>Solicitudes pendientes de registro en GECO</strong>
   <br>
-  {{range .ServiciosPendientesGECO}}{{if and .FirmasCompletas .COES}}
+  {{range .ServiciosPendientesGECO}}{{if .FirmasCompletas}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -264,7 +264,7 @@
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}{{end}}
-  {{range .SuministrosPendientesGECO}}{{if .COES}}
+  {{range .SuministrosPendientesGECO}}
   <div class="card-item"
     hx-get="/api/suministro/{{.ID}}"
     hx-target="#dialog-content"
@@ -278,8 +278,8 @@
     <span class="label">Suministros | Solicitud de suministros No. {{.ID}}</span>
     <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
-  {{range .BienesPendientesGECO}}{{if and .FirmasCompletas .COES}}
+  {{end}}
+  {{range .BienesPendientesGECO}}{{if .FirmasCompletas}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"
@@ -299,7 +299,7 @@
   <hr>
   <strong>Solicitudes pendientes de Orden</strong>
   <br>
-  {{range .ServiciosPendientesOCS}}{{if and .FirmasCompletas .COES}}
+  {{range .ServiciosPendientesOCS}}{{if .FirmasCompletas}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -315,7 +315,7 @@
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}{{end}}
-  {{range .BienesPendientesOC}}{{if and .FirmasCompletas .COES}}
+  {{range .BienesPendientesOC}}{{if .FirmasCompletas}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"
@@ -335,7 +335,7 @@
   <hr>
   <strong>Solicitudes pendientes de distribución</strong>
   <br>
-  {{range .ServiciosPendientesDist}}{{if and .FirmasCompletas .COES}}
+  {{range .ServiciosPendientesDist}}{{if .FirmasCompletas}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -351,7 +351,7 @@
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}{{end}}
-  {{range .BienesPendientesDist}}{{if and .FirmasCompletas .COES}}
+  {{range .BienesPendientesDist}}{{if .FirmasCompletas}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"

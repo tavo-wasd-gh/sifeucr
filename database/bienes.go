@@ -782,7 +782,6 @@ func BienesPendientesOC(db *sql.DB, periodo int) ([]Bien, error) {
 		FROM bienes
 		WHERE geco_oc IS NULL
 		AND geco_sol IS NOT NULL
-		AND coes = TRUE
 		ORDER BY emitido
 	`
 

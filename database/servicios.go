@@ -710,7 +710,6 @@ func ServiciosPendientesGECO(db *sql.DB, periodo int) ([]Servicio, error) {
 		       pagado, notas
 		FROM servicios
 		WHERE geco_sol IS NULL
-		AND coes = TRUE
 		ORDER BY emitido
 	`
 
@@ -794,7 +793,6 @@ func ServiciosPendientesOCS(db *sql.DB, periodo int) ([]Servicio, error) {
 		FROM servicios
 		WHERE geco_ocs IS NULL
 		AND geco_sol IS NOT NULL
-		AND coes = TRUE
 		ORDER BY emitido
 	`
 
