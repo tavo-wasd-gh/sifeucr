@@ -12,7 +12,7 @@ import (
 type Env struct {
 	Production bool   `env:"PRODUCTION"`
 	Debug      bool   `env:"DEBUG"`
-	Port       string `env:"PORT" req:"1"`
+	Port       string `env:"PORT"`
 	Secret     string `env:"SECRET" req:"1"`
 	DBConnDvr  string `env:"DB_CONNDVR"`
 	DBConnStr  string `env:"DB_CONNSTR"`

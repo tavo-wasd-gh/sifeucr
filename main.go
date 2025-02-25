@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -41,6 +42,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", logger.Errorf("failed to initialize config: %v", err))
 	}
+
+	// Configure port
+	if env.Port == "" {
+		env.Port = "8080"
+	}
+
+	ln, err := net.Listen("tcp", ":"+env.Port)
+	if err != nil {
+		log.Fatalf("%v", logger.Errorf("failed to listen on port %s: %v", env.Port, err))
+	}
+	ln.Close()
 
 	// Configure views in config/views.go
 	views, err := views.Init(viewFS, config.ViewMap, config.FuncMap)
