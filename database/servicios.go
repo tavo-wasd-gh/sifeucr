@@ -442,7 +442,7 @@ func ServiciosPendientesCOES(db *sql.DB, periodo int) ([]Servicio, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && s.FirmasCompletas {
+		if emitido.Year() == periodo {
 			s.Emitido = emitido
 			s.Justif = justif.String
 			s.ProvNom = provNom.String
@@ -746,7 +746,7 @@ func ServiciosPendientesGECO(db *sql.DB, periodo int) ([]Servicio, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && s.FirmasCompletas {
+		if emitido.Year() == periodo {
 			s.Emitido = emitido
 			s.Justif = justif.String
 			s.ProvNom = provNom.String
@@ -829,7 +829,7 @@ func ServiciosPendientesOCS(db *sql.DB, periodo int) ([]Servicio, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && s.FirmasCompletas {
+		if emitido.Year() == periodo {
 			s.Emitido = emitido
 			s.Justif = justif.String
 			s.ProvNom = provNom.String
@@ -918,7 +918,7 @@ func ServiciosPendientesDist(db *sql.DB, periodo int) ([]Servicio, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && s.FirmasCompletas {
+		if emitido.Year() == periodo {
 			s.Emitido = emitido
 			s.Justif = justif.String
 			s.ProvNom = provNom.String
@@ -1001,7 +1001,7 @@ func ServiciosPendientesEjecucion(db *sql.DB, periodo int) ([]Servicio, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && s.FirmasCompletas {
+		if emitido.Year() == periodo {
 			s.Emitido = emitido
 			s.Justif = justif.String
 			s.ProvNom = provNom.String

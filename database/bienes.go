@@ -433,7 +433,7 @@ func BienesPendientesCOES(db *sql.DB, periodo int) ([]Bien, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && b.FirmasCompletas {
+		if emitido.Year() == periodo {
 			b.Emitido = emitido
 			b.Justif = justif.String
 			b.ProvNom = provNom.String
@@ -735,7 +735,7 @@ func BienesPendientesGECO(db *sql.DB, periodo int) ([]Bien, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && b.FirmasCompletas {
+		if emitido.Year() == periodo {
 			b.Emitido = emitido
 			b.Justif = justif.String
 			b.ProvNom = provNom.String
@@ -818,7 +818,7 @@ func BienesPendientesOC(db *sql.DB, periodo int) ([]Bien, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && b.FirmasCompletas {
+		if emitido.Year() == periodo {
 			b.Emitido = emitido
 			b.Justif = justif.String
 			b.ProvNom = provNom.String
@@ -907,7 +907,7 @@ func BienesPendientesDist(db *sql.DB, periodo int) ([]Bien, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && b.FirmasCompletas {
+		if emitido.Year() == periodo {
 			b.Emitido = emitido
 			b.Justif = justif.String
 			b.ProvNom = provNom.String
@@ -990,7 +990,7 @@ func BienesPendientesRecepcion(db *sql.DB, periodo int) ([]Bien, error) {
 			return nil, err
 		}
 
-		if emitido.Year() == periodo && b.FirmasCompletas {
+		if emitido.Year() == periodo {
 			b.Emitido = emitido
 			b.Justif = justif.String
 			b.ProvNom = provNom.String

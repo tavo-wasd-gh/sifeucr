@@ -248,7 +248,7 @@
   <hr>
   <strong>Solicitudes pendientes de registro en GECO</strong>
   <br>
-  {{range .ServiciosPendientesGECO}}{{if .FirmasCompletas}}
+  {{range .ServiciosPendientesGECO}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -263,7 +263,7 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
+  {{end}}
   {{range .SuministrosPendientesGECO}}
   <div class="card-item"
     hx-get="/api/suministro/{{.ID}}"
@@ -279,7 +279,7 @@
     <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}
-  {{range .BienesPendientesGECO}}{{if .FirmasCompletas}}
+  {{range .BienesPendientesGECO}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"
@@ -294,12 +294,12 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
+  {{end}}
   <br>
   <hr>
   <strong>Solicitudes pendientes de Orden</strong>
   <br>
-  {{range .ServiciosPendientesOCS}}{{if .FirmasCompletas}}
+  {{range .ServiciosPendientesOCS}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -314,8 +314,8 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
-  {{range .BienesPendientesOC}}{{if .FirmasCompletas}}
+  {{end}}
+  {{range .BienesPendientesOC}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"
@@ -330,12 +330,12 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
+  {{end}}
   <br>
   <hr>
   <strong>Solicitudes pendientes de distribución</strong>
   <br>
-  {{range .ServiciosPendientesDist}}{{if .FirmasCompletas}}
+  {{range .ServiciosPendientesDist}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -350,8 +350,8 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
-  {{range .BienesPendientesDist}}{{if .FirmasCompletas}}
+  {{end}}
+  {{range .BienesPendientesDist}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"
@@ -366,7 +366,7 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
+  {{end}}
   <br>
   <hr>
   <strong>Solicitudes pendientes de Ejecución/Recepción</strong>
@@ -424,7 +424,7 @@
   <hr>
   <strong>Solicitudes pendientes de aprobación</strong>
   <br>
-  {{range .ServiciosPendientesCOES}}{{if .FirmasCompletas}}
+  {{range .ServiciosPendientesCOES}}
   <div class="card-item"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
@@ -439,7 +439,7 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
+  {{end}}
   {{range .SuministrosPendientesCOES}}
   <div class="card-item"
     hx-get="/api/suministro/{{.ID}}"
@@ -455,7 +455,7 @@
     <span class="value">{{if .MontoBrutoTotal}}{{currency .MontoBrutoTotal}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
   {{end}}
-  {{range .BienesPendientesCOES}}{{if .FirmasCompletas}}
+  {{range .BienesPendientesCOES}}
   <div class="card-item"
     hx-get="/api/bienes/{{.ID}}"
     hx-target="#dialog-content"
@@ -470,7 +470,7 @@
     <span class="label">{{if .ProvNom}}{{summary .ProvNom 30}}{{else}}<i>Por definir</i>{{end}}</span>
     <span class="value">{{if .MontoBruto}}{{currency .MontoBruto}}{{else}}<i>Por definir</i>{{end}}</span>
   </div>
-  {{end}}{{end}}
+  {{end}}
   {{range .DonacionesPendientesCOES}}
   <div class="card-item"
     hx-get="/api/donaciones/{{.ID}}"
