@@ -90,7 +90,7 @@
         <div class="card-items">
           {{ range .Cuenta.Servicios }}
           <hr>
-          <div class="card-item"
+          <div class="card-item {{if .Notas}}pending{{end}}"
             hx-get="/api/servicios/{{.ID}}"
             hx-target="#dialog-content"
             hx-swap="innerHTML"
@@ -249,7 +249,7 @@
   <strong>Solicitudes pendientes de registro en GECO</strong>
   <br>
   {{range .ServiciosPendientesGECO}}
-  <div class="card-item"
+  <div class="card-item {{if .Notas}}pending{{end}}"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
     hx-swap="innerHTML"
@@ -300,7 +300,7 @@
   <strong>Solicitudes pendientes de Orden</strong>
   <br>
   {{range .ServiciosPendientesOCS}}
-  <div class="card-item"
+  <div class="card-item {{if .Notas}}pending{{end}}"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
     hx-swap="innerHTML"
@@ -336,7 +336,7 @@
   <strong>Solicitudes pendientes de distribución</strong>
   <br>
   {{range .ServiciosPendientesDist}}
-  <div class="card-item"
+  <div class="card-item {{if .Notas}}pending{{end}}"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
     hx-swap="innerHTML"
@@ -372,7 +372,7 @@
   <strong>Solicitudes pendientes de Ejecución/Recepción</strong>
   <br>
   {{range .ServiciosPendientesEj}}
-  <div class="card-item"
+  <div class="card-item {{if .Notas}}pending{{end}}"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
     hx-swap="innerHTML"
@@ -425,7 +425,7 @@
   <strong>Solicitudes pendientes de aprobación</strong>
   <br>
   {{range .ServiciosPendientesCOES}}
-  <div class="card-item"
+  <div class="card-item {{if .Notas}}pending{{end}}"
     hx-get="/api/servicios/{{.ID}}"
     hx-target="#dialog-content"
     hx-swap="innerHTML"

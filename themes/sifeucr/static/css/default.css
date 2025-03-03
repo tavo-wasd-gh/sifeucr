@@ -11,6 +11,10 @@
   --color-primary-dark: #003d6f;
   --color-secondary: #f7941d;
   --color-accent: #fecc40;
+  --color-warning-primary: #a35200;
+  --color-warning-secondary: #fed69f;
+  --color-error-primary: #B91C1C;
+  --color-error-secondary: #FEE2E2;
   --content-width: 65em;
   --content-width-max: 95%;
 }
@@ -344,6 +348,13 @@ a i {
   padding: 0 0.6em;
 }
 
+.text {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.6em;
+  white-space: pre-line;
+}
+
 .card-title {
   font-size: 1.2em;
   font-weight: bold;
@@ -367,6 +378,10 @@ a i {
   border: 1px solid var(--color-primary);
   background-color: var(--color-fg-secondary);
   box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.2);
+}
+
+.card-item.pending {
+  border: 1px solid var(--color-warning-primary);
 }
 
 .progress-bar {
@@ -627,16 +642,35 @@ tr:nth-child(even) {
 }
 
 .app-error {
-  background-color: #FEE2E2;
-  color: #B91C1C;
+  background-color: var(--color-error-secondary);
+  color: var(--color-error-primary);
   border-radius: 0.4em;
   margin: 1em 0;
   padding: 0.8em;
   text-align: left;
-  border: 1px solid #FCA5A5;
+  border: 1px solid var(--color-error-primary);
   box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
+  white-space: pre-line;
+  font-size: 0.8em;
 }
 
 .app-error:empty {
+  display: none;
+}
+
+.app-warning {
+  background-color: var(--color-warning-secondary);
+  color: var(--color-warning-primary);
+  border-radius: 0.4em;
+  margin: 1em 0;
+  padding: 0.8em;
+  text-align: left;
+  border: 1px solid var(--color-warning-primary);
+  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
+  white-space: pre-line;
+  font-size: small;
+}
+
+.app-warning:empty {
   display: none;
 }

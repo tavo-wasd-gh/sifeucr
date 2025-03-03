@@ -2,7 +2,7 @@
 title: "Inicio"
 ---
 
-# Enero 2025
+# Febrero 2025
 
 ## Indicaciones para Emisión de Presupuesto 2025
 
@@ -45,3 +45,93 @@ Emitido por Contraloría Estudiantil para la elaboración de justificaciones:
 7. ¿De qué forma este servicio beneficia a estas personas?
 8. Los detalles del servicio: en caso de que sea de alimentos deberán especificar si es un casado, una lasaña, un  pastel, etc.  Si  lleva  refresco, fruta, postre, entre otros detalles.
 9. Declaración jurada: _"La contratación de este servicio será realizado bajo la normativa nacional e institucional de la UCR velando por el correcto cumplimiento de los deberes y derechos de ambas partes involucradas"_.
+
+# Enero 2025
+
+## Distribución Presupuestaria 2025
+
+<canvas style="padding:0.2em 1em;" id="dist2025cse"></canvas>
+<script>
+const dist2025cse = document.getElementById('dist2025cse');
+new Chart(dist2025cse, {
+    type: 'bar',
+    data: {
+        labels: [
+            "Cuerpo Coordinador",
+            "Asociaciones Estudiantiles Federadas Plenas de la Sede Rodrigo Facio",
+            "Asociaciones Estudiantiles de Sedes Regionales",
+            "Consejos de Asociaciones de Carrera de Sedes y Recintos Regionales",
+            "Comisión Evaluadora de Proyectos",
+            "Consejos de Asociaciones Estudiantiles",
+            "Consejo de Estudiantes de Sedes y Recintos Regionales",
+        ],
+        datasets: [{
+            label: "Presupuesto solamente CSE 2025 (₡)",
+            data: [
+                7244939.73,
+                75347373.14,
+                28979758.90,
+                17387855.34,
+                13040891.51,
+                5795951.78, 
+                5795951.78,
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        scales: {
+            y: {
+                beginAtZero: true
+            },
+            x: {
+                display: false
+            }
+        },
+    }
+});
+</script>
+
+<canvas style="padding:0.2em 1em;" id="dist2025org"></canvas>
+<script>
+const dist2025org = document.getElementById('dist2025org');
+new Chart(dist2025org, {
+    type: 'bar',
+    data: {
+        labels: [
+            "Tribunal Electoral Estudiantil Universitario",
+            "Contraloría Estudiantil",
+            "Defensoría Estudiantil Universitaria",
+            "Frente Ecologista Universitario",
+            "Editorial Estudiantil",
+            "Secretaría de Finanzas",
+            "Procuraduría Estudiantil Universitaria",
+        ],
+        datasets: [{
+            label: "Presupuesto Órganos (sin CSE ni DIR) 2025 (₡)",
+            data: [
+                24632795.07,
+                2897975.89,
+                5795951.78,
+                1448987.95,
+                11591903.56,
+                1448987.95,
+                1448987.95
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        scales: {
+            y: {
+                beginAtZero: true
+            },
+            x: {
+                display: false
+            }
+        },
+    }
+});
+</script>

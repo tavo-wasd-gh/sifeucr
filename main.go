@@ -112,6 +112,11 @@ func main() {
 	http.HandleFunc("/api/movimientos/servicio/", app.handleMovimientosServicio)
 	http.HandleFunc("/api/movimientos/bien/", app.handleMovimientosBien)
 
+	// Mandar a corregir
+	http.HandleFunc("/api/corregir/servicio/", app.handleCorregirServicio)
+	// Actualizar
+	http.HandleFunc("/api/actualizar/servicio/", app.handleActualizarServicio)
+
 	// Solicitud GECO
 	http.HandleFunc("/api/geco/servicio/", app.handleRegistrarSolicitudServicioGECO)
 	http.HandleFunc("/api/geco/suministro/", app.handleRegistrarSolicitudSuministroGECO)
@@ -2017,6 +2022,119 @@ func (app *App) handleMovimientosServicio(w http.ResponseWriter, r *http.Request
 	}
 
 	w.Header().Set("HX-Redirect", "/dashboard")
+}
+
+func (app *App) handleCorregirServicio(w http.ResponseWriter, r *http.Request) {
+	const errResp = "Error mandando a corregir"
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 5 {
+		app.log("not enough segments")
+		fmt.Fprint(w, errResp)
+		return
+	}
+	id := segments[4]
+
+	if err := r.ParseForm(); err != nil {
+		app.log("error parsing form")
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	description := r.FormValue("description")
+	justif := r.FormValue("justif")
+
+	var notes string
+
+	if id == "" {
+		return
+	}
+
+	if description != "" {
+		notes = "Corregir Detalle: " + description
+	}
+
+	if justif != "" {
+		notes = "Corregir Justificación: " + justif
+	}
+
+	if err := database.UpdateServicioNotas(app.DB, id, cuenta, notes); err != nil {
+		app.log("error parsing form: %v", err)
+		return
+	}
+}
+
+func (app *App) handleActualizarServicio(w http.ResponseWriter, r *http.Request) {
+	const errResp = "Error mandando a corregir"
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	_, cuenta, err := auth.JwtValidate(r, "token", app.Secret)
+	if err != nil {
+		app.log("error validating token: %v", err)
+		w.Header().Set("HX-Redirect", "/dashboard")
+		return
+	}
+
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) < 5 {
+		app.log("not enough segments")
+		fmt.Fprint(w, errResp)
+		return
+	}
+	id := segments[4]
+
+	if err := r.ParseForm(); err != nil {
+		app.log("error parsing form")
+		fmt.Fprint(w, errResp)
+		return
+	}
+
+	description := r.FormValue("description")
+	justif := r.FormValue("justif")
+	dateStr := r.FormValue("date")
+
+	if id == "" {
+		return
+	}
+
+	if description != "" {
+		if err := database.UpdateServicioDescription(app.DB, id, cuenta, description); err != nil {
+			app.log("error updating service: %v", err)
+			return
+		}
+	}
+
+	if justif != "" {
+		if err := database.UpdateServicioJustif(app.DB, id, cuenta, justif); err != nil {
+			app.log("error updating service: %v", err)
+			return
+		}
+	}
+
+	if dateStr != "" {
+		date, err := time.Parse("2006-01-02T15:04", dateStr)
+		if err != nil {
+			log.Fatalf("Invalid date format: %v", err)
+		}
+
+		if !date.IsZero() {
+			if err := database.UpdateServicioDate(app.DB, id, cuenta, date); err != nil {
+				app.log("error updating service: %v", err)
+			}
+		}
+	}
 }
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {

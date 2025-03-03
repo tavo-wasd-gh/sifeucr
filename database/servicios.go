@@ -1036,3 +1036,79 @@ func ServiciosPendientesEjecucion(db *sql.DB, periodo int) ([]Servicio, error) {
 
 	return servicios, nil
 }
+
+func UpdateServicioNotas(db *sql.DB, id, cuenta, notas string) error {
+	if cuenta != "SF" && cuenta != "COES" {
+		return fmt.Errorf("Not authorized")
+	}
+
+	query := `
+	UPDATE servicios 
+	SET notas = CASE 
+	WHEN notas IS NULL OR notas = '' THEN ? 
+	ELSE notas || char(10) || ? 
+	END 
+	WHERE id = ?
+	`
+	_, err := db.Exec(query, notas, notas, id)
+
+	if err != nil {
+		return fmt.Errorf("Error updating: %v", err)
+	}
+
+	return nil
+}
+
+func UpdateServicioDescription(db *sql.DB, id, cuenta, description string) error {
+	query := `
+	UPDATE servicios 
+	SET detalle = ? 
+	WHERE id = ?;
+
+	UPDATE servicios
+	SET notas = NULL
+	WHERE id = ?;
+	`
+	_, err := db.Exec(query, description, id, id)
+
+	if err != nil {
+		return fmt.Errorf("Error updating: %v", err)
+	}
+
+	return nil
+}
+
+func UpdateServicioJustif(db *sql.DB, id, cuenta, justif string) error {
+	query := `
+	UPDATE servicios 
+	SET justif = ? 
+	WHERE id = ?;
+
+	UPDATE servicios
+	SET notas = NULL
+	WHERE id = ?;
+	`
+	_, err := db.Exec(query, justif, id, id)
+
+	if err != nil {
+		return fmt.Errorf("Error updating: %v", err)
+	}
+
+	return nil
+}
+
+func UpdateServicioDate(db *sql.DB, id, cuenta string, fecha time.Time) error {
+	query := `
+	UPDATE servicios 
+	SET por_ejecutar = ? 
+	WHERE id = ?
+	`
+
+	_, err := db.Exec(query, fecha, id)
+
+	if err != nil {
+		return fmt.Errorf("Error updating date: %v", err)
+	}
+
+	return nil
+}

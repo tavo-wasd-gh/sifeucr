@@ -12,6 +12,18 @@
 <div class="card-header">
   <small>Fecha para ejecutar: <i>{{datetime .PorEjecutar}}</i></small>
 </div>
+{{if not .GecoSol}}
+<br>
+<form id="date-update" hx-post="/api/actualizar/servicio/{{.ID}}">
+    <div class="card-header">
+      <input type="datetime-local" name="date" placeholder="Nueva fecha" required>
+    </div>
+    <div class="card-header">
+      <span></span>
+      <button style="margin:0.5em;" id="rem-item">Actualizar fecha</button>
+    </div>
+</form>
+{{end}}
 <br>
 <hr>
 <div class="card-header">
@@ -105,13 +117,41 @@
 {{ end }}
 <br>
 <hr>
+{{if .Notas}}
+<div class="app-warning">{{.Notas}}</div>
+{{end}}
 <div class="card-header">
   <p><strong>Detalle</strong></p>
 </div>
 <div class="card-header">
-  <small>{{.Detalle}}</small>
+  <div class="text"><small>{{.Detalle}}</small></div>
 </div>
 <br>
+{{if not .GecoSol}}
+<form id="description-update" hx-post="/api/actualizar/servicio/{{.ID}}">
+    <div class="card-header">
+      <textarea name="description" placeholder="Nuevo detalle" required></textarea>
+    </div>
+    <div class="card-header">
+      <span></span>
+      <button style="margin:0.5em;" id="rem-item">Actualizar detalle</button>
+    </div>
+</form>
+{{end}}
+{{if (eq .CuentaLoggeada "SF")}}
+<br>
+<form id="ask-description-correction" hx-post="/api/corregir/servicio/{{.ID}}">
+    <div class="card-header">
+      <input type="text" name="description" placeholder="Motivo" required>
+    </div>
+    <div class="card-header">
+      <span></span>
+      <button style="margin:0.5em;" id="rem-item">Mandar a corregir</button>
+    </div>
+</form>
+{{end}}
+<br>
+<hr>
 <div class="card-header">
   <span>
     <strong>Justificación</strong>
@@ -125,14 +165,46 @@
   <div style="background-color: {{if .COES}}peru{{end}}" class="tag {{if .COES}}active{{end}}">COES</div>
 </div>
 <div class="card-header">
-  <small>{{.Justif}}</small>
+  <div class="text"><small>{{.Justif}}</small></div>
 </div>
+<br>
+<form id="justif-update" hx-post="/api/actualizar/servicio/{{.ID}}">
+    <div class="card-header">
+      <textarea name="justif" placeholder="Nueva justificación" required></textarea>
+    </div>
+    <div class="card-header">
+      <span></span>
+      <button style="margin:0.5em;" id="rem-item">Actualizar justificación</button>
+    </div>
+</form>
 {{if (eq .CuentaLoggeada "COES")}}
 <form hx-post="/api/aprobar/servicio/{{.ID}}">
   <div class="htmx-button-div">
     <button type="submit">Aprobar</button>
     <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
   </div>
+</form>
+<br>
+<form id="ask-justif-correction" hx-post="/api/corregir/servicio/{{.ID}}">
+    <div class="card-header">
+      <input type="text" name="justif" placeholder="Motivo" required>
+    </div>
+    <div class="card-header">
+      <span></span>
+      <button style="margin:0.5em;" id="rem-item">Mandar a corregir</button>
+    </div>
+</form>
+{{end}}
+{{if (eq .CuentaLoggeada "SF")}}
+<br>
+<form id="ask-justif-correction" hx-post="/api/corregir/servicio/{{.ID}}">
+    <div class="card-header">
+      <input type="text" name="justif" placeholder="Motivo" required>
+    </div>
+    <div class="card-header">
+      <span></span>
+      <button style="margin:0.5em;" id="rem-item">Mandar a corregir</button>
+    </div>
 </form>
 {{end}}
 <br>
