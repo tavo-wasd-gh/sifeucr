@@ -1,0 +1,18 @@
+{{define "setup.html"}}
+<main>
+  <h1>Configuración Inicial</h1>
+  <p>Crear usuario con permisos avanzados</p>
+  <form hx-post="/api/setup" hx-target="closest main" hx-swap="outerHTML">
+    <input type="text" id="account" name="account" value="Coordinación Secretaría de Finanzas" disabled>
+    <br>
+    <input type="text" id="email" name="email" placeholder="Correo institucional" required>
+    <br>
+    <input type="text" id="name" name="name" placeholder="Nombre completo" required>
+    <br>
+    <div class="htmx-button-div">
+      <button type="submit">Registrar</button>
+      <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
+    </div>
+  </form>
+</main>
+{{end}}

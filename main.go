@@ -14,9 +14,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/tavo-wasd-gh/gosmtp"
+	"github.com/tavo-wasd-gh/sifeucr/auth"
 	"github.com/tavo-wasd-gh/sifeucr/config"
 	"github.com/tavo-wasd-gh/sifeucr/database"
-	"github.com/tavo-wasd-gh/sifeucr/auth"
 	"github.com/tavo-wasd-gh/webtoolkit/cors"
 	"github.com/tavo-wasd-gh/webtoolkit/logger"
 	"github.com/tavo-wasd-gh/webtoolkit/views"
@@ -28,6 +28,7 @@ type App struct {
 	Log        *logger.Logger
 	DB         *sqlx.DB
 	Secret     string
+	Setup      bool
 }
 
 //go:embed public/*
@@ -67,18 +68,24 @@ func main() {
 	}
 	defer db.Close()
 
+	setup, err := database.SetupNeeded(db)
+	if err != nil {
+		log.Fatalf("%v", logger.Errorf("failed to check for setup: %v", err))
+	}
+
 	app := &App{
 		Production: env.Production,
 		Views:      views,
 		Log:        &logger.Logger{Enabled: env.Debug},
 		DB:         db,
 		Secret:     env.Secret,
+		Setup:      setup,
 	}
 
 	// Handlers
+	http.HandleFunc("/api/login", app.handleLogin)
 	http.HandleFunc("/api/dashboard", app.handleDashboard)
 	http.HandleFunc("/api/panel", app.handlePanel)
-	http.HandleFunc("/api/login", app.handleLogin)
 	http.HandleFunc("/api/setup", app.handleSetup)
 
 	// Serve files in public/
@@ -115,11 +122,20 @@ func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := views.Render(w, app.Views["login"], nil); err != nil {
-			app.Log.Errorf("error rendering template: %v", err)
-			http.Error(w, "", http.StatusInternalServerError)
-			return
+		if app.Setup {
+			if err := views.Render(w, app.Views["setup"], nil); err != nil {
+				app.Log.Errorf("error rendering template: %v", err)
+				http.Error(w, "", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			if err := views.Render(w, app.Views["login"], nil); err != nil {
+				app.Log.Errorf("error rendering template: %v", err)
+				http.Error(w, "", http.StatusInternalServerError)
+				return
+			}
 		}
+
 	}
 
 	if r.Method == http.MethodPost {
@@ -212,6 +228,10 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	if err := user.Login(app.DB); err != nil {
 		app.Log.Errorf("error logging in: %v", err)
 		http.Error(w, "", http.StatusUnauthorized)
+		// FIXME: This is not working:
+		// When deleting user from db, a cookie will still be
+		// in browser for the time set after initializing token
+		//auth.JwtClear(w, app.Production, "token", "/api")
 		return
 	}
 
@@ -226,4 +246,59 @@ func (app *App) handlePanel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) handleSetup(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	if !app.Setup {
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		app.Log.Errorf("error parsing form: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	email := r.FormValue("email")
+	name := r.FormValue("name")
+
+	if email == "" || name == "" {
+		app.Log.Errorf("error parsing form: empty")
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	account := database.Account{
+		ID:   "SF",
+		Name: "Secretaría de Finanzas",
+		TEEU: true,
+		COES: true,
+	}
+
+	if err := account.Register(app.DB); err != nil {
+		app.Log.Errorf("error registering account: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	user := database.User{
+		ID:   strings.TrimSpace(strings.Split(email, "@")[0]),
+		Name: strings.TrimSpace(name),
+		Perms: []database.Permission{
+			{
+				Account: "SF",
+				Integer: auth.Advanced,
+			},
+		},
+	}
+
+	if err := user.FirstSetupUser(app.DB); err != nil {
+		app.Log.Errorf("error registering user: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	app.Setup = false
+	w.Header().Set("HX-Redirect", "/dashboard")
 }

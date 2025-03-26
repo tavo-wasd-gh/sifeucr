@@ -26,3 +26,12 @@ func Init(connDvr, connStr string) (*sqlx.DB, error) {
 
 	return db, nil
 }
+
+func SetupNeeded(db *sqlx.DB) (bool, error) {
+	var count int
+	err := db.Get(&count, "SELECT COUNT(*) FROM users")
+	if err != nil {
+		return false, logger.Errorf("failed to query users: %v", err)
+	}
+	return count == 0, nil
+}

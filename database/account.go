@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/tavo-wasd-gh/webtoolkit/logger"
 	"github.com/jmoiron/sqlx"
+	"github.com/tavo-wasd-gh/webtoolkit/logger"
 )
 
 type Account struct {
@@ -21,7 +21,7 @@ func accountByID(db *sqlx.DB, id string) (Account, error) {
 		return account, logger.Errorf("error querying account by id '%s': %v", id, err)
 	}
 
-	budgets, err := budgetsByAccount(db, id); 
+	budgets, err := budgetsByAccount(db, id)
 	if err != nil {
 		return account, logger.Errorf("error querying budgets by account '%s': %v", id, err)
 	}
@@ -50,4 +50,27 @@ func accountsByUser(db *sqlx.DB, email string) ([]Account, error) {
 	}
 
 	return accounts, nil
+}
+
+func (a *Account) Register(db *sqlx.DB) error {
+	var exists bool
+
+	err := db.Get(&exists, `SELECT EXISTS(SELECT 1 FROM accounts WHERE id = ?)`, a.ID)
+	if err != nil {
+		return logger.Errorf("error checking account existence: %v", err)
+	}
+
+	if exists {
+		return logger.Errorf("account with id '%s' already exists", a.ID)
+	}
+
+	_, err = db.Exec(
+		`INSERT INTO accounts (id, name, teeu, coes) VALUES (?, ?, ?, ?)`,
+		a.ID, a.Name, a.TEEU, a.COES,
+	)
+	if err != nil {
+		return logger.Errorf("error inserting account: %v", err)
+	}
+
+	return nil
 }

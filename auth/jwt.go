@@ -67,3 +67,15 @@ func JwtValidate(r *http.Request, name string, secret string) (string, string, e
 
 	return "", "", fmt.Errorf("invalid token or claims")
 }
+
+func JwtClear(w http.ResponseWriter, secure bool, name string, path string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Path:     path,
+		SameSite: http.SameSiteStrictMode,
+		Secure:   secure,
+	})
+}
