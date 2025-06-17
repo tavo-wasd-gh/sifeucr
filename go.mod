@@ -1,11 +1,15 @@
-module github.com/tavo-wasd-gh/sifeucr
+module github.com/tavo-wasd-gh/webapp
 
-go 1.23.4
+go 1.24.0
 
 require (
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/tavo-wasd-gh/gocors v0.0.0-20241107122431-194a6c15418f
-	github.com/tavo-wasd-gh/gosmtp v0.0.0-20241110165451-c3871e5039ad
+	github.com/mattn/go-sqlite3 v1.14.28
+	github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250617074827-6f192ff5c5ac
+)
+
+require (
+	github.com/tdewolff/minify/v2 v2.23.8 // indirect
+	github.com/tdewolff/parse/v2 v2.8.1 // indirect
 )
