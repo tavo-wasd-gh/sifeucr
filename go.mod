@@ -6,7 +6,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.28
-	github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250619055253-02a2d4d2df20
+	github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250619132730-9fe9e5ea1200
 )
 
 require (

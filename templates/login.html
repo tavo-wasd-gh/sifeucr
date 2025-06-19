@@ -1,5 +1,14 @@
-{{ define "content" }}
-<form hx-post="/api/login">
+{{ define "login" }}
+<form hx-post="/api/login" hx-target="main" hx-swap="innerHTML" hx-ext="loading-state">
+  {{ if .Error }}
+  <article>
+    <header class="pico-background-amber-150">
+      Error iniciando sesión
+    </header>
+    Verifica que estás digitando el correo y contraseña institucional,
+    o consulta con Secretaría de Finanzas si tienes un usuario habilitado.
+  </article>
+  {{ end }}
   <label for="email">Correo Institucional</label>
   <input
     id="email"
@@ -18,6 +27,8 @@
     aria-label="Password"
     required
   >
-  <button type="submit">Iniciar</button>
+  <button type="submit" loading-state>
+    Iniciar
+  </button>
 </form>
 {{ end }}

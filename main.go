@@ -72,13 +72,9 @@ func main() {
 		Cookie:     "session",
 	}
 
-	// Templates
-	http.HandleFunc("/login", app.handleTemplate("login"))
-	http.HandleFunc("/cuenta", app.handleTemplate("dashboard"))
-	http.HandleFunc("/", app.handleTemplate("index"))
-
-	// API
-	http.HandleFunc("/api/login", app.handleLoginForm)
+	// Pages
+	http.HandleFunc("/cuenta", app.handleDashboard)
+	http.HandleFunc("/", app.handleStaticTemplate("index-page"))
 
 	// Serve files in static/
 	staticFiles, err := fs.Sub(publicFS, "static")
@@ -86,6 +82,9 @@ func main() {
 		log.Fatalf("%v", logger.Errorf("failed to create sub filesystem: %v", err))
 	}
 	http.Handle("/s/", http.StripPrefix("/s/", http.FileServer(http.FS(staticFiles))))
+
+	// Views
+	http.HandleFunc("/api/login", app.handleLoginForm)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -101,7 +100,11 @@ func main() {
 	<-stop
 }
 
-func (app *App) handleTemplate(name string) http.HandlerFunc {
+// -----------------------
+// STATIC PAGES RENDERERS
+// -----------------------
+
+func (app *App) handleStaticTemplate(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 			return
@@ -114,6 +117,43 @@ func (app *App) handleTemplate(name string) http.HandlerFunc {
 		}
 	}
 }
+
+// -----------------------
+// DYNAMIC PAGES RENDERERS
+// -----------------------
+
+func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	var claims JwtClaims
+
+	if err := auth.JwtValidate(r, "/", app.Cookie, app.Secret, &claims); err != nil {
+		// app.Log.Errorf("error validating JWT: %v", err) // DEBUG
+
+		if err := views.Render(w, app.Views["login-page"], nil); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	// TODO: Load data for dashboard
+	//var data database.DashboardData
+
+	if err := views.Render(w, app.Views["dashboard-page"], nil); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+}
+
+// ------------------
+// HTML API ENDPOINTS
+// ------------------
 
 func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
@@ -140,18 +180,21 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		//Account: "SF",
 	}
 
-	if err := auth.JwtSet(
-		w,
-		app.Production,
-		app.Cookie,
-		claims,
-		time.Now().Add(time.Hour),
-		app.Secret,
-	); err != nil {
+	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(time.Hour), app.Secret); err != nil {
 		app.Log.Errorf("error setting JWT cookie: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
+
+		if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
 		return
 	}
 
-	w.Header().Set("HX-Redirect", "/cuenta")
+	if err := views.Render(w, app.Views["dashboard"], nil); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 }
