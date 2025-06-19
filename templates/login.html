@@ -1,0 +1,23 @@
+{{ define "content" }}
+<form hx-post="/api/login">
+  <label for="email">Correo Institucional</label>
+  <input
+    id="email"
+    type="email"
+    name="email"
+    placeholder="nombre.apellidos@ucr.ac.cr"
+    aria-label="Email"
+    autocomplete="email"
+    required
+  >
+  <label for="password">Contraseña</label>
+  <input
+    id="password"
+    type="password"
+    name="password"
+    aria-label="Password"
+    required
+  >
+  <button type="submit">Iniciar</button>
+</form>
+{{ end }}

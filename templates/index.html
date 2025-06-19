@@ -44,88 +44,169 @@
 </ol>
 <h1>Enero 2025</h1>
 <h2>Distribución Presupuestaria 2025</h2>
-<p class="overflow-auto"><canvas style="padding: 0.2em 1em; display: block; box-sizing: border-box; height: 307px; width: 614px;" id="dist2025cse" width="614" height="307"></canvas></p>
-<script>
-const dist2025cse = document.getElementById('dist2025cse');
-new Chart(dist2025cse, {
-    type: 'bar',
-    data: {
-        labels: [
-            "Cuerpo Coordinador",
-            "Asociaciones Estudiantiles Federadas Plenas de la Sede Rodrigo Facio",
-            "Asociaciones Estudiantiles de Sedes Regionales",
-            "Consejos de Asociaciones de Carrera de Sedes y Recintos Regionales",
-            "Comisión Evaluadora de Proyectos",
-            "Consejos de Asociaciones Estudiantiles",
-            "Consejo de Estudiantes de Sedes y Recintos Regionales",
-        ],
-        datasets: [{
-            label: "Presupuesto solamente CSE 2025 (₡)",
-            data: [
-                7244939.73,
-                75347373.14,
-                28979758.90,
-                17387855.34,
-                13040891.51,
-                5795951.78,
-                5795951.78,
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        indexAxis: 'y',
-        scales: {
-            y: {
-                beginAtZero: true
-            },
-            x: {
-                display: false
-            }
-        },
-    }
-});
-</script>
-<p class="overflow-auto"><canvas style="padding: 0.2em 1em; display: block; box-sizing: border-box; height: 298px; width: 596px;" id="dist2025org" width="596" height="298"></canvas></p>
-<script>
-const dist2025org = document.getElementById('dist2025org');
-new Chart(dist2025org, {
-    type: 'bar',
-    data: {
-        labels: [
-            "Tribunal Electoral Estudiantil Universitario",
-            "Contraloría Estudiantil",
-            "Defensoría Estudiantil Universitaria",
-            "Frente Ecologista Universitario",
-            "Editorial Estudiantil",
-            "Secretaría de Finanzas",
-            "Procuraduría Estudiantil Universitaria",
-        ],
-        datasets: [{
-            label: "Presupuesto Órganos (sin CSE ni DIR) 2025 (₡)",
-            data: [
-                24632795.07,
-                2897975.89,
-                5795951.78,
-                1448987.95,
-                11591903.56,
-                1448987.95,
-                1448987.95
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        indexAxis: 'y',
-        scales: {
-            y: {
-                beginAtZero: true
-            },
-            x: {
-                display: false
-            }
-        },
-    }
-});
-</script>
+<div class="overflow-auto">
+  <table class="striped"><thead>
+    <tr>
+      <th>Órgano</th>
+      <th>Porcentaje</th>
+      <th>Servicios</th>
+      <th>Suministros</th>
+      <th>Activos</th>
+      <th>Total</th>
+    </tr></thead>
+  <tbody>
+    <tr>
+      <td>Consejo Superior Estudiantil</td>
+      <td>53.00%</td>
+      <td>₡141,732,144.73</td>
+      <td>₡4,518,250.00</td>
+      <td>₡7,342,327.44</td>
+      <td>₡153,592,722.17</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuerpo Coordinador</td>
+      <td>2.50%</td>
+      <td>₡6,685,478.53</td>
+      <td>₡213,125.00</td>
+      <td>₡346,336.20</td>
+      <td>₡7,244,939.73</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Asociaciones Estudiantiles Federadas Plenas de la Sede Rodrigo Facio</td>
+      <td>26.00%</td>
+      <td>₡69,528,976.66</td>
+      <td>₡2,216,500.00</td>
+      <td>₡3,601,896.48</td>
+      <td>₡75,347,373.14</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Asociaciones Estudiantiles de Sedes Regionales</td>
+      <td>10.00%</td>
+      <td>₡26,741,914.10</td>
+      <td>₡852,500.00</td>
+      <td>₡1,385,344.80</td>
+      <td>₡28,979,758.90</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Consejos de Asociaciones de Carrera de Sedes y Recintos Regionales</td>
+      <td>6.00%</td>
+      <td>₡16,045,148.46</td>
+      <td>₡511,500.00</td>
+      <td>₡831,206.88</td>
+      <td>₡17,387,855.34</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Comisión Evaluadora de Proyectos</td>
+      <td>4.50%</td>
+      <td>₡12,033,861.35</td>
+      <td>₡383,625.00</td>
+      <td>₡623,405.16</td>
+      <td>₡13,040,891.51</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Consejos de Asociaciones Estudiantiles</td>
+      <td>2.00%</td>
+      <td>₡5,348,382.82</td>
+      <td>₡170,500.00</td>
+      <td>₡277,068.96</td>
+      <td>₡5,795,951.78</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Consejo de Estudiantes de Sedes y Recintos Regionales</td>
+      <td>2.00%</td>
+      <td>₡5,348,382.82</td>
+      <td>₡170,500.00</td>
+      <td>₡277,068.96</td>
+      <td>₡5,795,951.78</td>
+    </tr>
+    <tr>
+      <td>Directorio</td>
+      <td>30.00%</td>
+      <td>₡80,225,742.30</td>
+      <td>₡2,557,500.00</td>
+      <td>₡4,156,034.40</td>
+      <td>₡86,939,276.70</td>
+    </tr>
+    <tr>
+      <td>Tribunal Electoral Estudiantil Universitario</td>
+      <td>8.50%</td>
+      <td>₡22,730,626.99</td>
+      <td>₡724,625.00</td>
+      <td>₡1,177,543.08</td>
+      <td>₡24,632,795.07</td>
+    </tr>
+    <tr>
+      <td>Contraloría Estudiantil</td>
+      <td>1.00%</td>
+      <td>₡2,674,191.41</td>
+      <td>₡85,250.00</td>
+      <td>₡138,534.48</td>
+      <td>₡2,897,975.89</td>
+    </tr>
+    <tr>
+      <td>Defensoría Estudiantil Universitaria</td>
+      <td>2.00%</td>
+      <td>₡5,348,382.82</td>
+      <td>₡170,500.00</td>
+      <td>₡277,068.96</td>
+      <td>₡5,795,951.78</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sede Rodrigo Facio</td>
+      <td>1.50%</td>
+      <td>₡4,011,287.12</td>
+      <td>₡127,875.00</td>
+      <td>₡207,801.72</td>
+      <td>₡4,346,963.84</td>
+    </tr>
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defensorías de Sedes y Recintos Regionales</td>
+      <td>0.50%</td>
+      <td>₡1,337,095.71</td>
+      <td>₡42,625.00</td>
+      <td>₡69,267.24</td>
+      <td>₡1,448,987.95</td>
+    </tr>
+    <tr>
+      <td>Frente Ecologista Universitario</td>
+      <td>0.50%</td>
+      <td>₡1,337,095.71</td>
+      <td>₡42,625.00</td>
+      <td>₡69,267.24</td>
+      <td>₡1,448,987.95</td>
+    </tr>
+    <tr>
+      <td>Editorial Estudiantil</td>
+      <td>4.00%</td>
+      <td>₡10,696,765.64</td>
+      <td>₡341,000.00</td>
+      <td>₡554,137.92</td>
+      <td>₡11,591,903.56</td>
+    </tr>
+    <tr>
+      <td>Secretaría de Finanzas</td>
+      <td>0.50%</td>
+      <td>₡1,337,095.71</td>
+      <td>₡42,625.00</td>
+      <td>₡69,267.24</td>
+      <td>₡1,448,987.95</td>
+    </tr>
+    <tr>
+      <td>Procuraduría Estudiantil Universitaria</td>
+      <td>0.50%</td>
+      <td>₡1,337,095.71</td>
+      <td>₡42,625.00</td>
+      <td>₡69,267.24</td>
+      <td>₡1,448,987.95</td>
+    </tr>
+    <tr>
+      <td>Total</td>
+      <td>100.00%</td>
+      <td>₡267,419,141.00</td>
+      <td>₡8,525,000.00</td>
+      <td>₡13,853,448.00</td>
+      <td>₡289,797,589.00</td>
+    </tr>
+  </tbody></table>
+</div>
 {{ end }}

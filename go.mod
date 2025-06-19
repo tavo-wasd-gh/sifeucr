@@ -6,10 +6,11 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.28
-	github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250617074827-6f192ff5c5ac
+	github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250619055253-02a2d4d2df20
 )
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/tdewolff/minify/v2 v2.23.8 // indirect
 	github.com/tdewolff/parse/v2 v2.8.1 // indirect
 )

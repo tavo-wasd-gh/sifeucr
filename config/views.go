@@ -13,6 +13,14 @@ var ViewMap = map[string][]string{
 		"templates/_partials/footer.html",
 	},
 
+	"login": {
+		"templates/baseof.html",
+		"templates/_partials/head.html",
+		"templates/_partials/header.html",
+		"templates/login.html",
+		"templates/_partials/footer.html",
+	},
+
 	"dashboard": {
 		"templates/baseof.html",
 		"templates/_partials/head.html",
