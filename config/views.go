@@ -40,12 +40,12 @@ var ViewMap = map[string][]string{
 		"templates/dashboard.html",
 	},
 
-	"providers-page": {
+	"suppliers-page": {
 		"templates/baseof.html",
 		"templates/_partials/head.html",
 		"templates/_partials/header.html",
-		"templates/providers.html",
-		"templates/providers-page.html",
+		"templates/suppliers.html",
+		"templates/suppliers-page.html",
 		"templates/_partials/footer.html",
 	},
 

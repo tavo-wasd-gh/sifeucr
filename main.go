@@ -93,7 +93,7 @@ func main() {
 
 	// Pages (Public)
 	http.HandleFunc("/", app.handleIndex)
-	http.HandleFunc("/proveedores", app.handleProviders)
+	http.HandleFunc("/proveedores", app.handleSuppliers)
 	http.HandleFunc("/fse", app.handleFSE)
 
 	// Serve files in static/
@@ -241,12 +241,12 @@ func (app *App) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) handleProviders(w http.ResponseWriter, r *http.Request) {
+func (app *App) handleSuppliers(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
 
-	if err := views.Render(w, app.Views["providers-page"], nil); err != nil {
+	if err := views.Render(w, app.Views["suppliers-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "index", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
