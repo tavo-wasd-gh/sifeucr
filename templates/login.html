@@ -1,15 +1,24 @@
 {{ define "login" }}
 <form hx-post="/api/login" hx-target="main" hx-swap="innerHTML" hx-ext="loading-state">
+  {{ if .ExternalEmail }}
+  <article>
+    <header class="pico-background-amber-150">
+      Error iniciando sesión
+    </header>
+    Si es una entidad proveedora, visita la pestaña <a href="/proveedores">Proveedores</a>
+    para ingresar o generar un código de autenticación para revisar el estado de sus solicitudes.
+  </article>
+  {{ end }}
   {{ if .Error }}
   <article>
     <header class="pico-background-amber-150">
       Error iniciando sesión
     </header>
-    Verifica que estás digitando el correo y contraseña institucional,
+    Verifica que estás digitando el correo y contraseña institucional
     o consulta con Secretaría de Finanzas si tienes un usuario habilitado.
   </article>
   {{ end }}
-  <label for="email">Correo Institucional</label>
+  <label for="email">Usuario</label>
   <input
     id="email"
     type="email"

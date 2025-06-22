@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/tavo-wasd-gh/gosmtp"
 	"github.com/tavo-wasd-gh/webapp/config"
 	"github.com/tavo-wasd-gh/webapp/database"
 	"github.com/tavo-wasd-gh/webtoolkit/auth"
@@ -26,6 +28,8 @@ type App struct {
 	Views      map[string]*template.Template
 	Log        *logger.Logger
 	DB         *sqlx.DB
+	// HTTP
+	AllowOrigin string
 	// JWT
 	Secret string
 	Cookie string
@@ -44,37 +48,53 @@ var publicFS embed.FS
 var viewFS embed.FS
 
 func main() {
-	// Configure environment in config/config.go
+	// Configure in config/config.go
 	env, err := config.Init()
 	if err != nil {
 		log.Fatalf("%v", logger.Errorf("failed to initialize config: %v", err))
 	}
 
-	// Configure views in config/views.go
+	// Configure in config/views.go
 	views, err := views.Init(viewFS, config.ViewMap, config.FuncMap)
 	if err != nil {
 		log.Fatalf("%v", logger.Errorf("failed to initialize views: %v", err))
 	}
 
-	// Defaults to "sqlite3" and "./db.db" if not set, modify in database/database.go
+	// Configure in database/database.go
 	db, err := database.Init(env.DBConnDvr, env.DBConnStr)
 	if err != nil {
 		log.Fatalf("%v", logger.Errorf("failed to initialize database: %v", err))
 	}
 	defer db.Close()
 
-	app := &App{
-		Production: env.Production,
-		Views:      views,
-		Log:        &logger.Logger{Enabled: env.Debug},
-		DB:         db,
-		Secret:     env.Secret,
-		Cookie:     "session",
+	var allowOrigin string
+
+	if env.AllowOrigin != "" {
+		allowOrigin = env.AllowOrigin
+	} else {
+		allowOrigin = "*"
 	}
 
-	// Pages
+	app := &App{
+		Production:  env.Production,
+		Views:       views,
+		Log:         &logger.Logger{Enabled: env.Debug},
+		DB:          db,
+		AllowOrigin: allowOrigin,
+		Secret:      env.Secret,
+		Cookie:      "session",
+	}
+
+	// Views (Auth required)
+	http.HandleFunc("/api/login", app.handleLoginForm)
+
+	// Pages (Auth required)
 	http.HandleFunc("/cuenta", app.handleDashboard)
-	http.HandleFunc("/", app.handleStaticTemplate("index-page"))
+
+	// Pages (Public)
+	http.HandleFunc("/", app.handleIndex)
+	http.HandleFunc("/proveedores", app.handleProviders)
+	http.HandleFunc("/fse", app.handleFSE)
 
 	// Serve files in static/
 	staticFiles, err := fs.Sub(publicFS, "static")
@@ -82,9 +102,6 @@ func main() {
 		log.Fatalf("%v", logger.Errorf("failed to create sub filesystem: %v", err))
 	}
 	http.Handle("/s/", http.StripPrefix("/s/", http.FileServer(http.FS(staticFiles))))
-
-	// Views
-	http.HandleFunc("/api/login", app.handleLoginForm)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -100,27 +117,85 @@ func main() {
 	<-stop
 }
 
-// -----------------------
-// STATIC PAGES RENDERERS
-// -----------------------
+func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, app.AllowOrigin, "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
 
-func (app *App) handleStaticTemplate(name string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
-			return
-		}
+	type loginForm struct {
+		Email    string `form:"email"`
+		Password string `form:"password"`
+	}
 
-		if err := views.Render(w, app.Views[name], nil); err != nil {
-			app.Log.Errorf("error rendering template %s: %v", name, err)
+	var login loginForm
+
+	if err := forms.ParseForm(r, &login); err != nil {
+		app.Log.Errorf("error parsing login form: %v", err)
+
+		if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
+
+		return
+	}
+
+	if strings.Contains(login.Email, "@") {
+		if !strings.Contains(strings.ToLower(login.Email), "@ucr.ac.cr") {
+			// Is an external provider
+
+			if err := views.Render(w, app.Views["login"], map[string]any{"ExternalEmail": true}); err != nil {
+				app.Log.Errorf("error rendering template %s: %v", "login", err)
+				http.Error(w, "", http.StatusInternalServerError)
+				return
+			}
+
+			return
+		}
+	} else {
+		login.Email += "@ucr.ac.cr"
+	}
+
+	if app.Production {
+		s := smtp.Client("smtp.ucr.ac.cr", "587", login.Password)
+
+		if err := s.Validate(login.Email); err != nil {
+			app.Log.Errorf("error validating user %s: %v", login.Email, err)
+
+			if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
+				app.Log.Errorf("error rendering template %s: %v", "login", err)
+				http.Error(w, "", http.StatusInternalServerError)
+				return
+			}
+
+			return
+		}
+	}
+
+	claims := JwtClaims{
+		Email: login.Email,
+		//Account: "SF",
+	}
+
+	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(time.Hour), app.Secret); err != nil {
+		app.Log.Errorf("error setting JWT cookie: %v", err)
+
+		if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	if err := views.Render(w, app.Views["dashboard"], nil); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 }
-
-// -----------------------
-// DYNAMIC PAGES RENDERERS
-// -----------------------
 
 func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
@@ -151,49 +226,40 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ------------------
-// HTML API ENDPOINTS
-// ------------------
-
-func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
-	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+func (app *App) handleIndex(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
 
-	type loginForm struct {
-		Email    string `form:"email"`
-		Password string `form:"password"`
+	// TODO: Load data for index
+	//var data database.IndexData
+
+	if err := views.Render(w, app.Views["index-page"], nil); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "index", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
+}
 
-	var login loginForm
-
-	if err := forms.ParseForm(r, &login); err != nil {
-		app.Log.Errorf("error parsing login form: %v", err)
-		http.Error(w, "", http.StatusBadRequest)
+func (app *App) handleProviders(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
 
-	// TODO: Validate form
-
-	claims := JwtClaims{
-		Email: login.Email,
-		//Account: "SF",
+	if err := views.Render(w, app.Views["providers-page"], nil); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "index", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
+}
 
-	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(time.Hour), app.Secret); err != nil {
-		app.Log.Errorf("error setting JWT cookie: %v", err)
-
-		if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
-			app.Log.Errorf("error rendering template %s: %v", "login", err)
-			http.Error(w, "", http.StatusInternalServerError)
-			return
-		}
-
+func (app *App) handleFSE(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
 
-	if err := views.Render(w, app.Views["dashboard"], nil); err != nil {
-		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
+	if err := views.Render(w, app.Views["fse-page"], nil); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "index", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}

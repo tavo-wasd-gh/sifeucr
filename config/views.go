@@ -5,10 +5,6 @@ import (
 )
 
 var ViewMap = map[string][]string{
-	// -----
-	// PAGES
-	// -----
-
 	"index-page": {
 		"templates/baseof.html",
 		"templates/_partials/head.html",
@@ -27,6 +23,10 @@ var ViewMap = map[string][]string{
 		"templates/_partials/footer.html",
 	},
 
+	"login": {
+		"templates/login.html",
+	},
+
 	"dashboard-page": {
 		"templates/baseof.html",
 		"templates/_partials/head.html",
@@ -36,16 +36,26 @@ var ViewMap = map[string][]string{
 		"templates/_partials/footer.html",
 	},
 
-	// ---------
-	// FRAGMENTS
-	// ---------
-
-	"login": {
-		"templates/login.html",
-	},
-
 	"dashboard": {
 		"templates/dashboard.html",
+	},
+
+	"providers-page": {
+		"templates/baseof.html",
+		"templates/_partials/head.html",
+		"templates/_partials/header.html",
+		"templates/providers.html",
+		"templates/providers-page.html",
+		"templates/_partials/footer.html",
+	},
+
+	"fse-page": {
+		"templates/baseof.html",
+		"templates/_partials/head.html",
+		"templates/_partials/header.html",
+		"templates/fse.html",
+		"templates/fse-page.html",
+		"templates/_partials/footer.html",
 	},
 }
 
