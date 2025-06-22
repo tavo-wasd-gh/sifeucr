@@ -20,6 +20,7 @@ import (
 	"github.com/tavo-wasd-gh/webtoolkit/cors"
 	"github.com/tavo-wasd-gh/webtoolkit/forms"
 	"github.com/tavo-wasd-gh/webtoolkit/logger"
+	"github.com/tavo-wasd-gh/webtoolkit/serve"
 	"github.com/tavo-wasd-gh/webtoolkit/views"
 )
 
@@ -101,7 +102,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", logger.Errorf("failed to create sub filesystem: %v", err))
 	}
-	http.Handle("/s/", http.StripPrefix("/s/", http.FileServer(http.FS(staticFiles))))
+
+	http.Handle(
+		"/s/",
+		serve.Compressed(
+			http.StripPrefix("/s/", http.FileServer(http.FS(staticFiles))),
+		),
+	)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -132,7 +139,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	if err := forms.ParseForm(r, &login); err != nil {
 		app.Log.Errorf("error parsing login form: %v", err)
 
-		if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
+		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
 			app.Log.Errorf("error rendering template %s: %v", "login", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
@@ -145,7 +152,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(strings.ToLower(login.Email), "@ucr.ac.cr") {
 			// Is an external provider
 
-			if err := views.Render(w, app.Views["login"], map[string]any{"ExternalEmail": true}); err != nil {
+			if err := views.Render(w, r, app.Views["login"], map[string]any{"ExternalEmail": true}); err != nil {
 				app.Log.Errorf("error rendering template %s: %v", "login", err)
 				http.Error(w, "", http.StatusInternalServerError)
 				return
@@ -163,7 +170,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		if err := s.Validate(login.Email); err != nil {
 			app.Log.Errorf("error validating user %s: %v", login.Email, err)
 
-			if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
 				app.Log.Errorf("error rendering template %s: %v", "login", err)
 				http.Error(w, "", http.StatusInternalServerError)
 				return
@@ -181,7 +188,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(time.Hour), app.Secret); err != nil {
 		app.Log.Errorf("error setting JWT cookie: %v", err)
 
-		if err := views.Render(w, app.Views["login"], map[string]any{"Error": true}); err != nil {
+		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
 			app.Log.Errorf("error rendering template %s: %v", "login", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
@@ -190,7 +197,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := views.Render(w, app.Views["dashboard"], nil); err != nil {
+	if err := views.Render(w, r, app.Views["dashboard"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -207,7 +214,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	if err := auth.JwtValidate(r, "/", app.Cookie, app.Secret, &claims); err != nil {
 		// app.Log.Errorf("error validating JWT: %v", err) // DEBUG
 
-		if err := views.Render(w, app.Views["login-page"], nil); err != nil {
+		if err := views.Render(w, r, app.Views["login-page"], nil); err != nil {
 			app.Log.Errorf("error rendering template %s: %v", "login", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
@@ -219,7 +226,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	// TODO: Load data for dashboard
 	//var data database.DashboardData
 
-	if err := views.Render(w, app.Views["dashboard-page"], nil); err != nil {
+	if err := views.Render(w, r, app.Views["dashboard-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -234,7 +241,7 @@ func (app *App) handleIndex(w http.ResponseWriter, r *http.Request) {
 	// TODO: Load data for index
 	//var data database.IndexData
 
-	if err := views.Render(w, app.Views["index-page"], nil); err != nil {
+	if err := views.Render(w, r, app.Views["index-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "index", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -246,7 +253,7 @@ func (app *App) handleSuppliers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := views.Render(w, app.Views["suppliers-page"], nil); err != nil {
+	if err := views.Render(w, r, app.Views["suppliers-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "index", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -258,7 +265,7 @@ func (app *App) handleFSE(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := views.Render(w, app.Views["fse-page"], nil); err != nil {
+	if err := views.Render(w, r, app.Views["fse-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "index", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
