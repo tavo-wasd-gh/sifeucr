@@ -1,3 +1,13 @@
+#+TITLE: Definición de la Base de Datos
+
+* DDL: Definiciones de la base de datos
+#+PROPERTY: header-args:sql :tangle schema.sql
+
+** Tablas primarias
+
+*** Presupuesto Anual OPLAU
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "budget_entries" (
     "entry_id"     INTEGER PRIMARY KEY NOT NULL,
     "entry_year"   INTEGER NOT NULL,
@@ -6,20 +16,45 @@ CREATE TABLE IF NOT EXISTS "budget_entries" (
     "entry_amount" REAL    NOT NULL,
     UNIQUE("entry_year", "entry_code")
 );
+#+end_src
 
+*** Usuarios
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "users" (
     "user_id"     INTEGER PRIMARY KEY NOT NULL,
     "user_email"  TEXT    NOT NULL UNIQUE,
     "user_name"   TEXT    NOT NULL,
     "user_active" BOOLEAN NOT NULL
 );
+#+end_src
 
+*** Cuentas
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "accounts" (
     "account_id"     INTEGER PRIMARY KEY NOT NULL,
     "account_name"   TEXT    NOT NULL UNIQUE,
     "account_active" BOOLEAN NOT NULL
 );
+#+end_src
 
+**** Permisos
+
+#+begin_src go
+type Permission int
+
+const (
+    Read Permission = 1 << iota // 1 << 0 = 1
+    Write                       // 1 << 1 = 2
+    ReadOther                   // 1 << 2 = 4
+    WriteOther                  // 1 << 3 = 8
+    ReadAdvanced                // 1 << 4 = 16
+    WriteAdvanced               // 1 << 5 = 32
+)
+#+end_src
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "permissions" (
     "permission_id"      INTEGER PRIMARY KEY NOT NULL,
     "permission_user"    INTEGER NOT NULL REFERENCES "users"("user_id"),
@@ -28,7 +63,11 @@ CREATE TABLE IF NOT EXISTS "permissions" (
     "permission_active"  BOOLEAN NOT NULL,
     UNIQUE("permission_user", "permission_account")
 );
+#+end_src
 
+*** Distribuciones Internas
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "distributions" (
     "dist_id"          INTEGER PRIMARY KEY NOT NULL,
     "dist_name"        TEXT    NOT NULL UNIQUE,
@@ -38,7 +77,11 @@ CREATE TABLE IF NOT EXISTS "distributions" (
     "dist_amount"      REAL    NOT NULL,
     "dist_active"      BOOLEAN NOT NULL
 );
+#+end_src
 
+*** Proveedores
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "suppliers" (
     "supplier_id"                 INTEGER PRIMARY KEY NOT NULL,
     "supplier_name"               TEXT    NOT NULL,
@@ -57,7 +100,11 @@ CREATE TABLE IF NOT EXISTS "suppliers_catalogs" (
     "catalog_amount"      REAL    NOT NULL,
     UNIQUE("catalog_grouping", "catalog_article")
 );
+#+end_src
 
+** Solicitudes
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "requests" (
     "req_id"      INTEGER PRIMARY KEY NOT NULL,
     "req_user"    INTEGER NOT NULL REFERENCES "users"("user_id"),
@@ -67,7 +114,13 @@ CREATE TABLE IF NOT EXISTS "requests" (
     "req_justif"  TEXT    NOT NULL,
     "req_notes"   TEXT
 );
+#+end_src
 
+*** Transferencias
+
+Ajustes en el presupuesto que acreditan o debitan en una partida presupuestaria, que además es un movimiento exento de impuesto. Por ejemplo, una transferencia hacia una unidad, un tercero o un aumento/rebajo ordinario.
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "budget_transfers" (
     "transfer_id"     INTEGER PRIMARY KEY NOT NULL,
     "transfer_req"    INTEGER NOT NULL REFERENCES "requests"("req_id"),
@@ -75,7 +128,13 @@ CREATE TABLE IF NOT EXISTS "budget_transfers" (
     "transfer_amount" REAL    NOT NULL,
     "transfer_letter" TEXT
 );
+#+end_src
 
+*** Modificaciones
+
+Ajustes internos en el presupuesto, exentos de impuesto. Por ejemplo, solicitar cargar/descargar una partida.
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "budget_modifications" (
     "mod_id"           INTEGER PRIMARY KEY NOT NULL,
     "mod_request"      INTEGER NOT NULL REFERENCES "requests"("req_id"),
@@ -83,12 +142,20 @@ CREATE TABLE IF NOT EXISTS "budget_modifications" (
     "mod_credit_entry" INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
     "mod_amount"       REAL    NOT NULL
 );
+#+end_src
 
+*** Modificaciones de distribuciones
+
+Modificación de las distribuciones emitidas por órganos, exentos de impuesto. Por ejemplo, rebajos por ausencias o solicitudes de ahorro.
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "distributions_modifications_types" (
     "type_id"          INTEGER PRIMARY KEY NOT NULL,
     "type_name"        TEXT    NOT NULL
 );
+#+end_src
 
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "distribution_modifications" (
     "dist_mod_id"              INTEGER PRIMARY KEY NOT NULL,
     "dist_mod_request"         INTEGER NOT NULL REFERENCES "requests"("req_id"),
@@ -98,7 +165,13 @@ CREATE TABLE IF NOT EXISTS "distribution_modifications" (
     "dist_mod_amount"          REAL    NOT NULL,
     "dist_mod_justif_approved" BOOLEAN NOT NULL
 );
+#+end_src
 
+*** Compras
+
+Ejecuciones de presupuesto gravadas. Deben rebajarse de una distribución presupuestaria mediante una solicitud, por medio de la cual estarán ligadas a una cuenta.
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "purchases" (
     "purchase_id"              INTEGER PRIMARY KEY NOT NULL,
     "purchase_request"         INTEGER NOT NULL REFERENCES "requests"("req_id"),
@@ -124,7 +197,14 @@ CREATE TABLE IF NOT EXISTS "purchases_breakdown" (
     "breakdown_quantity" REAL    NOT NULL,
     UNIQUE("breakdown_purchase", "breakdown_grouping", "breakdown_article")
 );
+#+end_src
 
+** Triggers
+** Vistas
+
+*** Distribuciones Activas
+
+#+begin_src sql
 CREATE VIEW IF NOT EXISTS valid_distributions AS
 SELECT
     e.entry_code,
@@ -149,3 +229,4 @@ WHERE d.dist_valid_until = (
       AND d2.dist_account = d.dist_account
 )
 GROUP BY e.entry_code, d.dist_account;
+#+end_src
