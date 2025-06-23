@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 
 CREATE TABLE IF NOT EXISTS "accounts" (
     "account_id"     INTEGER PRIMARY KEY NOT NULL,
+    "account_abbr"   TEXT    NOT NULL UNIQUE,
     "account_name"   TEXT    NOT NULL UNIQUE,
     "account_active" BOOLEAN NOT NULL
 );
@@ -149,3 +150,44 @@ WHERE d.dist_valid_until = (
       AND d2.dist_account = d.dist_account
 )
 GROUP BY e.entry_code, d.dist_account;
+
+CREATE VIEW IF NOT EXISTS active_accounts AS
+SELECT
+    account_id,
+    account_abbr,
+    account_name,
+    account_active
+FROM accounts
+WHERE account_active = 1;
+
+CREATE VIEW IF NOT EXISTS allowed_accounts AS
+SELECT
+    a.account_id,
+    a.account_abbr,
+    a.account_name,
+    a.account_active,
+    u.user_id,
+    u.user_active
+FROM active_accounts a
+JOIN permissions p ON a.account_id = p.permission_account
+JOIN users u ON p.permission_user = u.user_id
+WHERE u.user_active = 1;
+
+CREATE VIEW IF NOT EXISTS active_users AS
+SELECT
+    user_id,
+    user_email,
+    user_name,
+    user_active
+FROM users
+WHERE user_active = 1;
+
+CREATE VIEW IF NOT EXISTS active_permissions AS
+SELECT
+    permission_id,
+    permission_user,
+    permission_account,
+    permission_integer,
+    permission_active
+FROM permissions
+WHERE permission_active = 1;

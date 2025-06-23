@@ -37,9 +37,8 @@ type App struct {
 }
 
 type JwtClaims struct {
-	Email string
-	// TODO: Add logic to know which account a user is going to use
-	//Account string
+	UserID    int
+	AccountID int
 }
 
 //go:embed static/*
@@ -130,8 +129,9 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type loginForm struct {
-		Email    string `form:"email"`
-		Password string `form:"password"`
+		Email    string `form:"email" req:"1"`
+		Password string `form:"password" req:"1"`
+		Account  string `form:"account"`
 	}
 
 	var login loginForm
@@ -164,6 +164,49 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		login.Email += "@ucr.ac.cr"
 	}
 
+	userID, err := database.UserIDByUserEmail(app.DB, login.Email)
+	if err != nil {
+		app.Log.Errorf("error looking for user %s: %v", login.Email, err)
+		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	var chosenAccount database.Account
+
+	allowedAccounts, err := database.AllowedAccountsByUserID(app.DB, userID)
+	if err != nil {
+		app.Log.Errorf("no allowed accounts for user %s: %v", login.Email, err)
+		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	switch len(allowedAccounts) {
+	case 0:
+		// No allowed accounts, render error and return
+		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+		return
+
+	case 1:
+		// One allowed account, set and continue
+		chosenAccount = allowedAccounts[0]
+
+	default:
+		// TODO: Multiple allowed accounts, render with select and return
+		return
+	}
+
 	if app.Production {
 		s := smtp.Client("smtp.ucr.ac.cr", "587", login.Password)
 
@@ -181,8 +224,8 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	claims := JwtClaims{
-		Email: login.Email,
-		//Account: "SF",
+		UserID: userID,
+		AccountID: chosenAccount.ID,
 	}
 
 	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(time.Hour), app.Secret); err != nil {
@@ -197,7 +240,14 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := views.Render(w, r, app.Views["dashboard"], nil); err != nil {
+	var dashboard database.Dashboard
+	if err := dashboard.LoadData(app.DB, userID, chosenAccount.ID); err != nil {
+		app.Log.Errorf("error loading data for user %d with account %d: %v", userID, chosenAccount.ID, err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	if err := views.Render(w, r, app.Views["dashboard"], dashboard); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -212,8 +262,6 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	var claims JwtClaims
 
 	if err := auth.JwtValidate(r, "/", app.Cookie, app.Secret, &claims); err != nil {
-		// app.Log.Errorf("error validating JWT: %v", err) // DEBUG
-
 		if err := views.Render(w, r, app.Views["login-page"], nil); err != nil {
 			app.Log.Errorf("error rendering template %s: %v", "login", err)
 			http.Error(w, "", http.StatusInternalServerError)
@@ -223,10 +271,14 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Load data for dashboard
-	//var data database.DashboardData
+	var dashboard database.Dashboard
+	if err := dashboard.LoadData(app.DB, claims.UserID, claims.AccountID); err != nil {
+		app.Log.Errorf("error loading data for user %d with account %d: %v", claims.UserID, claims.AccountID, err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 
-	if err := views.Render(w, r, app.Views["dashboard-page"], nil); err != nil {
+	if err := views.Render(w, r, app.Views["dashboard-page"], dashboard); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "dashboard", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -253,6 +305,8 @@ func (app *App) handleSuppliers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Load data for suppliers
+
 	if err := views.Render(w, r, app.Views["suppliers-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "index", err)
 		http.Error(w, "", http.StatusInternalServerError)
@@ -264,6 +318,8 @@ func (app *App) handleFSE(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
+
+	// TODO: Load data for FSE
 
 	if err := views.Render(w, r, app.Views["fse-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "index", err)

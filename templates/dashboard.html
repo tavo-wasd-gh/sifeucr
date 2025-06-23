@@ -1,3 +1,18 @@
 {{ define "dashboard" }}
-<h1>Dashboard</h1>
+<hr>
+<nav>
+  <ul>
+    <li>
+      <strong>{{ .Account.Name }}</strong>
+    </li>
+  </ul>
+  <ul>
+    <li>
+      <button class="secondary outline">{{ firstWord .User.Name }}</button>
+    </li>
+  </ul>
+</nav>
+{{ if .ReadAdvanced }}
+{{ template "resumen-cuentas" }}
+{{ end }}
 {{ end }}

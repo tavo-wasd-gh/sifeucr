@@ -34,10 +34,14 @@ var ViewMap = map[string][]string{
 		"templates/dashboard.html",
 		"templates/dashboard-page.html",
 		"templates/_partials/footer.html",
+		// Modules
+		"templates/resumen-cuentas.html",
 	},
 
 	"dashboard": {
 		"templates/dashboard.html",
+		// Modules
+		"templates/resumen-cuentas.html",
 	},
 
 	"suppliers-page": {
@@ -57,8 +61,19 @@ var ViewMap = map[string][]string{
 		"templates/fse-page.html",
 		"templates/_partials/footer.html",
 	},
+
+	"resumen-cuentas": {
+		"templates/resumen-cuentas.html",
+	},
 }
 
 var FuncMap = map[string]interface{}{
 	"uppercase": func(s string) string { return strings.ToUpper(s) },
+	"firstWord": func(s string) string {
+		words := strings.Fields(s)
+		if len(words) > 0 {
+			return words[0]
+		}
+		return ""
+	},
 }

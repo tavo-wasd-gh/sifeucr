@@ -22,4 +22,6 @@
 
 ## v2.0.0 Segunda iteración
 
-- [X] Funcionalidad mínima
+- [ ] Funcionalidad mínima
+- [ ] Revisar que las vistas funcionen sin errores
+- [ ] Triggers para auditoría
