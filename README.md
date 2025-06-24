@@ -1,24 +1,38 @@
 # SIFEUCR
 
-## v2.3.0 FSE
+## v2.6.0 Plugins
+
+- [ ] Verificar automáticamente estado de proveedores
+
+## v2.5.0 Incentivos de uso
+
+- [ ] Nombre personalizado
+- [ ] Notas flotantes con colores
+- [ ] Chat de soporte
+
+## v2.4.0 FSE
 
 - [ ] Emisión de formularios
 - [ ] Revisión de formularios
 - [ ] Verificación de la asignación del aplicante
 
-## v2.2.0 Abstraer gestión de BD
+## v2.3.0 Implementar MinIO
+
+- [ ] Adjuntar pruebas prov al día en entidades públicas
+- [ ] Otros archivos
+
+## v2.2.0 Calidad de vida
+
+- [ ] Guardar y no solicitar de una vez
+- [ ] Ejemplos de solicitudes
+- [ ] Proveedores y catálogos
+
+## v2.1.0 Abstraer gestión de BD
 
 - [ ] Panel de Control
 - [ ] Manejo de usuarios
 - [ ] Manejo de cuentas
 - [ ] Manejo de presupuestos
-
-## v2.1.0 Implementar MinIO
-
-- [ ] Pistas de auditoría
-- [ ] Adjuntar pruebas prov al día en entidades públicas
-- [ ] Adjuntar OCS firmada
-- [ ] Otros archivos
 
 ## v2.0.0 Segunda iteración
 
