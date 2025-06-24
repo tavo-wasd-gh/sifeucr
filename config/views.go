@@ -35,13 +35,13 @@ var ViewMap = map[string][]string{
 		"templates/dashboard-page.html",
 		"templates/_partials/footer.html",
 		// Modules
-		"templates/resumen-cuentas.html",
+		"templates/control-madre.html",
 	},
 
 	"dashboard": {
 		"templates/dashboard.html",
 		// Modules
-		"templates/resumen-cuentas.html",
+		"templates/control-madre.html",
 	},
 
 	"suppliers-page": {
@@ -62,8 +62,25 @@ var ViewMap = map[string][]string{
 		"templates/_partials/footer.html",
 	},
 
-	"resumen-cuentas": {
-		"templates/resumen-cuentas.html",
+	"panel-page": {
+		"templates/baseof.html",
+		"templates/_partials/head.html",
+		"templates/_partials/header.html",
+		"templates/panel.html",
+		"templates/panel-page.html",
+		"templates/_partials/footer.html",
+	},
+
+	"control-madre": {
+		"templates/control-madre.html",
+	},
+
+	"success-button": {
+		"templates/success-button.html",
+	},
+
+	"fail-button": {
+		"templates/fail-button.html",
 	},
 }
 

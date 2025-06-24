@@ -87,9 +87,12 @@ func main() {
 
 	// Views (Auth required)
 	http.HandleFunc("/api/login", app.handleLoginForm)
+	http.HandleFunc("/api/user/toggle", app.handleUserToggle)
+	http.HandleFunc("/api/user/add", app.handleAddUser)
 
 	// Pages (Auth required)
 	http.HandleFunc("/cuenta", app.handleDashboard)
+	http.HandleFunc("/panel", app.handlePanel)
 
 	// Pages (Public)
 	http.HandleFunc("/", app.handleIndex)
@@ -241,7 +244,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dashboard database.Dashboard
-	if err := dashboard.LoadData(app.DB, userID, chosenAccount.ID); err != nil {
+	if err := dashboard.Load(app.DB, userID, chosenAccount.ID); err != nil {
 		app.Log.Errorf("error loading data for user %d with account %d: %v", userID, chosenAccount.ID, err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -252,6 +255,56 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (app *App) handleAddUser(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	var claims JwtClaims
+
+	if err := auth.JwtValidate(r, "/", app.Cookie, app.Secret, &claims); err != nil {
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	type AddUserForm struct {
+		Email string `form:"email" req:"1"`
+		Name  string `form:"name" req:"1"`
+	}
+
+	var form AddUserForm
+
+	if err := forms.ParseForm(r, &form); err != nil {
+		app.Log.Errorf("error parsing add user form: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	if err := database.AddUser(app.DB, claims.UserID, claims.AccountID, form.Email, form.Name); err != nil {
+		app.Log.Errorf("error adding user: %v", err)
+		if err := views.Render(w, r, app.Views["fail-button"], nil); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "fail-button", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	if err := views.Render(w, r, app.Views["success-button"], nil); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "success-button", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (app *App) handleUserToggle(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "POST, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	// TODO: handle user active toggle
 }
 
 func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -272,7 +325,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dashboard database.Dashboard
-	if err := dashboard.LoadData(app.DB, claims.UserID, claims.AccountID); err != nil {
+	if err := dashboard.Load(app.DB, claims.UserID, claims.AccountID); err != nil {
 		app.Log.Errorf("error loading data for user %d with account %d: %v", claims.UserID, claims.AccountID, err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -295,6 +348,37 @@ func (app *App) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	if err := views.Render(w, r, app.Views["index-page"], nil); err != nil {
 		app.Log.Errorf("error rendering template %s: %v", "index", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (app *App) handlePanel(w http.ResponseWriter, r *http.Request) {
+	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
+		return
+	}
+
+	var claims JwtClaims
+
+	if err := auth.JwtValidate(r, "/", app.Cookie, app.Secret, &claims); err != nil {
+		if err := views.Render(w, r, app.Views["login-page"], nil); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	var panel database.Panel
+	if err := panel.Load(app.DB, claims.UserID, claims.AccountID); err != nil {
+		app.Log.Errorf("error loading data for user %d with account %d: %v", claims.UserID, claims.AccountID, err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	if err := views.Render(w, r, app.Views["panel-page"], panel); err != nil {
+		app.Log.Errorf("error rendering template %s: %v", "panel", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
