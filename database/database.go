@@ -9,7 +9,6 @@ import (
 type Session struct {
 	UserID     int
 	AccountID  int
-	Permission Permission
 }
 
 func Init(connDvr, connStr string) (*sqlx.DB, error) {
@@ -34,16 +33,12 @@ func Init(connDvr, connStr string) (*sqlx.DB, error) {
 }
 
 func (s *Session) Validate(db *sqlx.DB, requiredPermission PermissionInteger) error {
-	if !s.Permission.Has(requiredPermission) {
-		return logger.Errorf("missing permissions")
-	}
-
-	if permission, err := PermissionByUserIDAndAccountID(db, s.UserID, s.AccountID); err != nil {
-		return logger.Errorf("%v", "error checking permission")
-	} else if !permission.Active {
-		return logger.Errorf("%v", "inactive permission")
-	} else if permission.Integer != requiredPermission {
-		return logger.Errorf("%v", "incorrect permission")
+	if perm, err := PermissionByUserIDAndAccountID(db, s.UserID, s.AccountID); err != nil {
+		return logger.Errorf("error checking permission")
+	} else if !perm.Active {
+		return logger.Errorf("inactive permission")
+	} else if !perm.Has(requiredPermission) {
+		return logger.Errorf("incorrect permission, required:%d got:%d", requiredPermission, perm.Integer)
 	}
 
 	if active, err := IsUserActive(db, s.UserID); err != nil {

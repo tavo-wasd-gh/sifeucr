@@ -26,19 +26,6 @@ const (
 	WriteAdvanced                               // 1 << 5 = 32
 )
 
-func (p *Permission) load(db *sqlx.DB, userID, accountID int) error {
-	var err error = nil
-	var perm Permission
-
-	perm, err = PermissionByUserIDAndAccountID(db, userID, accountID)
-	if err != nil {
-		return logger.Errorf("error loading permission: %v", err)
-	}
-
-	*p = perm
-	return nil
-}
-
 func PermissionByUserIDAndAccountID(db *sqlx.DB, userID int, accountID int) (Permission, error) {
 	const queryPermissionByUserIDAndAccountID = `
 		SELECT permission_id, permission_user, permission_account, permission_integer, permission_active

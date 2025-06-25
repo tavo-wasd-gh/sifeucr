@@ -13,19 +13,6 @@ type Account struct {
 	Active bool   `db:"account_active"`
 }
 
-func (a *Account) load(db *sqlx.DB, accountID int) error {
-	var err error = nil
-	var account Account
-
-	account, err = accountByAccountID(db, accountID)
-	if err != nil {
-		return logger.Errorf("error loading account: %v", err)
-	}
-
-	*a = account
-	return nil
-}
-
 func AllowedAccountsByUserID(db *sqlx.DB, userID int) ([]Account, error) {
 	const queryAllowedAccountsByID = `
 		SELECT account_id, account_abbr, account_name, account_active

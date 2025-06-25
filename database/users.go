@@ -15,19 +15,6 @@ type User struct {
 	Active bool   `db:"user_active"`
 }
 
-func (u *User) load(db *sqlx.DB, userID int) error {
-	var err error = nil
-	var user User
-
-	user, err = userByUserID(db, userID)
-	if err != nil {
-		return logger.Errorf("error loading user: %v", err)
-	}
-
-	*u = user
-	return nil
-}
-
 func UserIDByUserEmail(db *sqlx.DB, email string) (int, error) {
 	var userID int
 

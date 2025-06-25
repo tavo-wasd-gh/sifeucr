@@ -402,16 +402,6 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if perms, err := database.PermissionByUserIDAndAccountID(app.DB, userID, chosenAccountID); err != nil {
-		app.Log.Errorf("error checking permissions: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	} else if !perms.Has(requiredPermission) {
-		app.Log.Errorf("error logging in, missing permissions")
-		http.Error(w, "", http.StatusUnauthorized)
-		return
-	}
-
 	if app.Production {
 		s := smtp.Client("smtp.ucr.ac.cr", "587", login.Password)
 
@@ -442,6 +432,16 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		return
+	}
+
+	if _, _, err := app.validateSession(r, requiredPermission); err != nil {
+		app.Log.Errorf("error validating session: %v", err)
+		if err := views.Render(w, r, app.Views["login"], nil); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
