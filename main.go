@@ -84,7 +84,15 @@ func main() {
 	}
 	defer db.Close()
 
-	s3 := s3.New("./data")
+	var appDataPath string
+
+	if env.AppDataPath != "" {
+		appDataPath = env.AppDataPath
+	} else {
+		appDataPath = "./data"
+	}
+
+	s3 := s3.New(appDataPath)
 
 	var allowOrigin string
 
