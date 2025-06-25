@@ -421,7 +421,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		AccountID: chosenAccountID,
 	}
 
-	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(10*time.Second), app.Secret); err != nil {
+	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(1*time.Hour), app.Secret); err != nil {
 		app.Log.Errorf("error setting JWT cookie: %v", err)
 
 		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
