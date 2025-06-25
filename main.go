@@ -134,8 +134,7 @@ func (app *App) handleUserToggle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, _, err := app.validateSession(r, database.WriteAdvanced); err != nil {
-		app.Log.Errorf("error validating session: %v", err)
-		http.Redirect(w, r, "/cuenta", http.StatusSeeOther)
+		w.Header().Set("HX-Redirect", "/cuenta")
 		return
 	}
 
@@ -167,8 +166,7 @@ func (app *App) handleAddUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, _, err := app.validateSession(r, database.WriteAdvanced); err != nil {
-		app.Log.Errorf("error validating session: %v", err)
-		http.Redirect(w, r, "/cuenta", http.StatusSeeOther)
+		w.Header().Set("HX-Redirect", "/cuenta")
 		return
 	}
 
@@ -423,7 +421,7 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		AccountID: chosenAccountID,
 	}
 
-	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(time.Hour), app.Secret); err != nil {
+	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(10*time.Second), app.Secret); err != nil {
 		app.Log.Errorf("error setting JWT cookie: %v", err)
 
 		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
@@ -435,7 +433,12 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, err := app.validateSession(r, requiredPermission); err != nil {
+	session := database.Session{
+		UserID:    claims.UserID,
+		AccountID: claims.AccountID,
+	}
+
+	if err := session.Validate(app.DB, requiredPermission); err != nil {
 		app.Log.Errorf("error validating session: %v", err)
 		if err := views.Render(w, r, app.Views["login"], nil); err != nil {
 			app.Log.Errorf("error rendering template %s: %v", "login", err)
