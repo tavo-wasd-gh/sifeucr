@@ -17,6 +17,7 @@ type Env struct {
 	AllowOrigin string `env:"API_ALLOW_ORIGIN"`
 	DBConnDvr   string `env:"DB_CONNDVR"`
 	DBConnStr   string `env:"DB_CONNSTR"`
+	AppDataPath string `env:"APP_DATA_PATH"`
 }
 
 func Init() (*Env, error) {
