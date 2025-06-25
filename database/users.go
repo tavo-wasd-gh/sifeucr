@@ -69,10 +69,11 @@ func queryAllUsers(db *sqlx.DB) ([]User, error) {
 	return users, nil
 }
 
-func AddUser(db *sqlx.DB, userID, accountID int, newUserEmail, newUserName string) error {
+func AddUser(db *sqlx.DB, newUserEmail, newUserName string) (int, bool, error) {
 	query := `
 		INSERT INTO users (user_email, user_name, user_active)
 		VALUES (:user_email, :user_name, :user_active)
+		RETURNING user_id, user_active
 	`
 
 	if at := strings.Index(newUserEmail, "@"); at != -1 {
@@ -80,25 +81,76 @@ func AddUser(db *sqlx.DB, userID, accountID int, newUserEmail, newUserName strin
 	}
 
 	user := User{
-		Email: newUserEmail,
-		Name: newUserName,
+		Email:  newUserEmail,
+		Name:   newUserName,
 		Active: true,
 	}
 
+	var insertedID int
+	var active bool
+
 	tx, err := db.Beginx()
 	if err != nil {
-		return logger.Errorf("failed to begin transaction: %v", err)
+		return 0, false, logger.Errorf("failed to begin transaction: %v", err)
 	}
 
-	_, err = tx.NamedExec(query, user)
+	stmt, err := tx.PrepareNamed(query)
 	if err != nil {
 		tx.Rollback()
-		return logger.Errorf("insert failed, rollback: %v", err)
+		return 0, false, logger.Errorf("prepare failed: %v", err)
+	}
+	defer stmt.Close()
+
+	if err := stmt.QueryRowx(user).Scan(&insertedID, &active); err != nil {
+		tx.Rollback()
+		return 0, false, logger.Errorf("insert failed, rollback: %v", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return logger.Errorf("commit failed: %v", err)
+		return 0, false, logger.Errorf("commit failed: %v", err)
 	}
 
-	return nil
+	return insertedID, active, nil
+}
+
+func ToggleUser(db *sqlx.DB, userID int) (bool, error) {
+	const queryGetStatus = `
+		SELECT user_active
+		FROM users
+		WHERE user_id = ?
+	`
+
+	const queryToggleStatus = `
+		UPDATE users
+		SET user_active = NOT user_active
+		WHERE user_id = ?
+		RETURNING user_active
+	`
+
+	var currentStatus bool
+	if err := db.Get(&currentStatus, queryGetStatus, userID); err != nil {
+		return false, logger.Errorf("failed to get current user_active status: %v", err)
+	}
+
+	var newStatus bool
+	if err := db.Get(&newStatus, queryToggleStatus, userID); err != nil {
+		return false, logger.Errorf("failed to toggle user_active status: %v", err)
+	}
+
+	return newStatus, nil
+}
+
+func IsUserActive(db *sqlx.DB, userID int) (bool, error) {
+	const query = `
+		SELECT user_active
+		FROM users
+		WHERE user_id = ?
+	`
+
+	var isActive bool
+	if err := db.Get(&isActive, query, userID); err != nil {
+		return false, logger.Errorf("failed to check if user is active: %v", err)
+	}
+
+	return isActive, nil
 }

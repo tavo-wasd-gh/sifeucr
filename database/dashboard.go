@@ -11,7 +11,7 @@ type Dashboard struct {
 	Account    Account
 	Permission Permission
 	// Advanced
-	ReadAdvanced  bool
+	ReadAdvanced bool
 }
 
 func (d *Dashboard) Load(db *sqlx.DB, userID int, accountID int) error {
@@ -26,7 +26,7 @@ func (d *Dashboard) Load(db *sqlx.DB, userID int, accountID int) error {
 		return logger.Errorf("error loading permission: inactive permission")
 	}
 
-	if !perm.has(requiredPermission) {
+	if !perm.Has(requiredPermission) {
 		return logger.Errorf("permission error: required:%d got:%d", requiredPermission, perm.Integer)
 	}
 
@@ -52,7 +52,7 @@ func (d *Dashboard) Load(db *sqlx.DB, userID int, accountID int) error {
 	// TODO: Load Suministros
 	// TODO: Load Bienes
 
-	if perm.has(ReadAdvanced) {
+	if perm.Has(ReadAdvanced) {
 		// TODO: Load Control madre
 		d.ReadAdvanced = true
 	}

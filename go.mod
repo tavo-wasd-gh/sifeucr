@@ -7,7 +7,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/tavo-wasd-gh/gosmtp v0.0.0-20241110165451-c3871e5039ad
-	github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250623050027-278be3da5bb8
+	github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250625012641-ad9256300405
 )
 
 require (

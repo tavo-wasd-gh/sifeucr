@@ -57,3 +57,18 @@ func accountByAccountID(db *sqlx.DB, accountID int) (Account, error) {
 
 	return account, nil
 }
+
+func IsAccountActive(db *sqlx.DB, accountID int) (bool, error) {
+	const query = `
+		SELECT account_active
+		FROM accounts
+		WHERE account_id = ?
+	`
+
+	var isActive bool
+	if err := db.Get(&isActive, query, accountID); err != nil {
+		return false, logger.Errorf("failed to check if account is active: %v", err)
+	}
+
+	return isActive, nil
+}

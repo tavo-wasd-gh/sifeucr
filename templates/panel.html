@@ -1,42 +1,12 @@
 {{ define "panel" }}
 <details>
   <summary>Usuarios</summary>
-  <div class="overflow-auto">
-    <table class="striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Usuario" onkeyup="filterTable(event, 1)"></th>
-          <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Nombre" onkeyup="filterTable(event, 2)"></th>
-          <th>Activo</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{ range .Users }}
-        <tr>
-          <td>{{ .ID }}</td>
-          <td>{{ .Email }}</td>
-          <td>{{ .Name }}</td>
-          <td>
-            <form hx-post="/api/user/toggle" hx-swap="none" hx-trigger="change">
-              <input type="hidden" name="user_id" value="{{.ID}}">
-              <input type="checkbox" name="user_active" role="switch" {{if .Active}}checked{{end}}>
-            </form>
-          </td>
-        </tr>
-        {{ end }}
-      </tbody>
-    </table>
-  </div>
-  <article>
-    <header>
-      Agregar usuario
-    </header>
-    <form hx-post="/api/user/add" hx-target="#add-user-button" hx-swap="outerHTML" hx-ext="loading-state">
-      <input type="email" name="email" placeholder="Correo institucional" aria-label="Correo institucional" autocomplete="email" required>
-      <input type="text" name="name" placeholder="Nombre completo" aria-label="Nombre completo" required>
-      <button id="add-user-button" type="submit" loading-state>Agregar</button>
-    </form>
-  </article>
+  {{ template "users" . }}
+  <label for="add-user">Agregar Usuario</label>
+  <form id="add-user" hx-post="/api/user/add" hx-target="previous tr" hx-swap="afterend" hx-ext="loading-state">
+    <input type="email" name="email" placeholder="Correo institucional" aria-label="Correo institucional" autocomplete="email" required>
+    <input type="text" name="name" placeholder="Nombre completo" aria-label="Nombre completo" required>
+    <button type="submit" loading-state>Agregar</button>
+  </form>
 </details>
 {{ end }}

@@ -69,10 +69,22 @@ var ViewMap = map[string][]string{
 		"templates/panel.html",
 		"templates/panel-page.html",
 		"templates/_partials/footer.html",
+		// Modules
+		"templates/users.html",
+		"templates/user.html",
 	},
 
 	"control-madre": {
 		"templates/control-madre.html",
+	},
+
+	"user": {
+		"templates/user.html",
+	},
+
+	"users": {
+		"templates/users.html",
+		"templates/user.html",
 	},
 
 	"success-button": {

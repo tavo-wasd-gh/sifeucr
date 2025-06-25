@@ -36,6 +36,14 @@
     aria-label="Password"
     required
   >
+  {{ if .MultipleAccounts }}
+  <select name="account" aria-label="Cuenta" required>
+    <option selected disabled value="">Cuenta</option>
+    {{ range .AllowedAccounts }}
+    <option value="{{ .ID }}">{{ .Name }}</option>
+    {{ end }}
+  </select>
+  {{ end }}
   <button type="submit" loading-state>
     Iniciar
   </button>

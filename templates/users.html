@@ -1,0 +1,19 @@
+{{ define "users" }}
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Usuario" onkeyup="filterTable(event, 1)"></th>
+        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Nombre" onkeyup="filterTable(event, 2)"></th>
+        <th>Activo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Users }}
+      {{ template "user" . }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

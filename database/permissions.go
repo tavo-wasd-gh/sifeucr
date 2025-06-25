@@ -14,23 +14,23 @@ type Permission struct {
 	AccountID int  `db:"permission_account"`
 	Active    bool `db:"permission_active"`
 	// Integer
-	Integer   PermissionInteger `db:"permission_integer"`
+	Integer PermissionInteger `db:"permission_integer"`
 }
 
 const (
-    Read PermissionInteger = 1 << iota // 1 << 0 = 1
-    Write                       // 1 << 1 = 2
-    ReadOther                   // 1 << 2 = 4
-    WriteOther                  // 1 << 3 = 8
-    ReadAdvanced                // 1 << 4 = 16
-    WriteAdvanced               // 1 << 5 = 32
+	Read          PermissionInteger = 1 << iota // 1 << 0 = 1
+	Write                                       // 1 << 1 = 2
+	ReadOther                                   // 1 << 2 = 4
+	WriteOther                                  // 1 << 3 = 8
+	ReadAdvanced                                // 1 << 4 = 16
+	WriteAdvanced                               // 1 << 5 = 32
 )
 
 func (p *Permission) load(db *sqlx.DB, userID, accountID int) error {
 	var err error = nil
 	var perm Permission
 
-	perm, err = permissionByUserIDAndAccountID(db, userID, accountID)
+	perm, err = PermissionByUserIDAndAccountID(db, userID, accountID)
 	if err != nil {
 		return logger.Errorf("error loading permission: %v", err)
 	}
@@ -39,7 +39,7 @@ func (p *Permission) load(db *sqlx.DB, userID, accountID int) error {
 	return nil
 }
 
-func permissionByUserIDAndAccountID(db *sqlx.DB, userID int, accountID int) (Permission, error) {
+func PermissionByUserIDAndAccountID(db *sqlx.DB, userID int, accountID int) (Permission, error) {
 	const queryPermissionByUserIDAndAccountID = `
 		SELECT permission_id, permission_user, permission_account, permission_integer, permission_active
 		FROM permissions
@@ -55,6 +55,6 @@ func permissionByUserIDAndAccountID(db *sqlx.DB, userID int, accountID int) (Per
 	return perm, nil
 }
 
-func (p Permission) has(required PermissionInteger) bool {
+func (p Permission) Has(required PermissionInteger) bool {
 	return p.Integer&required != 0
 }
