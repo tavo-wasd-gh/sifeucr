@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"html/template"
 	"io/fs"
@@ -20,6 +21,7 @@ import (
 	"github.com/tavo-wasd-gh/webtoolkit/cors"
 	"github.com/tavo-wasd-gh/webtoolkit/forms"
 	"github.com/tavo-wasd-gh/webtoolkit/logger"
+	"github.com/tavo-wasd-gh/webtoolkit/s3"
 	"github.com/tavo-wasd-gh/webtoolkit/serve"
 	"github.com/tavo-wasd-gh/webtoolkit/views"
 )
@@ -29,6 +31,11 @@ const (
 	RefreshTokenKey = "refresh_token"
 	AccessTokenTTL  = 10 * time.Minute
 	RefreshTokenTTL = 7 * 24 * time.Hour
+)
+
+const (
+    DefaultMaxUploadSize = 10 << 20 // 10 MB
+    DefaultUploadTimeout = 30 * time.Minute
 )
 
 type App struct {
@@ -42,6 +49,8 @@ type App struct {
 	Secret       string
 	AccessToken  string
 	RefreshToken string
+	// S3
+	S3 *s3.Client
 }
 
 type JwtClaims struct {
@@ -75,6 +84,8 @@ func main() {
 	}
 	defer db.Close()
 
+	s3 := s3.New("./data")
+
 	var allowOrigin string
 
 	if env.AllowOrigin != "" {
@@ -90,6 +101,7 @@ func main() {
 		DB:          db,
 		AllowOrigin: allowOrigin,
 		Secret:      env.Secret,
+		S3:          s3,
 	}
 
 	// Views (Auth required)
@@ -535,4 +547,28 @@ func (app *App) validateSession(w http.ResponseWriter, r *http.Request, p databa
 	}
 
 	return session.UserID, session.AccountID, nil
+}
+
+func (app *App) uploadFile(w http.ResponseWriter, r *http.Request, formName, bucket, key string, allowedMimeTypes []string) error {
+	r.Body = http.MaxBytesReader(w, r.Body, DefaultMaxUploadSize)
+	_, cancel := context.WithTimeout(r.Context(), DefaultUploadTimeout)
+	defer cancel()
+
+	file, _, err := r.FormFile(formName)
+	if err != nil {
+		return logger.Errorf("error reading file: %v", err)
+	}
+	defer file.Close()
+
+	err = s3.VerifyFileType(file, allowedMimeTypes)
+	if err != nil {
+		return logger.Errorf("error verifying mime type: %v", err)
+	}
+
+	err = app.S3.PutObject(bucket, key, file)
+	if err != nil {
+		return logger.Errorf("error uploading file: %v", err)
+	}
+
+	return nil
 }

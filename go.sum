@@ -15,8 +15,8 @@ github.com/mattn/go-sqlite3 v1.14.28 h1:ThEiQrnbtumT+QMknw63Befp/ce/nUPgBPMlRFEu
 github.com/mattn/go-sqlite3 v1.14.28/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/tavo-wasd-gh/gosmtp v0.0.0-20241110165451-c3871e5039ad h1:703dK4z+AaSy8jyoEGSri8G2AIKnuMtVltHzLVE91AA=
 github.com/tavo-wasd-gh/gosmtp v0.0.0-20241110165451-c3871e5039ad/go.mod h1:9aV/T1fOgeRHQrH0inf+WALQv+hmZgC2bBx1r63XTAc=
-github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250625012641-ad9256300405 h1:/rHTeJWxDmeb/56Mo3QOJqkmAeVqEim0pCrMEXIwoh8=
-github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250625012641-ad9256300405/go.mod h1:lZp0vutbt4BpwLHGkrZyVZpzPJrm6q82JAbs2s/syCc=
+github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250625192708-daf0d76bb72c h1:xghWUnuFIMCXM6u7ewa1OJyJj/AjK0bDi6KzM4ViZCE=
+github.com/tavo-wasd-gh/webtoolkit v0.0.0-20250625192708-daf0d76bb72c/go.mod h1:lZp0vutbt4BpwLHGkrZyVZpzPJrm6q82JAbs2s/syCc=
 github.com/tdewolff/minify/v2 v2.23.8 h1:tvjHzRer46kwOfpdCBCWsDblCw3QtnLJRd61pTVkyZ8=
 github.com/tdewolff/minify/v2 v2.23.8/go.mod h1:VW3ISUd3gDOZuQ/jwZr4sCzsuX+Qvsx87FDMjk6Rvno=
 github.com/tdewolff/parse/v2 v2.8.1 h1:J5GSHru6o3jF1uLlEKVXkDxxcVx6yzOlIVIotK4w2po=
