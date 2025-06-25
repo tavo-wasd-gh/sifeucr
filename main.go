@@ -24,6 +24,13 @@ import (
 	"github.com/tavo-wasd-gh/webtoolkit/views"
 )
 
+const (
+	AccessTokenKey  = "access_token"
+	RefreshTokenKey = "refresh_token"
+	AccessTokenTTL  = 10 * time.Minute
+	RefreshTokenTTL = 7 * 24 * time.Hour
+)
+
 type App struct {
 	Production bool
 	Views      map[string]*template.Template
@@ -32,8 +39,9 @@ type App struct {
 	// HTTP
 	AllowOrigin string
 	// JWT
-	Secret string
-	Cookie string
+	Secret       string
+	AccessToken  string
+	RefreshToken string
 }
 
 type JwtClaims struct {
@@ -82,12 +90,14 @@ func main() {
 		DB:          db,
 		AllowOrigin: allowOrigin,
 		Secret:      env.Secret,
-		Cookie:      "session",
 	}
 
 	// Views (Auth required)
 	http.HandleFunc("/api/user/toggle", app.handleUserToggle)
 	http.HandleFunc("/api/user/add", app.handleAddUser)
+
+	// Endpoints (Public)
+	http.HandleFunc("/api/logout", app.handleLogout)
 
 	// Pages (Auth required)
 	http.HandleFunc("/panel", app.handlePanel)
@@ -133,7 +143,7 @@ func (app *App) handleUserToggle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, err := app.validateSession(r, database.WriteAdvanced); err != nil {
+	if _, _, err := app.validateSession(w, r, database.WriteAdvanced); err != nil {
 		w.Header().Set("HX-Redirect", "/cuenta")
 		return
 	}
@@ -165,7 +175,7 @@ func (app *App) handleAddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, err := app.validateSession(r, database.WriteAdvanced); err != nil {
+	if _, _, err := app.validateSession(w, r, database.WriteAdvanced); err != nil {
 		w.Header().Set("HX-Redirect", "/cuenta")
 		return
 	}
@@ -201,12 +211,36 @@ func (app *App) handleAddUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *App) handleLogout(w http.ResponseWriter, r *http.Request) {
+	expiredAccessToken := &http.Cookie{
+		Name:     AccessTokenKey,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   app.Production,
+	}
+	expiredRefreshToken := &http.Cookie{
+		Name:     RefreshTokenKey,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   app.Production,
+	}
+	http.SetCookie(w, expiredAccessToken)
+	http.SetCookie(w, expiredRefreshToken)
+	w.WriteHeader(http.StatusOK)
+}
+
 func (app *App) handlePanel(w http.ResponseWriter, r *http.Request) {
 	if !cors.Handler(w, r, "*", "GET, OPTIONS", "Content-Type", false) {
 		return
 	}
 
-	_, _, err := app.validateSession(r, database.ReadAdvanced)
+	_, _, err := app.validateSession(w, r, database.ReadAdvanced)
 	if err != nil {
 		app.Log.Errorf("error validating session: %v", err)
 		http.Redirect(w, r, "/cuenta", http.StatusSeeOther)
@@ -232,7 +266,7 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, accountID, err := app.validateSession(r, database.Read)
+	userID, accountID, err := app.validateSession(w, r, database.Read)
 	if err != nil {
 		if err := views.Render(w, r, app.Views["login-page"], nil); err != nil {
 			app.Log.Errorf("error rendering template %s: %v", "login", err)
@@ -421,7 +455,19 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		AccountID: chosenAccountID,
 	}
 
-	if err := auth.JwtSet(w, app.Production, "/", app.Cookie, claims, time.Now().Add(1*time.Hour), app.Secret); err != nil {
+	if err = auth.JwtSet(w, app.Production, "/", AccessTokenKey, claims, time.Now().Add(AccessTokenTTL), app.Secret); err != nil {
+		app.Log.Errorf("error setting JWT cookie: %v", err)
+
+		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
+			app.Log.Errorf("error rendering template %s: %v", "login", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	if err = auth.JwtSet(w, app.Production, "/", RefreshTokenKey, claims, time.Now().Add(RefreshTokenTTL), app.Secret); err != nil {
 		app.Log.Errorf("error setting JWT cookie: %v", err)
 
 		if err := views.Render(w, r, app.Views["login"], map[string]any{"Error": true}); err != nil {
@@ -462,10 +508,21 @@ func (app *App) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) validateSession(r *http.Request, p database.PermissionInteger) (int, int, error) {
+func (app *App) validateSession(w http.ResponseWriter, r *http.Request, p database.PermissionInteger) (int, int, error) {
 	var claims JwtClaims
-	if err := auth.JwtValidate(r, "/", app.Cookie, app.Secret, &claims); err != nil {
-		return 0, 0, logger.Errorf("error validating jwt: %v", err)
+
+	if err := auth.JwtValidate(r, "/", AccessTokenKey, app.Secret, &claims); err != nil {
+		if err := auth.JwtValidate(r, "/", RefreshTokenKey, app.Secret, &claims); err != nil {
+			return 0, 0, logger.Errorf("error validating jwt: %v", err)
+		}
+
+		if err := auth.JwtSet(w, app.Production, "/", AccessTokenKey, claims, time.Now().Add(AccessTokenTTL), app.Secret); err != nil {
+			return 0, 0, logger.Errorf("error setting jwt: %v", err)
+		}
+
+		if err := auth.JwtSet(w, app.Production, "/", RefreshTokenKey, claims, time.Now().Add(RefreshTokenTTL), app.Secret); err != nil {
+			return 0, 0, logger.Errorf("error setting jwt: %v", err)
+		}
 	}
 
 	session := database.Session{
