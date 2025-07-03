@@ -1,0 +1,121 @@
+{{ define "fetch-and-swap" }}
+<script>
+function fetchAndSwap(event) {
+    event.preventDefault();
+
+    const el = event.currentTarget;
+    const form = el.tagName === 'FORM' ? el : el.closest('form');
+    if (!form) return console.error("No form found for element");
+
+    let action = form.getAttribute('action') || window.location.href;
+    const method = (form.getAttribute('method') || 'GET').toUpperCase();
+    const targetSelector = el.getAttribute('target');
+    const swap = el.getAttribute('swap') || 'innerHTML';
+
+    let targetEl = null;
+    if (targetSelector?.startsWith('#')) {
+        targetEl = document.querySelector(targetSelector);
+    } else if (targetSelector) {
+        let current = el;
+        while (current && current !== document.body) {
+            if (current.tagName.toLowerCase() === targetSelector.toLowerCase()) {
+                targetEl = current;
+                break;
+            }
+            current = current.parentElement;
+        }
+    }
+
+    if (!targetEl && swap !== 'none' && swap !== 'delete') {
+        console.error('Target element not found for selector:', targetSelector);
+        return;
+    }
+
+    const loadingEls = form.querySelectorAll('[loading-state], [loading-state=""]');
+    loadingEls.forEach(node => node.setAttribute('aria-busy', 'true'));
+    if (form.hasAttribute('loading-state')) form.setAttribute('aria-busy', 'true');
+
+    const formData = new FormData(form);
+    const fetchOptions = {
+        method,
+        headers: {
+            'X-CSRF-Token': getCSRFTokenFromMeta()
+        }
+    };
+
+    if (method !== 'GET') {
+        fetchOptions.body = formData;
+    } else {
+        const params = new URLSearchParams(formData).toString();
+        action += (action.includes('?') ? '&' : '?') + params;
+    }
+
+    fetch(action, fetchOptions)
+        .then(async res => {
+            const newCsrfToken = res.headers.get('X-CSRF-Token');
+            if (newCsrfToken) {
+                updateCSRFTokenMeta(newCsrfToken);
+            }
+
+            const responseText = await res.text();
+            if (res.status !== 200) {
+                console.warn(`Fetch returned status ${res.status}, skipping swap.`);
+                return;
+            }
+
+            switch (swap) {
+                case 'innerHTML':
+                    targetEl.innerHTML = responseText;
+                    break;
+                case 'outerHTML':
+                    targetEl.outerHTML = responseText;
+                    break;
+                case 'textContent':
+                    targetEl.textContent = responseText;
+                    break;
+                case 'beforebegin':
+                    targetEl.insertAdjacentHTML('beforebegin', responseText);
+                    break;
+                case 'afterbegin':
+                    targetEl.insertAdjacentHTML('afterbegin', responseText);
+                    break;
+                case 'beforeend':
+                    targetEl.insertAdjacentHTML('beforeend', responseText);
+                    break;
+                case 'afterend':
+                    targetEl.insertAdjacentHTML('afterend', responseText);
+                    break;
+                case 'delete':
+                    targetEl?.remove();
+                    break;
+                case 'none':
+                    break;
+                default:
+                    console.warn('Unknown swap type:', swap);
+            }
+        })
+        .catch(err => {
+            console.error('Request failed:', err);
+        })
+        .finally(() => {
+            loadingEls.forEach(node => node.setAttribute('aria-busy', 'false'));
+            if (form.hasAttribute('loading-state')) form.setAttribute('aria-busy', 'false');
+        });
+}
+
+function getCSRFTokenFromMeta() {
+    const meta = document.querySelector('meta[name="csrf_token"]');
+    return meta?.getAttribute('content') || '';
+}
+
+function updateCSRFTokenMeta(token) {
+    let meta = document.querySelector('meta[name="csrf_token"]');
+    if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'csrf_token');
+        document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', token);
+}
+</script>
+{{ end }}

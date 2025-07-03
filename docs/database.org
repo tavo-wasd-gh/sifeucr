@@ -1,7 +1,9 @@
 #+TITLE: Definición de la Base de Datos
 
 * DDL: Definiciones de la base de datos
-#+PROPERTY: header-args:sql :tangle schema.sql
+:PROPERTIES:
+:header-args:sql: :tangle schema.sql
+:END:
 
 ** Tablas primarias
 
@@ -151,8 +153,8 @@ Modificación de las distribuciones emitidas por órganos, exentos de impuesto. 
 
 #+begin_src sql
 CREATE TABLE IF NOT EXISTS "distributions_modifications_types" (
-    "type_id"          INTEGER PRIMARY KEY NOT NULL,
-    "type_name"        TEXT    NOT NULL
+    "type_id"   INTEGER PRIMARY KEY NOT NULL,
+    "type_name" TEXT    NOT NULL
 );
 #+end_src
 
@@ -178,7 +180,7 @@ CREATE TABLE IF NOT EXISTS "purchases" (
     "purchase_request"         INTEGER NOT NULL REFERENCES "requests"("req_id"),
     "purchase_entry"           INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
     "purchase_required"        INTEGER NOT NULL,
-    "purchase_provider"        INTEGER REFERENCES "suppliers"("supplier_id"),
+    "purchase_supplier"        INTEGER REFERENCES "suppliers"("supplier_id"),
     "purchase_currency"        TEXT    DEFAULT 'CRC', -- https://en.wikipedia.org/wiki/ISO_4217
     "purchase_ex_rate_colones" REAL    DEFAULT '1.00',
     "purchase_gross_amount"    REAL,
@@ -217,8 +219,7 @@ SELECT
     a.account_active,
     d.dist_valid_until,
     datetime(d.dist_valid_until, 'unixepoch') AS dist_valid_until_human,
-    d.dist_amount,
-    d.dist_active
+    d.dist_amount
 FROM distributions d
 JOIN budget_entries e ON d.dist_entry = e.entry_id
 JOIN accounts a ON d.dist_account = a.account_id
@@ -287,4 +288,76 @@ SELECT
     permission_active
 FROM permissions
 WHERE permission_active = 1;
+#+end_src
+
+* DQL: Consultas
+:PROPERTIES:
+:header-args:sql: :tangle queries.sql
+:END:
+
+** Usuarios
+
+#+begin_src sql
+-- name: UserByID :one
+SELECT * FROM users
+WHERE user_id = ? LIMIT 1;
+
+-- name: UserIDByUserEmail :one
+SELECT user_id FROM users
+WHERE user_email = ? LIMIT 1;
+
+-- name: GetAllUsers :many
+SELECT
+    user_id,
+    user_email,
+    user_name,
+    user_active
+FROM users;
+#+end_src
+
+** Cuentas
+
+#+begin_src sql
+-- name: AccountByID :one
+SELECT * FROM accounts
+WHERE account_id = ? LIMIT 1;
+
+-- name: AllowedAccountsByUserID :many
+SELECT
+    account_id,
+    account_abbr,
+    account_name,
+    account_active
+FROM allowed_accounts
+WHERE user_id = ?;
+#+end_src
+
+** Permisos
+
+#+begin_src sql
+-- name: GetPermission :one
+SELECT
+    permission_user,
+    permission_account,
+    permission_id
+FROM active_permissions WHERE
+    permission_user = ? AND
+    permission_account = ?
+LIMIT 1;
+#+end_src
+
+** Solicitudes
+
+#+begin_src sql
+-- name: RequestsByAccountID :many
+SELECT
+    req_id,
+    req_user,
+    req_account,
+    req_issued,
+    req_descr,
+    req_justif,
+    req_notes
+FROM requests
+WHERE req_account = ?;
 #+end_src

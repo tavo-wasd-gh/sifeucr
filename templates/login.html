@@ -1,5 +1,5 @@
 {{ define "login" }}
-<form hx-post="/api/login" hx-target="main" hx-swap="innerHTML" hx-ext="loading-state">
+<form method="POST">
   {{ if .ExternalEmail }}
   <article>
     <header class="pico-background-amber-150">
@@ -44,7 +44,12 @@
     {{ end }}
   </select>
   {{ end }}
-  <button type="submit" loading-state>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="main"
+    loading-state
+  >
     Iniciar
   </button>
 </form>

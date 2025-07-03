@@ -4,99 +4,63 @@ import (
 	"strings"
 )
 
-var ViewMap = map[string][]string{
-	"index-page": {
-		"templates/baseof.html",
-		"templates/_partials/head.html",
-		"templates/_partials/header.html",
-		"templates/index.html",
-		"templates/index-page.html",
-		"templates/_partials/footer.html",
-	},
-
-	"login-page": {
-		"templates/baseof.html",
-		"templates/_partials/head.html",
-		"templates/_partials/header.html",
-		"templates/login.html",
-		"templates/login-page.html",
-		"templates/_partials/footer.html",
-	},
-
-	"login": {
-		"templates/login.html",
-	},
-
-	"dashboard-page": {
-		"templates/baseof.html",
-		"templates/_partials/head.html",
-		"templates/_partials/header.html",
-		"templates/dashboard.html",
-		"templates/dashboard-page.html",
-		"templates/_partials/footer.html",
-		// Modules
-		"templates/control-madre.html",
-	},
-
-	"dashboard": {
-		"templates/dashboard.html",
-		// Modules
-		"templates/control-madre.html",
-	},
-
-	"suppliers-page": {
-		"templates/baseof.html",
-		"templates/_partials/head.html",
-		"templates/_partials/header.html",
-		"templates/suppliers.html",
-		"templates/suppliers-page.html",
-		"templates/_partials/footer.html",
-	},
-
-	"fse-page": {
-		"templates/baseof.html",
-		"templates/_partials/head.html",
-		"templates/_partials/header.html",
-		"templates/fse.html",
-		"templates/fse-page.html",
-		"templates/_partials/footer.html",
-	},
-
-	"panel-page": {
-		"templates/baseof.html",
-		"templates/_partials/head.html",
-		"templates/_partials/header.html",
-		"templates/panel.html",
-		"templates/panel-page.html",
-		"templates/_partials/footer.html",
-		// Modules
-		"templates/users.html",
-		"templates/user.html",
-	},
-
-	"control-madre": {
-		"templates/control-madre.html",
-	},
-
-	"user": {
-		"templates/user.html",
-	},
-
-	"users": {
-		"templates/users.html",
-		"templates/user.html",
-	},
-
-	"success-button": {
-		"templates/success-button.html",
-	},
-
-	"fail-button": {
-		"templates/fail-button.html",
-	},
+var base = []string{
+	"min/views/baseof.html",
+	"min/views/_partials/head.html",
+	"min/views/_partials/head/fetch-and-swap.html",
+	"min/views/_partials/header.html",
+	"min/views/_partials/footer.html",
 }
 
-var FuncMap = map[string]interface{}{
+var ViewMap = map[string][]string{
+	"login-page": append(
+		base,
+		"min/views/login.html",
+		"min/views/login-page.html",
+	),
+	"login": {
+		"min/views/login.html",
+	},
+
+	"dashboard-page": append(
+		base,
+		"min/views/dashboard.html",
+		"min/views/dashboard-page.html",
+		"min/views/control-madre.html",
+	),
+	"dashboard": {
+		"min/views/dashboard.html",
+		"min/views/control-madre.html",
+	},
+
+	"panel-page": append(
+		base,
+		"min/views/panel.html",
+		"min/views/panel-page.html",
+		"min/views/user.html",
+		"min/views/users.html",
+	),
+
+	"index-page": append(
+		base,
+		"min/views/index.html",
+		"min/views/index-page.html",
+	),
+
+	"suppliers-page": append(
+		base,
+		"min/views/suppliers.html",
+		"min/views/suppliers-page.html",
+	),
+
+	"fse-page": append(
+		base,
+		"min/views/fse.html",
+		"min/views/fse-page.html",
+	),
+}
+
+var ViewFormatters = map[string]any{
 	"uppercase": func(s string) string { return strings.ToUpper(s) },
 	"firstWord": func(s string) string {
 		words := strings.Fields(s)

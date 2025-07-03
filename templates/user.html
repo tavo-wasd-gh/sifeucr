@@ -1,12 +1,19 @@
 {{ define "user" }}
 <tr>
-  <td>{{ .ID }}</td>
-  <td>{{ .Email }}</td>
-  <td>{{ .Name }}</td>
+  <td>{{ .UserID }}</td>
+  <td>{{ .UserEmail }}</td>
+  <td>{{ .UserName }}</td>
   <td>
-    <form hx-post="/api/user/toggle" hx-swap="none" hx-trigger="change">
-      <input type="hidden" name="user_id" value="{{.ID}}">
-      <input type="checkbox" name="user_active" role="switch" {{if .Active}}checked{{end}}>
+    <form action="/user/toggle" method="POST">
+      <input type="hidden" name="user_id" value="{{ .UserID }}">
+      <input
+        type="checkbox"
+        name="user_active"
+        role="switch"
+        {{ if .UserActive }}checked{{ end }}
+        onchange="fetchAndSwap(event)"
+        swap="none"
+      >
     </form>
   </td>
 </tr>

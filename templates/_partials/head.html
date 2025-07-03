@@ -8,21 +8,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css">
 <style>table tr, table th, table td {padding:0.3rem;font-size:1.8vh;white-space:nowrap;}</style>
-<script src="/s/js/htmx.min.js"></script>
-<script>
- htmx.defineExtension('loading-state', {
-     onEvent: function(name, evt) {
-         const root = evt.detail.elt;
-         const targets = root.querySelectorAll('[loading-state]');
-
-         if (name === "htmx:beforeRequest") {
-             targets.forEach(el => el.setAttribute("aria-busy", "true"));
-         } else if (name === "htmx:afterRequest") {
-             targets.forEach(el => el.removeAttribute("aria-busy"));
-         }
-     }
- });
-</script>
+{{ template "fetch-and-swap" . }}
 <script>
  function filterTable(event, colIndex) {
      const input = event.target;

@@ -1,13 +1,13 @@
 {{ define "dashboard" }}
 <nav>
   <div>
-    {{ .Account.Abbr }}
+    {{ .Account.AccountAbbr }}
     <br>
-    <small>{{ .Account.Name }}</small>
+    <small>{{ .Account.AccountName }}</small>
   </div>
-  {{ if .User.Name }}
+  {{ if .User.UserName }}
   <div>
-    <button class="secondary outline">{{ firstWord .User.Name }}</button>
+    <button class="secondary outline">{{ firstWord .User.UserName }}</button>
     {{ if .ReadAdvanced }}
     <a href="/panel">
       <button class="contrast">Panel</button>
