@@ -5,16 +5,17 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
-	"runtime"
 	"log"
+	"runtime"
 
-	"sifeucr/config"
 	"git.tavo.one/tavo/axiom/sessions"
 	"git.tavo.one/tavo/axiom/storage"
+
+	"sifeucr/config"
 )
 
 type Handler struct {
-	cfg    Config
+	cfg Config
 }
 
 type Logger struct {
@@ -23,7 +24,7 @@ type Logger struct {
 
 type Config struct {
 	Production bool
-	Logger      *Logger
+	Logger     *Logger
 	Views      map[string]*template.Template
 	DB         *sql.DB
 	S3         *storage.Client

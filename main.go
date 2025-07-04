@@ -1,20 +1,21 @@
 package main
 
 import (
-	"log"
+	"embed"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"embed"
 
-	"github.com/joho/godotenv"
-	"sifeucr/config"
-	"sifeucr/handlers"
 	"git.tavo.one/tavo/axiom/sessions"
 	"git.tavo.one/tavo/axiom/storage"
 	"git.tavo.one/tavo/axiom/views"
+	"github.com/joho/godotenv"
+
+	"sifeucr/config"
+	"sifeucr/handlers"
 )
 
 //go:embed static/*
@@ -63,13 +64,13 @@ func main() {
 
 	handlerConfig := handlers.Config{
 		Production: isProduction,
-		Logger:     &handlers.Logger{
+		Logger: &handlers.Logger{
 			Enabled: os.Getenv("DEBUG") == "1",
 		},
-		Views:      nil,
-		DB:         db,
-		S3:         s3,
-		Sessions:   sessionStore,
+		Views:    nil,
+		DB:       db,
+		S3:       s3,
+		Sessions: sessionStore,
 	}
 	handler := handlers.New(handlerConfig)
 

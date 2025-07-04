@@ -59,7 +59,7 @@ func (h *Handler) ValidateSession(strict bool) func(http.Handler) http.Handler {
 				}
 			}
 
-			ctx = context.WithValue(ctx, config.UserIDKey,    session.UserID)
+			ctx = context.WithValue(ctx, config.UserIDKey, session.UserID)
 			ctx = context.WithValue(ctx, config.AccountIDKey, session.AccountID)
 			ctx = context.WithValue(ctx, config.CSRFTokenKey, newct)
 

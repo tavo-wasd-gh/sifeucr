@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"context"
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"git.tavo.one/tavo/axiom/views"
+
 	"sifeucr/config"
 	"sifeucr/internal/db"
 )

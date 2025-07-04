@@ -6,3 +6,4 @@ sifeucr
 internal/db/
 docs/schema.sql
 docs/queries.sql
+.air.toml

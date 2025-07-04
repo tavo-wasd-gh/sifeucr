@@ -8,6 +8,7 @@ import (
 	"git.tavo.one/tavo/axiom/forms"
 	"git.tavo.one/tavo/axiom/mail"
 	"git.tavo.one/tavo/axiom/views"
+
 	"sifeucr/config"
 	"sifeucr/internal/db"
 )
@@ -128,7 +129,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx = context.WithValue(ctx, config.UserIDKey,    userID)
+	ctx = context.WithValue(ctx, config.UserIDKey, userID)
 	ctx = context.WithValue(ctx, config.AccountIDKey, chosenAccountID)
 	ctx = context.WithValue(ctx, config.CSRFTokenKey, ct)
 
