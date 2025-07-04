@@ -8,8 +8,8 @@ import (
 	"git.tavo.one/tavo/axiom/forms"
 	"git.tavo.one/tavo/axiom/mail"
 	"git.tavo.one/tavo/axiom/views"
-	"github.com/tavo-wasd-gh/sifeucr/config"
-	"github.com/tavo-wasd-gh/sifeucr/database"
+	"sifeucr/config"
+	"sifeucr/internal/db"
 )
 
 func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		dbuser = dbuser[:pos]
 	}
 
-	queries := database.New(h.DB())
+	queries := db.New(h.DB())
 
 	userID, err := queries.UserIDByUserEmail(ctx, dbuser)
 	if err != nil {
@@ -76,7 +76,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	default:
 		type multiple struct {
 			MultipleAccounts bool
-			AllowedAccounts  []database.AllowedAccountsByUserIDRow
+			AllowedAccounts  []db.AllowedAccountsByUserIDRow
 		}
 
 		m := multiple{
@@ -98,7 +98,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	perm, err := queries.GetPermission(ctx, database.GetPermissionParams{
+	perm, err := queries.GetPermission(ctx, db.GetPermissionParams{
 		PermissionUser:    userID,
 		PermissionAccount: chosenAccountID,
 	})

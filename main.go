@@ -10,8 +10,8 @@ import (
 	"embed"
 
 	"github.com/joho/godotenv"
-	"github.com/tavo-wasd-gh/sifeucr/config"
-	"github.com/tavo-wasd-gh/sifeucr/handlers"
+	"sifeucr/config"
+	"sifeucr/handlers"
 	"git.tavo.one/tavo/axiom/sessions"
 	"git.tavo.one/tavo/axiom/storage"
 	"git.tavo.one/tavo/axiom/views"

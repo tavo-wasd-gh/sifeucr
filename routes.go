@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/tavo-wasd-gh/sifeucr/handlers"
+	"sifeucr/handlers"
 	"git.tavo.one/tavo/axiom/middleware"
 )
 

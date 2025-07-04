@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"log"
 
-	"github.com/tavo-wasd-gh/sifeucr/config"
+	"sifeucr/config"
 	"git.tavo.one/tavo/axiom/sessions"
 	"git.tavo.one/tavo/axiom/storage"
 )

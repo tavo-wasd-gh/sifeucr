@@ -1,4 +1,4 @@
-module github.com/tavo-wasd-gh/sifeucr
+module sifeucr
 
 go 1.24.4
 

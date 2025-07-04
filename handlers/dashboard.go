@@ -6,15 +6,15 @@ import (
 	"fmt"
 
 	"git.tavo.one/tavo/axiom/views"
-	"github.com/tavo-wasd-gh/sifeucr/config"
-	"github.com/tavo-wasd-gh/sifeucr/database"
+	"sifeucr/config"
+	"sifeucr/internal/db"
 )
 
 type dashboard struct {
-	User      database.User
-	Account   database.Account
+	User      db.User
+	Account   db.Account
 	CSRFToken string
-	Requests  []database.Request
+	Requests  []db.Request
 	// Advanced
 	ReadAdvanced bool
 	// mainReport   MainReport
@@ -44,7 +44,7 @@ func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
 	}
 
 	dashboard := dashboard{}
-	queries := database.New(h.DB())
+	queries := db.New(h.DB())
 
 	user, err := queries.UserByID(ctx, userID)
 	if err != nil {
@@ -64,7 +64,7 @@ func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
 	}
 	dashboard.Requests = requests
 
-	perm, err := queries.GetPermission(ctx, database.GetPermissionParams{
+	perm, err := queries.GetPermission(ctx, db.GetPermissionParams{
 		PermissionUser:    userID,
 		PermissionAccount: accountID,
 	})

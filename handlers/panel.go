@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"git.tavo.one/tavo/axiom/views"
-	"github.com/tavo-wasd-gh/sifeucr/config"
-	"github.com/tavo-wasd-gh/sifeucr/database"
+	"sifeucr/config"
+	"sifeucr/internal/db"
 )
 
 type panel struct {
-	Users     []database.User
+	Users     []db.User
 	CSRFToken string
 }
 
@@ -30,12 +30,12 @@ func (h *Handler) Panel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
-	queries := database.New(h.DB())
+	queries := db.New(h.DB())
 
 	userID := getUserIDFromContext(ctx)
 	accountID := getAccountIDFromContext(ctx)
 
-	perm, err := queries.GetPermission(ctx, database.GetPermissionParams{
+	perm, err := queries.GetPermission(ctx, db.GetPermissionParams{
 		PermissionUser:    userID,
 		PermissionAccount: accountID,
 	})

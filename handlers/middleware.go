@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/tavo-wasd-gh/sifeucr/config"
+	"sifeucr/config"
 )
 
 func (h *Handler) ValidateSession(strict bool) func(http.Handler) http.Handler {
