@@ -1,8 +1,6 @@
 .tmp/
 tmp/
 db.db
-min/
-static/js/*.min.js
 sifeucr
 .env
 database/

@@ -1,5 +1,3 @@
-{{ define "fetch-and-swap" }}
-<script>
 function fetchAndSwap(event) {
     event.preventDefault();
 
@@ -117,5 +115,16 @@ function updateCSRFTokenMeta(token) {
     }
     meta.setAttribute('content', token);
 }
-</script>
-{{ end }}
+
+function filterTable(event, colIndex) {
+    const input = event.target;
+    const table = input.closest("table");
+    const filterValue = input.value;
+    const rows = table.tBodies[0].rows;
+
+    for (let i = 0; i < rows.length; i++) {
+        const cell = rows[i].cells[colIndex];
+        const cellText = cell.textContent || cell.innerText;
+        rows[i].style.display = cellText.includes(filterValue) ? "" : "none";
+    }
+}

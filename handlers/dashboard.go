@@ -14,18 +14,14 @@ type dashboard struct {
 	User      database.User
 	Account   database.Account
 	CSRFToken string
-	Requests  *[]database.Request
+	Requests  []database.Request
 	// Advanced
 	ReadAdvanced bool
 	// mainReport   MainReport
 }
 
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
-	dashboard, err := h.loadDashboard(
-		getUserID(r),
-		getAccountID(r),
-		getCSRFToken(r),
-	)
+	dashboard, err := h.loadDashboard(r.Context())
 
 	if err != nil {
 		h.Log().Error("error loading dashboard: %v", err)
@@ -38,16 +34,15 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) loadDashboard(
-	userID,
-	accountID int64,
-	csrfToken string,
-) (*dashboard, error) {
+func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
+	userID := getUserIDFromContext(ctx)
+	accountID := getAccountIDFromContext(ctx)
+	csrfToken := getCSRFTokenFromContext(ctx)
+
 	if userID == 0 || accountID == 0 || csrfToken == "" {
 		return nil, fmt.Errorf("cannot load dashboard: invalid data")
 	}
 
-	ctx := context.Background()
 	dashboard := dashboard{}
 	queries := database.New(h.DB())
 
@@ -57,7 +52,7 @@ func (h *Handler) loadDashboard(
 	}
 	dashboard.User = user
 
-	account, err := queries.AccountByID(ctx, userID)
+	account, err := queries.AccountByID(ctx, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query account by ID: %v", err)
 	}
@@ -67,7 +62,7 @@ func (h *Handler) loadDashboard(
 	if err != nil {
 		return nil, fmt.Errorf("failed to query requests by accountID: %v", err)
 	}
-	dashboard.Requests = &requests
+	dashboard.Requests = requests
 
 	perm, err := queries.GetPermission(ctx, database.GetPermissionParams{
 		PermissionUser:    userID,
@@ -76,12 +71,12 @@ func (h *Handler) loadDashboard(
 	if err != nil {
 		return nil, fmt.Errorf("failed to query permissions: %v", err)
 	}
-	dashboard.ReadAdvanced = false
 
-	if !config.HasPermission(perm.PermissionID, config.ReadAdvanced) {
-		dashboard.ReadAdvanced = true
+	if !config.HasPermission(perm.PermissionID, config.Read) {
+		return nil, fmt.Errorf("incorrect permissions, want:%d got:%d", config.Read, perm.PermissionID)
 	}
 
+	dashboard.ReadAdvanced = config.HasPermission(perm.PermissionInteger, config.ReadAdvanced)
 	dashboard.CSRFToken = csrfToken
 	return &dashboard, nil
 }

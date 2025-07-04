@@ -8,19 +8,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css">
 <style>table tr, table th, table td {padding:0.3rem;font-size:1.8vh;white-space:nowrap;}</style>
-{{ template "fetch-and-swap" . }}
-<script>
- function filterTable(event, colIndex) {
-     const input = event.target;
-     const table = input.closest("table");
-     const filterValue = input.value.toLowerCase();
-     const rows = table.tBodies[0].rows;
-
-     for (let i = 0; i < rows.length; i++) {
-         const cell = rows[i].cells[colIndex];
-         const cellText = cell.textContent || cell.innerText;
-         rows[i].style.display = cellText.toLowerCase().includes(filterValue) ? "" : "none";
-     }
- }
-</script>
+<script src="/s/js/main.js"></script>
+<meta name="csrf_token" content="{{ .CSRFToken }}">
 {{ end }}

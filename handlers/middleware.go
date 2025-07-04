@@ -16,7 +16,7 @@ func (h *Handler) ValidateSession(strict bool) func(http.Handler) http.Handler {
 			c, err := r.Cookie(config.SessionTokenKey)
 			if err != nil {
 				h.Log().Error("failed to get session cookie: %v", err)
-				http.Error(w, "", http.StatusUnauthorized)
+				next.ServeHTTP(w, r)
 				return
 			}
 

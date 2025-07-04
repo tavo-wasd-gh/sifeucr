@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"html/template"
-	"net/http"
 	"runtime"
 	"log"
 
@@ -76,22 +76,22 @@ func (l *Logger) Error(format string, args ...any) {
 	log.Printf("%s: %s", funcName, msg)
 }
 
-func getCSRFToken(r *http.Request) string {
-	if ct, ok := r.Context().Value(config.CSRFTokenKey).(string); ok {
+func getCSRFTokenFromContext(ctx context.Context) string {
+	if ct, ok := ctx.Value(config.CSRFTokenKey).(string); ok {
 		return ct
 	}
 	return ""
 }
 
-func getUserID(r *http.Request) int64 {
-	if v, ok := r.Context().Value(config.UserIDKey).(int64); ok {
+func getUserIDFromContext(ctx context.Context) int64 {
+	if v, ok := ctx.Value(config.UserIDKey).(int64); ok {
 		return v
 	}
 	return 0
 }
 
-func getAccountID(r *http.Request) int64 {
-	if v, ok := r.Context().Value(config.AccountIDKey).(int64); ok {
+func getAccountIDFromContext(ctx context.Context) int64 {
+	if v, ok := ctx.Value(config.AccountIDKey).(int64); ok {
 		return v
 	}
 	return 0

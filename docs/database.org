@@ -337,9 +337,11 @@ WHERE user_id = ?;
 #+begin_src sql
 -- name: GetPermission :one
 SELECT
+    permission_id,
     permission_user,
     permission_account,
-    permission_id
+    permission_integer,
+    permission_active
 FROM active_permissions WHERE
     permission_user = ? AND
     permission_account = ?

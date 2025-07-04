@@ -17,10 +17,10 @@ import (
 	"git.tavo.one/tavo/axiom/views"
 )
 
-//go:embed min/static/*
+//go:embed static/*
 var publicFS embed.FS
 
-//go:embed min/views/*
+//go:embed views/*
 var viewFS embed.FS
 
 func init() {
@@ -75,7 +75,7 @@ func main() {
 
 	router := routes(handler)
 
-	staticFiles, err := fs.Sub(publicFS, "min/static")
+	staticFiles, err := fs.Sub(publicFS, "static")
 	if err != nil {
 		log.Fatalf("failed to create static files filesystem: %v", err)
 	}

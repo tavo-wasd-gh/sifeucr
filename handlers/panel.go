@@ -6,19 +6,21 @@ import (
 	"fmt"
 
 	"git.tavo.one/tavo/axiom/views"
+	"github.com/tavo-wasd-gh/sifeucr/config"
 	"github.com/tavo-wasd-gh/sifeucr/database"
 )
 
 type panel struct {
-	Users []database.User
+	Users     []database.User
+	CSRFToken string
 }
 
 func (h *Handler) Panel(w http.ResponseWriter, r *http.Request) {
-	panel, err := h.loadPanel()
+	panel, err := h.loadPanel(r.Context())
 
 	if err != nil {
 		h.Log().Error("error loading panel: %v", err)
-		views.RenderHTML(w, r, "login-page", nil)
+		http.Redirect(w, r, "/cuenta", http.StatusFound)
 		return
 	}
 
@@ -27,16 +29,37 @@ func (h *Handler) Panel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) loadPanel() (*panel, error) {
-	ctx := context.Background()
-	panel := panel{}
+func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	queries := database.New(h.DB())
-	var err error
+
+	userID := getUserIDFromContext(ctx)
+	accountID := getAccountIDFromContext(ctx)
+
+	perm, err := queries.GetPermission(ctx, database.GetPermissionParams{
+		PermissionUser:    userID,
+		PermissionAccount: accountID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query permissions: %v", err)
+	}
+
+	if !config.HasPermission(perm.PermissionInteger, config.ReadAdvanced) {
+		return nil, fmt.Errorf("incorrect permissions, got:%d want:%d", perm.PermissionInteger, config.ReadAdvanced)
+	}
+
+	csrfToken := getCSRFTokenFromContext(ctx)
+
+	if userID == 0 || accountID == 0 || csrfToken == "" {
+		return nil, fmt.Errorf("cannot load dashboard: invalid data")
+	}
+
+	panel := panel{}
 
 	panel.Users, err = queries.GetAllUsers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all users: %v", err)
 	}
 
+	panel.CSRFToken = csrfToken
 	return &panel, nil
 }

@@ -109,8 +109,8 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !config.HasPermission(perm.PermissionID, config.Read) {
-		h.Log().Error("incorrect permissions, want:%d got:%d", config.Read, perm.PermissionID)
+	if !config.HasPermission(perm.PermissionInteger, config.Read) {
+		h.Log().Error("incorrect permissions, got:%d want:%d", perm.PermissionInteger, config.Read)
 		http.Error(w, "", http.StatusUnauthorized)
 		return
 	}
@@ -128,7 +128,11 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dashboard, err := h.loadDashboard(userID, chosenAccountID, ct)
+	ctx = context.WithValue(ctx, config.UserIDKey,    userID)
+	ctx = context.WithValue(ctx, config.AccountIDKey, chosenAccountID)
+	ctx = context.WithValue(ctx, config.CSRFTokenKey, ct)
+
+	dashboard, err := h.loadDashboard(ctx)
 	if err != nil {
 		h.Log().Error("failed to load dashboard: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)

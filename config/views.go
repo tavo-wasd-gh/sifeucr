@@ -5,58 +5,57 @@ import (
 )
 
 var base = []string{
-	"min/views/baseof.html",
-	"min/views/_partials/head.html",
-	"min/views/_partials/head/fetch-and-swap.html",
-	"min/views/_partials/header.html",
-	"min/views/_partials/footer.html",
+	"views/baseof.html",
+	"views/_partials/head.html",
+	"views/_partials/header.html",
+	"views/_partials/footer.html",
 }
 
 var ViewMap = map[string][]string{
 	"login-page": append(
 		base,
-		"min/views/login.html",
-		"min/views/login-page.html",
+		"views/login.html",
+		"views/login-page.html",
 	),
 	"login": {
-		"min/views/login.html",
+		"views/login.html",
 	},
 
 	"dashboard-page": append(
 		base,
-		"min/views/dashboard.html",
-		"min/views/dashboard-page.html",
-		"min/views/control-madre.html",
+		"views/dashboard.html",
+		"views/dashboard-page.html",
+		"views/control-madre.html",
 	),
 	"dashboard": {
-		"min/views/dashboard.html",
-		"min/views/control-madre.html",
+		"views/dashboard.html",
+		"views/control-madre.html",
 	},
 
 	"panel-page": append(
 		base,
-		"min/views/panel.html",
-		"min/views/panel-page.html",
-		"min/views/user.html",
-		"min/views/users.html",
+		"views/panel.html",
+		"views/panel-page.html",
+		"views/user.html",
+		"views/users.html",
 	),
 
 	"index-page": append(
 		base,
-		"min/views/index.html",
-		"min/views/index-page.html",
+		"views/index.html",
+		"views/index-page.html",
 	),
 
 	"suppliers-page": append(
 		base,
-		"min/views/suppliers.html",
-		"min/views/suppliers-page.html",
+		"views/suppliers.html",
+		"views/suppliers-page.html",
 	),
 
 	"fse-page": append(
 		base,
-		"min/views/fse.html",
-		"min/views/fse-page.html",
+		"views/fse.html",
+		"views/fse-page.html",
 	),
 }
 
