@@ -14,8 +14,6 @@ import (
 )
 
 func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-
 	type loginForm struct {
 		Email    string `form:"email" fmt:"trim,lower" validate:"email" req:"1"`
 		Password string `form:"password" req:"1"`
@@ -47,6 +45,8 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 
 	queries := db.New(h.DB())
 
+	ctx := r.Context()
+
 	userID, err := queries.UserIDByUserEmail(ctx, dbuser)
 	if err != nil {
 		h.Log().Error("error querying user_id by user_email: %v", err)
@@ -54,7 +54,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowedAccounts, err := queries.AllowedAccountsByUserID(ctx, userID)
+	perms, err := queries.PermissionsByUserID(ctx, userID)
 	if err != nil {
 		h.Log().Error("error querying allowed_accounts by user_id: %v", err)
 		views.RenderHTML(w, r, "login", map[string]any{"Error": true})
@@ -63,7 +63,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 
 	var chosenAccountID int64 = 0
 
-	switch len(allowedAccounts) {
+	switch len(perms) {
 	case 0:
 		// No allowed accounts, render error and return
 		h.Log().Error("no allowed_accounts for user_id")
@@ -72,17 +72,17 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 
 	case 1:
 		// One allowed account, set and continue
-		chosenAccountID = allowedAccounts[0].AccountID
+		chosenAccountID = perms[0].AccountID
 
 	default:
 		type multiple struct {
 			MultipleAccounts bool
-			AllowedAccounts  []db.AllowedAccountsByUserIDRow
+			Permissions      []db.PermissionsByUserIDRow
 		}
 
 		m := multiple{
 			MultipleAccounts: true,
-			AllowedAccounts:  allowedAccounts,
+			Permissions:      perms,
 		}
 
 		views.RenderHTML(w, r, "login", m)
@@ -99,9 +99,9 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	perm, err := queries.GetPermission(ctx, db.GetPermissionParams{
-		PermissionUser:    userID,
-		PermissionAccount: chosenAccountID,
+	perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
+		UserID:    userID,
+		AccountID: chosenAccountID,
 	})
 
 	if err != nil {

@@ -36,48 +36,43 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
-	userID := getUserIDFromContext(ctx)
-	accountID := getAccountIDFromContext(ctx)
-	csrfToken := getCSRFTokenFromContext(ctx)
-
-	if userID == 0 || accountID == 0 || csrfToken == "" {
+	err := h.checkPermissionFromContext(ctx, config.Read)
+	if err != nil {
 		return nil, fmt.Errorf("cannot load dashboard: invalid data")
 	}
 
-	dashboard := dashboard{}
+	userID := getUserIDFromContext(ctx)
+	accountID := getAccountIDFromContext(ctx)
+
 	queries := db.New(h.DB())
+	dashboard := dashboard{}
 
-	user, err := queries.UserByID(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query user by ID: %v", err)
-	}
-	dashboard.User = user
-
-	account, err := queries.AccountByID(ctx, accountID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query account by ID: %v", err)
-	}
-	dashboard.Account = account
-
-	requests, err := queries.RequestsByAccountID(ctx, accountID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query requests by accountID: %v", err)
-	}
-	dashboard.Requests = requests
-
-	perm, err := queries.GetPermission(ctx, db.GetPermissionParams{
-		PermissionUser:    userID,
-		PermissionAccount: accountID,
+	perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
+		UserID:    userID,
+		AccountID: accountID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query permissions: %v", err)
 	}
+	dashboard.ReadAdvanced = config.HasPermission(perm.PermissionInteger, config.ReadAdvanced)
 
-	if !config.HasPermission(perm.PermissionID, config.Read) {
-		return nil, fmt.Errorf("incorrect permissions, want:%d got:%d", config.Read, perm.PermissionID)
+	dashboard.User, err = queries.UserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query user by ID: %v", err)
 	}
 
-	dashboard.ReadAdvanced = config.HasPermission(perm.PermissionInteger, config.ReadAdvanced)
+	dashboard.Account, err = queries.AccountByID(ctx, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query account by ID: %v", err)
+	}
+
+	dashboard.Requests, err = queries.RequestsByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query requests by accountID: %v", err)
+	}
+
+	csrfToken := getCSRFTokenFromContext(ctx)
 	dashboard.CSRFToken = csrfToken
+
 	return &dashboard, nil
 }

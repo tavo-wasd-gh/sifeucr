@@ -1,6 +1,6 @@
 #+TITLE: Definición de la Base de Datos
 
-* DDL: Definiciones de la base de datos
+* DDL: Definiciones
 :PROPERTIES:
 :header-args:sql: :tangle schema.sql
 :END:
@@ -68,17 +68,20 @@ CREATE TABLE IF NOT EXISTS "permissions" (
 );
 #+end_src
 
-*** Distribuciones Internas
+*** Distribuciones
 
 #+begin_src sql
 CREATE TABLE IF NOT EXISTS "distributions" (
     "dist_id"          INTEGER PRIMARY KEY NOT NULL,
     "dist_name"        TEXT    NOT NULL UNIQUE,
-    "dist_entry"       INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
+    "dist_entry_code"  INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
     "dist_account"     INTEGER NOT NULL REFERENCES "accounts"("account_id"),
-    "dist_valid_until" INTEGER NOT NULL,
+    "dist_valid_start" INTEGER NOT NULL,
+    "dist_valid_end"   INTEGER NOT NULL,
     "dist_amount"      REAL    NOT NULL,
-    "dist_active"      BOOLEAN NOT NULL
+    "dist_active"      BOOLEAN NOT NULL,
+    UNIQUE("dist_entry_code", "dist_account"),
+    UNIQUE("dist_name", "dist_entry_code")
 );
 #+end_src
 
@@ -119,54 +122,34 @@ CREATE TABLE IF NOT EXISTS "requests" (
 );
 #+end_src
 
-*** Transferencias
+*** Modificaciones Globales
 
 Ajustes en el presupuesto que acreditan o debitan en una partida presupuestaria, que además es un movimiento exento de impuesto. Por ejemplo, una transferencia hacia una unidad, un tercero o un aumento/rebajo ordinario.
 
 #+begin_src sql
-CREATE TABLE IF NOT EXISTS "budget_transfers" (
-    "transfer_id"     INTEGER PRIMARY KEY NOT NULL,
-    "transfer_req"    INTEGER NOT NULL REFERENCES "requests"("req_id"),
-    "transfer_entry"  INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
-    "transfer_amount" REAL    NOT NULL,
-    "transfer_letter" TEXT
+CREATE TABLE IF NOT EXISTS "global_modifications" (
+    "global_mod_id"           INTEGER PRIMARY KEY NOT NULL,
+    "global_mod_req"          INTEGER NOT NULL REFERENCES "requests"("req_id"),
+    "global_mod_debit_entry"  INTEGER REFERENCES "budget_entries"("entry_id"),
+    "global_mod_credit_entry" INTEGER REFERENCES "budget_entries"("entry_id"),
+    "global_mod_amount"       REAL    NOT NULL,
+    "global_mod_letter"       TEXT
+    CHECK ("global_mod_debit_entry" IS NOT NULL OR "global_mod_credit_entry" IS NOT NULL)
 );
 #+end_src
 
-*** Modificaciones
-
-Ajustes internos en el presupuesto, exentos de impuesto. Por ejemplo, solicitar cargar/descargar una partida.
-
-#+begin_src sql
-CREATE TABLE IF NOT EXISTS "budget_modifications" (
-    "mod_id"           INTEGER PRIMARY KEY NOT NULL,
-    "mod_request"      INTEGER NOT NULL REFERENCES "requests"("req_id"),
-    "mod_debit_entry"  INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
-    "mod_credit_entry" INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
-    "mod_amount"       REAL    NOT NULL
-);
-#+end_src
-
-*** Modificaciones de distribuciones
+*** Modificaciones Internas
 
 Modificación de las distribuciones emitidas por órganos, exentos de impuesto. Por ejemplo, rebajos por ausencias o solicitudes de ahorro.
-
-#+begin_src sql
-CREATE TABLE IF NOT EXISTS "distributions_modifications_types" (
-    "type_id"   INTEGER PRIMARY KEY NOT NULL,
-    "type_name" TEXT    NOT NULL
-);
-#+end_src
 
 #+begin_src sql
 CREATE TABLE IF NOT EXISTS "distribution_modifications" (
     "dist_mod_id"              INTEGER PRIMARY KEY NOT NULL,
     "dist_mod_request"         INTEGER NOT NULL REFERENCES "requests"("req_id"),
-    "dist_mod_type"            INTEGER NOT NULL REFERENCES "distributions_modifications_types"("type_id"),
     "dist_mod_debit_dist"      INTEGER NOT NULL REFERENCES "distributions"("dist_id"),
     "dist_mod_credit_dist"     INTEGER NOT NULL REFERENCES "distributions"("dist_id"),
     "dist_mod_amount"          REAL    NOT NULL,
-    "dist_mod_justif_approved" BOOLEAN NOT NULL
+    "dist_mod_letter"          TEXT
 );
 #+end_src
 
@@ -205,74 +188,19 @@ CREATE TABLE IF NOT EXISTS "purchases_breakdown" (
 ** Triggers
 ** Vistas
 
-*** Distribuciones Activas
-
-#+begin_src sql
-CREATE VIEW IF NOT EXISTS valid_distributions AS
-SELECT
-    e.entry_code,
-    e.entry_object,
-    d.dist_id,
-    d.dist_active,
-    d.dist_account,
-    a.account_name,
-    a.account_active,
-    d.dist_valid_until,
-    datetime(d.dist_valid_until, 'unixepoch') AS dist_valid_until_human,
-    d.dist_amount
-FROM distributions d
-JOIN budget_entries e ON d.dist_entry = e.entry_id
-JOIN accounts a ON d.dist_account = a.account_id
-WHERE d.dist_valid_until = (
-    SELECT MIN(d2.dist_valid_until)
-    FROM distributions d2
-    WHERE d2.dist_valid_until >= strftime('%s', 'now')
-      AND d2.dist_entry = d.dist_entry
-      AND d2.dist_account = d.dist_account
-)
-GROUP BY e.entry_code, d.dist_account;
-#+end_src
-
 *** Cuentas Activas
 
 #+begin_src sql
 CREATE VIEW IF NOT EXISTS active_accounts AS
-SELECT
-    account_id,
-    account_abbr,
-    account_name,
-    account_active
-FROM accounts
+SELECT * FROM accounts
 WHERE account_active = 1;
-#+end_src
-
-*** Cuentas Autorizadas
-
-#+begin_src sql
-CREATE VIEW IF NOT EXISTS allowed_accounts AS
-SELECT
-    a.account_id,
-    a.account_abbr,
-    a.account_name,
-    a.account_active,
-    u.user_id,
-    u.user_active
-FROM active_accounts a
-JOIN permissions p ON a.account_id = p.permission_account
-JOIN users u ON p.permission_user = u.user_id
-WHERE u.user_active = 1;
 #+end_src
 
 *** Usuarios activos
 
 #+begin_src sql
 CREATE VIEW IF NOT EXISTS active_users AS
-SELECT
-    user_id,
-    user_email,
-    user_name,
-    user_active
-FROM users
+SELECT * FROM users
 WHERE user_active = 1;
 #+end_src
 
@@ -280,13 +208,7 @@ WHERE user_active = 1;
 
 #+begin_src sql
 CREATE VIEW IF NOT EXISTS active_permissions AS
-SELECT
-    permission_id,
-    permission_user,
-    permission_account,
-    permission_integer,
-    permission_active
-FROM permissions
+SELECT * FROM permissions
 WHERE permission_active = 1;
 #+end_src
 
@@ -295,9 +217,19 @@ WHERE permission_active = 1;
 :header-args:sql: :tangle queries.sql
 :END:
 
+** Presupuesto
+
+#+begin_src sql
+-- name: GetAllBudgetEntries :many
+SELECT * FROM budget_entries;
+#+end_src
+
 ** Usuarios
 
 #+begin_src sql
+-- name: GetAllUsers :many
+SELECT * FROM users;
+
 -- name: UserByID :one
 SELECT * FROM users
 WHERE user_id = ? LIMIT 1;
@@ -305,61 +237,140 @@ WHERE user_id = ? LIMIT 1;
 -- name: UserIDByUserEmail :one
 SELECT user_id FROM users
 WHERE user_email = ? LIMIT 1;
-
--- name: GetAllUsers :many
-SELECT
-    user_id,
-    user_email,
-    user_name,
-    user_active
-FROM users;
 #+end_src
 
 ** Cuentas
 
 #+begin_src sql
+-- name: AllAccounts :many
+SELECT * FROM accounts;
+
 -- name: AccountByID :one
 SELECT * FROM accounts
 WHERE account_id = ? LIMIT 1;
-
--- name: AllowedAccountsByUserID :many
-SELECT
-    account_id,
-    account_abbr,
-    account_name,
-    account_active
-FROM allowed_accounts
-WHERE user_id = ?;
 #+end_src
 
 ** Permisos
 
 #+begin_src sql
--- name: GetPermission :one
-SELECT
-    permission_id,
-    permission_user,
-    permission_account,
-    permission_integer,
-    permission_active
-FROM active_permissions WHERE
-    permission_user = ? AND
-    permission_account = ?
-LIMIT 1;
+-- name: PermissionsByUserID :many
+SELECT a.*, u.*, p.*
+FROM active_users       u
+JOIN active_permissions p ON u.user_id    = p.permission_user
+JOIN active_accounts    a ON a.account_id = p.permission_account
+WHERE u.user_id = ?;
+
+-- name: PermissionByUserIDAndAccountID :one
+SELECT a.*, u.*, p.*
+FROM active_permissions p
+JOIN active_users       u ON u.user_id    = p.permission_user
+JOIN active_accounts    a ON a.account_id = p.permission_account
+WHERE u.user_id = ? AND a.account_id = ?;
 #+end_src
 
 ** Solicitudes
 
 #+begin_src sql
 -- name: RequestsByAccountID :many
-SELECT
-    req_id,
-    req_user,
-    req_account,
-    req_issued,
-    req_descr,
-    req_justif,
-    req_notes
-FROM requests
+SELECT * FROM requests
 WHERE req_account = ?;
+#+end_src
+
+* DML: Gestión
+:PROPERTIES:
+:header-args:sql: :tangle queries.sql
+:END:
+
+** Insertar Presupuesto
+
+#+begin_src sql
+-- name: NewBudgetEntry :one
+INSERT INTO budget_entries (
+    entry_year,
+    entry_code,
+    entry_object,
+    entry_amount
+) VALUES (
+    ?, ?, ?, ?
+) RETURNING *;
+#+end_src
+
+** Insertar Usuario
+
+#+begin_src sql
+-- name: NewUser :one
+INSERT INTO users (
+    user_email,
+    user_name,
+    user_active
+) VALUES (
+    ?, ?, ?
+)
+RETURNING *;
+#+end_src
+
+** Insertar Cuenta
+
+#+begin_src sql
+-- name: NewAccount :one
+INSERT INTO accounts (
+    account_abbr,
+    account_name,
+    account_active
+) VALUES (
+    ?, ?, ?
+)
+RETURNING *;
+#+end_src
+
+** Cambiar estado de cuenta
+
+#+begin_src sql
+-- name: ToggleAccountActiveByAccountID :exec
+UPDATE accounts
+SET account_active = NOT account_active
+WHERE account_id = ?;
+#+end_src
+
+** Insertar Distribución
+
+#+begin_src sql
+-- name: NewDistribution :exec
+INSERT INTO distributions (
+    dist_id,
+    dist_name,
+    dist_entry_code,
+    dist_account,
+    dist_valid_start,
+    dist_valid_end,
+    dist_amount,
+    dist_active
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?
+);
+#+end_src
+
+** Insertar Proveedor
+
+#+begin_src sql
+-- name: NewSupplier :exec
+INSERT INTO suppliers (
+    supplier_id,
+    supplier_name,
+    supplier_email,
+    supplier_phone_country_code,
+    supplier_phone,
+    supplier_location
+) VALUES (
+    ?, ?, ?, ?, ?, ?
+);
+#+end_src
+
+** Cambiar estado de usuario
+
+#+begin_src sql
+-- name: ToggleUserActiveByUserID :exec
+UPDATE users
+SET user_active = NOT user_active
+WHERE user_id = ?;
 #+end_src

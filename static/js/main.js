@@ -14,13 +14,9 @@ function fetchAndSwap(event) {
     if (targetSelector?.startsWith('#')) {
         targetEl = document.querySelector(targetSelector);
     } else if (targetSelector) {
-        let current = el;
-        while (current && current !== document.body) {
-            if (current.tagName.toLowerCase() === targetSelector.toLowerCase()) {
-                targetEl = current;
-                break;
-            }
-            current = current.parentElement;
+        targetEl = document.querySelector(targetSelector);
+        if (!targetEl) {
+            console.warn(`No element found for selector: '${targetSelector}'`);
         }
     }
 

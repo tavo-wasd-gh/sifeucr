@@ -3,17 +3,33 @@
   <table class="striped">
     <thead>
       <tr>
-        <th>ID</th>
-        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Usuario" onkeyup="filterTable(event, 1)"></th>
-        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Nombre" onkeyup="filterTable(event, 2)"></th>
+        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="ID"      onkeyup="filterTable(event, 0)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Usuario" onkeyup="filterTable(event, 1)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Nombre"  onkeyup="filterTable(event, 2)"></th>
         <th>Activo</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="user-rows">
       {{ range .Users }}
       {{ template "user" . }}
       {{ end }}
     </tbody>
   </table>
 </div>
+<label for="adduser">Agregar Usuario</label>
+<form
+  id="adduser"
+  method="POST"
+  action="/user/add"
+>
+  <input type="email" name="email" placeholder="Correo institucional" aria-label="Correo institucional" autocomplete="email" required>
+  <input type="text" name="name" placeholder="Nombre completo" aria-label="Nombre completo" required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#user-rows"
+    swap="beforeend"
+    loading-state
+  >Agregar Usuario</button>
+</form>
 {{ end }}

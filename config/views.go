@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -36,9 +37,17 @@ var ViewMap = map[string][]string{
 		base,
 		"views/panel.html",
 		"views/panel-page.html",
+		"views/budget.html",
+		"views/budgets.html",
 		"views/user.html",
 		"views/users.html",
 	),
+	"budget": {
+		"views/budget.html",
+	},
+	"user": {
+		"views/user.html",
+	},
 
 	"index-page": append(
 		base,
@@ -68,4 +77,29 @@ var ViewFormatters = map[string]any{
 		}
 		return ""
 	},
+	"currency": formatAsCurrency,
+}
+
+func formatAsCurrency(amount float64) string {
+    sign := ""
+    if amount < 0 {
+        sign = "-"
+        amount = -amount
+    }
+
+    formatted := fmt.Sprintf("%.2f", amount)
+    parts := strings.Split(formatted, ".")
+
+    integerPart := parts[0]
+    decimalPart := parts[1]
+
+    var result []byte
+    for i, digit := range integerPart {
+        if (len(integerPart)-i)%3 == 0 && i != 0 {
+            result = append(result, ',')
+        }
+        result = append(result, byte(digit))
+    }
+
+    return fmt.Sprintf("₡%s%s.%s", sign, string(result), decimalPart)
 }

@@ -5,11 +5,11 @@ import (
 )
 
 const (
-	TokenLength     = 32
+	TokenLength     = 64
 	MaxSessions     = 1000
 	SessionMaxAge   = 5 * time.Hour
 	SessionTokenKey = "session"
-	CookieMaxAge    = 60 * 60
+	CookieMaxAge    = 40 * 60
 )
 
 type contextKey string

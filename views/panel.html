@@ -1,12 +1,10 @@
 {{ define "panel" }}
 <details>
+  <summary>Presupuesto Global</summary>
+  {{ template "budgets" . }}
+</details>
+<details>
   <summary>Usuarios</summary>
   {{ template "users" . }}
-  <label for="add-user">Agregar Usuario</label>
-  <form id="add-user" hx-post="/api/user/add" hx-target="previous tr" hx-swap="afterend" hx-ext="loading-state">
-    <input type="email" name="email" placeholder="Correo institucional" aria-label="Correo institucional" autocomplete="email" required>
-    <input type="text" name="name" placeholder="Nombre completo" aria-label="Nombre completo" required>
-    <button type="submit" loading-state>Agregar</button>
-  </form>
 </details>
 {{ end }}

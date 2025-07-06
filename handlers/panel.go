@@ -12,7 +12,8 @@ import (
 )
 
 type panel struct {
-	Users     []db.User
+	Users         []db.User
+	BudgetEntries []db.BudgetEntry
 	CSRFToken string
 }
 
@@ -31,29 +32,12 @@ func (h *Handler) Panel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
-	queries := db.New(h.DB())
-
-	userID := getUserIDFromContext(ctx)
-	accountID := getAccountIDFromContext(ctx)
-
-	perm, err := queries.GetPermission(ctx, db.GetPermissionParams{
-		PermissionUser:    userID,
-		PermissionAccount: accountID,
-	})
+	err := h.checkPermissionFromContext(ctx, config.ReadAdvanced)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query permissions: %v", err)
+		return nil, fmt.Errorf("error checking permissions: %v", err)
 	}
 
-	if !config.HasPermission(perm.PermissionInteger, config.ReadAdvanced) {
-		return nil, fmt.Errorf("incorrect permissions, got:%d want:%d", perm.PermissionInteger, config.ReadAdvanced)
-	}
-
-	csrfToken := getCSRFTokenFromContext(ctx)
-
-	if userID == 0 || accountID == 0 || csrfToken == "" {
-		return nil, fmt.Errorf("cannot load dashboard: invalid data")
-	}
-
+	queries := db.New(h.DB())
 	panel := panel{}
 
 	panel.Users, err = queries.GetAllUsers(ctx)
@@ -61,6 +45,13 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 		return nil, fmt.Errorf("failed to query all users: %v", err)
 	}
 
+	panel.BudgetEntries, err = queries.GetAllBudgetEntries(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all budget entries: %v", err)
+	}
+
+	csrfToken := getCSRFTokenFromContext(ctx)
 	panel.CSRFToken = csrfToken
+
 	return &panel, nil
 }

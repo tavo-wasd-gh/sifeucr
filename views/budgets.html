@@ -1,0 +1,38 @@
+{{ define "budgets" }}
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="ID"     onkeyup="filterTable(event, 0)"></th>
+        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Año"    onkeyup="filterTable(event, 1)"></th>
+        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Código" onkeyup="filterTable(event, 2)"></th>
+        <th><input type="text"              style="all:unset;font-weight:normal;" placeholder="Objeto" onkeyup="filterTable(event, 3)"></th>
+        <th><input type="number" step="any" style="all:unset;font-weight:normal;" placeholder="Monto"  onkeyup="filterTable(event, 4)"></th>
+      </tr>
+    </thead>
+    <tbody id="budget-rows">
+      {{ range .BudgetEntries }}
+      {{ template "budget" . }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<label for="#addentry">Agregar Partida</label>
+<form
+  id="addentry"
+  method="POST"
+  action="/budget/add"
+>
+  <input type="number" step="1"   name="year"   placeholder="Año"    aria-label="Año"    required>
+  <input type="number" step="1"   name="code"   placeholder="Código" aria-label="Código" required>
+  <input type="text"              name="object" placeholder="Objeto" aria-label="Objeto" required>
+  <input type="number" step=".01" name="amount" placeholder="Monto"  aria-label="Monto"  required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#budget-rows"
+    swap="beforeend"
+    loading-state
+  >Agregar Partida</button>
+</form>
+{{ end }}

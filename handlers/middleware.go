@@ -11,7 +11,6 @@ func (h *Handler) ValidateSession(strict bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			csrfTokenKey := string(config.CSRFTokenKey)
 
 			c, err := r.Cookie(config.SessionTokenKey)
 			if err != nil {
@@ -30,7 +29,7 @@ func (h *Handler) ValidateSession(strict bool) func(http.Handler) http.Handler {
 			var newst, newct string
 			var session config.Session
 
-			oldct := r.Header.Get(csrfTokenKey)
+			oldct := r.Header.Get("X-CSRF-Token")
 			if oldct == "" {
 				// Unset CSRF token
 				// if strict, fail, if relaxed, rotate session
@@ -73,7 +72,7 @@ func (h *Handler) ValidateSession(strict bool) func(http.Handler) http.Handler {
 				MaxAge:   config.CookieMaxAge,
 			})
 
-			w.Header().Set(csrfTokenKey, newct)
+			w.Header().Set("X-CSRF-Token", newct)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

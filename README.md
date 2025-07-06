@@ -39,3 +39,23 @@
 - [ ] Funcionalidad mínima
 - [ ] Revisar que las vistas funcionen sin errores
 - [ ] Triggers para auditoría
+
+### Reportes
+
+- [ ] Invividual Report
+- [ ] Global Report
+- [ ] Request dialog
+
+### Solicitudes
+
+- [ ] Compras - Servicios, Suministros, Activos
+- [ ] Modificaciones globales
+- [ ] Modificaciones internas
+
+### Inserciones
+
+- [ ] Presupuesto
+- [ ] Usuario
+- [ ] Cuenta
+- [ ] Distribución
+- [ ] Proveedor

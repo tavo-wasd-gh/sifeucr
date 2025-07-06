@@ -12,6 +12,7 @@ import (
 	"git.tavo.one/tavo/axiom/storage"
 
 	"sifeucr/config"
+	"sifeucr/internal/db"
 )
 
 type Handler struct {
@@ -96,4 +97,27 @@ func getAccountIDFromContext(ctx context.Context) int64 {
 		return v
 	}
 	return 0
+}
+
+func (h *Handler) checkPermissionFromContext(ctx context.Context, required int64) error {
+	userID := getUserIDFromContext(ctx)
+	accountID := getAccountIDFromContext(ctx)
+	if userID == 0 || accountID == 0 {
+		return fmt.Errorf("cannot addBudgetEntry: invalid data")
+	}
+
+	queries := db.New(h.DB())
+	perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
+		UserID:    userID,
+		AccountID: accountID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to query permissions: %v")
+	}
+
+	if !config.HasPermission(perm.PermissionInteger, required) {
+		return fmt.Errorf("incorrect permissions, got:%d want:%d", perm.PermissionInteger, required)
+	}
+
+	return nil
 }
