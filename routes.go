@@ -32,20 +32,21 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /account/add",    middleware.With(protectedStrict, handler.AddAccount))
 	router.Handle("POST /account/toggle", middleware.With(protectedStrict, handler.ToggleAccount))
 
-	// Distribuciones
+	// TODO: Distribuciones
 	// router.Handle("POST /dist/add",    middleware.With(protectedStrict, handler.AddDistribution))
 	// router.Handle("POST /dist/toggle", middleware.With(protectedStrict, handler.ToggleDistribution))
 	// router.Handle("PUT /dist/update",  middleware.With(protectedStrict, handler.UpdateDistribution))
 
-	// Proveedores
+	// TODO: Proveedores
 	// router.Handle("POST /supplier/add",   middleware.With(protectedStrict, handler.AddSupplier))
 	// router.Handle("PUT /supplier/update", middleware.With(protectedStrict, handler.UpdateSupplier))
 	// router.Handle("POST /catalog/add",    middleware.With(protectedStrict, handler.AddCatalog))
 	// router.Handle("PUT /catalog/update",  middleware.With(protectedStrict, handler.UpdateCatalog))
 
-	// Modificaciones Globales
-	// Modificaciones Internas
-	// Compras
+	// TODO: Solicitudes
+	//     - Modificaciones Globales
+	//     - Modificaciones Internas
+	//     - Compras
 
 	return router
 }
