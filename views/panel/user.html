@@ -4,14 +4,14 @@
   <td>{{ .UserEmail }}</td>
   <td>{{ .UserName }}</td>
   <td>
-    <form method="POST" action="/user/toggle">
-      <input type="hidden" name="user_id" value="{{ .UserID }}">
+    <form method="POST" action="/panel/user/toggle/{{ .UserID }}">
       <input
         type="checkbox"
         role="switch"
         {{ if .UserActive }}checked{{ end }}
         onchange="fetchAndSwap(event)"
         swap="none"
+        loading-state
       >
     </form>
   </td>

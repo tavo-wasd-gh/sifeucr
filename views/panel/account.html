@@ -1,0 +1,19 @@
+{{ define "account" }}
+<tr>
+  <td>{{ .AccountID }}</td>
+  <td>{{ .AccountAbbr }}</td>
+  <td>{{ .AccountName }}</td>
+  <td>
+    <form method="POST" action="/panel/account/toggle/{{ .AccountID }}">
+      <input
+        type="checkbox"
+        role="switch"
+        {{ if .AccountActive }}checked{{ end }}
+        onchange="fetchAndSwap(event)"
+        swap="none"
+        loading-state
+      >
+    </form>
+  </td>
+</tr>
+{{ end }}

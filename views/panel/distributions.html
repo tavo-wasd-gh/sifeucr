@@ -1,0 +1,54 @@
+{{ define "distributions" }}
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th><input type="number"               style="all:unset;font-weight:normal;" placeholder="ID"            onkeyup="filterTable(this)"></th>
+        <th><input type="text"                 style="all:unset;font-weight:normal;" placeholder="Identificador" onkeyup="filterTable(this)"></th>
+        <th><input type="number"               style="all:unset;font-weight:normal;" placeholder="Partida"       onkeyup="filterTable(this)"></th>
+        <th><input type="text"                 style="all:unset;font-weight:normal;" placeholder="Cuenta"        onkeyup="filterTable(this)"></th>
+        <th><input type="date" filter="after"  style="all:unset;font-weight:normal;" placeholder="Válida desde"  oninput="filterTable(this)"></th>
+        <th><input type="date" filter="before" style="all:unset;font-weight:normal;" placeholder="Válida hasta"  oninput="filterTable(this)"></th>
+        <th><input type="number"               style="all:unset;font-weight:normal;" placeholder="Monto"         onkeyup="filterTable(this)"></th>
+        <th>Activa</th>
+      </tr>
+    </thead>
+    <tbody id="distribution-rows">
+      {{ range .Distributions }}
+      {{ template "distribution" . }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<label for="adddist">Agregar Distribución</label>
+<form
+  id="adddist"
+  method="POST"
+  action="/panel/dist/add"
+>
+  <input type="text"   name="name"        placeholder="Identificador" aria-label="Identificador" required>
+  <input type="number" name="entry"       placeholder="Partida"       aria-label="Partida"       required>
+  <input type="number" name="account"     placeholder="Cuenta"        aria-label="Cuenta"        required>
+  <input type="date"   name="valid_start" placeholder="Válida desde"  aria-label="Válida desde"  required>
+  <input type="date"   name="valid_end"   placeholder="Válida hasta"  aria-label="Válida hasta"  required>
+  <input type="number" name="amount"      placeholder="Monto"         aria-label="Monto"         required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#distribution-rows"
+    swap="beforeend"
+    loading-state
+  >Agregar Distribución</button>
+</form>
+{{ range .Distributions }}
+<dialog id="modal-dist-{{ .DistID }}">
+  <article>
+    <header>
+      <button type="button" onclick="toggleModal('modal-dist-{{ .DistID }}')">x</button>
+      <h3>Editar Distribución #{{ .DistID }}</h3>
+    </header>
+    {{ template "dist-update-form" . }}
+  </article>
+</dialog>
+{{ end }}
+{{ end }}

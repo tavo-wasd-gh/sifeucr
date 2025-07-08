@@ -2,24 +2,15 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"git.tavo.one/tavo/axiom/forms"
 	"git.tavo.one/tavo/axiom/views"
 
-	"sifeucr/config"
 	"sifeucr/internal/db"
 )
 
 func (h *Handler) AddAccount(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	err := h.checkPermissionFromContext(ctx, config.WriteAdvanced)
-	if err != nil {
-		h.Log().Error("error checking permissions: %v", err)
-		http.Error(w, "", http.StatusUnauthorized)
-		return
-	}
-
 	type addAccountForm struct {
 		Abbr string `form:"abbr" fmt:"trim,upper" req:"1"`
 		Name string `form:"name" req:"1"`
@@ -32,14 +23,14 @@ func (h *Handler) AddAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newAccount := db.NewAccountParams{
+	newAccount := db.AddAccountParams{
 		AccountAbbr:   accountForm.Abbr,
 		AccountName:   accountForm.Name,
 		AccountActive: true,
 	}
 
 	queries := db.New(h.DB())
-	insertedAccount, err := queries.NewAccount(ctx, newAccount)
+	insertedAccount, err := queries.AddAccount(r.Context(), newAccount)
 	if err != nil {
 		h.Log().Error("error adding account: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
@@ -52,28 +43,16 @@ func (h *Handler) AddAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ToggleAccount(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	err := h.checkPermissionFromContext(ctx, config.WriteAdvanced)
+	accountIDStr := r.PathValue("id")
+	accountID, err := strconv.ParseInt(accountIDStr, 10, 64)
 	if err != nil {
-		h.Log().Error("error checking permissions: %v", err)
-		http.Error(w, "", http.StatusUnauthorized)
-		return
-	}
-
-	type toggleAccountForm struct {
-		ID int64 `form:"account_id" req:"1"`
-	}
-
-	toggleForm, err := forms.FormToStruct[toggleAccountForm](r)
-	if err != nil {
-		h.Log().Error("error casting form to struct: %v", err)
+		h.Log().Error("error toggling account: %v", err)
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
 	queries := db.New(h.DB())
-	err = queries.ToggleAccountActiveByAccountID(ctx, toggleForm.ID)
+	err = queries.ToggleAccountActiveByAccountID(r.Context(), accountID)
 	if err != nil {
 		h.Log().Error("error toggling account: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)

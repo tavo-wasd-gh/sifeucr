@@ -227,7 +227,7 @@ SELECT * FROM budget_entries;
 ** Usuarios
 
 #+begin_src sql
--- name: GetAllUsers :many
+-- name: AllUsers :many
 SELECT * FROM users;
 
 -- name: UserByID :one
@@ -248,6 +248,20 @@ SELECT * FROM accounts;
 -- name: AccountByID :one
 SELECT * FROM accounts
 WHERE account_id = ? LIMIT 1;
+#+end_src
+
+** Distribuciones
+
+#+begin_src sql
+-- name: AllDistributions :many
+SELECT * FROM distributions;
+#+end_src
+
+** Suppliers
+
+#+begin_src sql
+-- name: AllSuppliers :many
+SELECT * FROM suppliers;
 #+end_src
 
 ** Permisos
@@ -309,10 +323,18 @@ INSERT INTO users (
 RETURNING *;
 #+end_src
 
+** Cambiar estado de usuario
+
+#+begin_src sql
+-- name: ToggleUserActiveByUserID :exec
+UPDATE users
+SET user_active = NOT user_active
+WHERE user_id = ?;
+#+end_src
 ** Insertar Cuenta
 
 #+begin_src sql
--- name: NewAccount :one
+-- name: AddAccount :one
 INSERT INTO accounts (
     account_abbr,
     account_name,
@@ -335,9 +357,8 @@ WHERE account_id = ?;
 ** Insertar Distribución
 
 #+begin_src sql
--- name: NewDistribution :exec
+-- name: AddDistribution :one
 INSERT INTO distributions (
-    dist_id,
     dist_name,
     dist_entry_code,
     dist_account,
@@ -346,8 +367,29 @@ INSERT INTO distributions (
     dist_amount,
     dist_active
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?
-);
+    ?, ?, ?, ?, ?, ?, ?
+) RETURNING *;
+#+end_src
+
+** Cambiar estado de distribución
+
+#+begin_src sql
+-- name: ToggleDistributionActiveByDistributionID :exec
+UPDATE distributions
+SET dist_active = NOT dist_active
+WHERE dist_id = ?;
+#+end_src
+
+** Actualizar Distribución
+
+#+begin_src sql
+-- name: UpdateDistribution :one
+UPDATE distributions SET
+    dist_name = ?,
+    dist_valid_start = ?,
+    dist_valid_end = ?,
+    dist_amount = ?
+WHERE dist_id = ? RETURNING *;
 #+end_src
 
 ** Insertar Proveedor
@@ -366,11 +408,3 @@ INSERT INTO suppliers (
 );
 #+end_src
 
-** Cambiar estado de usuario
-
-#+begin_src sql
--- name: ToggleUserActiveByUserID :exec
-UPDATE users
-SET user_active = NOT user_active
-WHERE user_id = ?;
-#+end_src

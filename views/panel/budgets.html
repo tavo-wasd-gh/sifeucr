@@ -3,11 +3,11 @@
   <table class="striped">
     <thead>
       <tr>
-        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="ID"     onkeyup="filterTable(event, 0)"></th>
-        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Año"    onkeyup="filterTable(event, 1)"></th>
-        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Código" onkeyup="filterTable(event, 2)"></th>
-        <th><input type="text"              style="all:unset;font-weight:normal;" placeholder="Objeto" onkeyup="filterTable(event, 3)"></th>
-        <th><input type="number" step="any" style="all:unset;font-weight:normal;" placeholder="Monto"  onkeyup="filterTable(event, 4)"></th>
+        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="ID"     onkeyup="filterTable(this)"></th>
+        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Año"    onkeyup="filterTable(this)"></th>
+        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Código" onkeyup="filterTable(this)"></th>
+        <th><input type="text"              style="all:unset;font-weight:normal;" placeholder="Objeto" onkeyup="filterTable(this)"></th>
+        <th><input type="number" step="any" style="all:unset;font-weight:normal;" placeholder="Monto"  onkeyup="filterTable(this)"></th>
       </tr>
     </thead>
     <tbody id="budget-rows">
@@ -21,7 +21,7 @@
 <form
   id="addentry"
   method="POST"
-  action="/budget/add"
+  action="/panel/budget/add"
 >
   <input type="number" step="1"   name="year"   placeholder="Año"    aria-label="Año"    required>
   <input type="number" step="1"   name="code"   placeholder="Código" aria-label="Código" required>

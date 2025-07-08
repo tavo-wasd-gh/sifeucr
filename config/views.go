@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 	"strings"
 )
 
@@ -24,29 +25,43 @@ var ViewMap = map[string][]string{
 
 	"dashboard-page": append(
 		base,
-		"views/dashboard.html",
-		"views/dashboard-page.html",
-		"views/control-madre.html",
+		"views/dashboard/dashboard.html",
+		"views/dashboard/dashboard-page.html",
+		"views/dashboard/main-report.html",
 	),
 	"dashboard": {
-		"views/dashboard.html",
-		"views/control-madre.html",
+		"views/dashboard/dashboard.html",
+		"views/dashboard/main-report.html",
 	},
 
 	"panel-page": append(
 		base,
-		"views/panel.html",
-		"views/panel-page.html",
-		"views/budget.html",
-		"views/budgets.html",
-		"views/user.html",
-		"views/users.html",
+		"views/panel/panel.html",
+		"views/panel/panel-page.html",
+		"views/panel/budget.html",
+		"views/panel/budgets.html",
+		"views/panel/user.html",
+		"views/panel/users.html",
+		"views/panel/account.html",
+		"views/panel/accounts.html",
+		"views/panel/distributions.html",
+		"views/panel/distribution.html",
+		"views/panel/dist-update-form.html",
 	),
 	"budget": {
-		"views/budget.html",
+		"views/panel/budget.html",
 	},
 	"user": {
-		"views/user.html",
+		"views/panel/user.html",
+	},
+	"account": {
+		"views/panel/account.html",
+	},
+	"distribution": {
+		"views/panel/distribution.html",
+	},
+	"dist-update-form": {
+		"views/panel/dist-update-form.html",
 	},
 
 	"index-page": append(
@@ -78,6 +93,7 @@ var ViewFormatters = map[string]any{
 		return ""
 	},
 	"currency": formatAsCurrency,
+	"unixToStr": unixToDateStr,
 }
 
 func formatAsCurrency(amount float64) string {
@@ -102,4 +118,9 @@ func formatAsCurrency(amount float64) string {
     }
 
     return fmt.Sprintf("₡%s%s.%s", sign, string(result), decimalPart)
+}
+
+func unixToDateStr(timestamp int64) string {
+	t := time.Unix(timestamp, 0).In(time.Local)
+	return t.Format("2006-01-02")
 }

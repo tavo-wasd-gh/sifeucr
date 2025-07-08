@@ -12,8 +12,11 @@ import (
 )
 
 type panel struct {
-	Users         []db.User
 	BudgetEntries []db.BudgetEntry
+	Users         []db.User
+	Accounts      []db.Account
+	Distributions []db.Distribution
+	Suppliers     []db.Supplier
 	CSRFToken string
 }
 
@@ -40,7 +43,7 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	queries := db.New(h.DB())
 	panel := panel{}
 
-	panel.Users, err = queries.GetAllUsers(ctx)
+	panel.Users, err = queries.AllUsers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all users: %v", err)
 	}
@@ -48,6 +51,21 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	panel.BudgetEntries, err = queries.GetAllBudgetEntries(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all budget entries: %v", err)
+	}
+
+	panel.Accounts, err = queries.AllAccounts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all accounts: %v", err)
+	}
+
+	panel.Distributions, err = queries.AllDistributions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all distributions: %v", err)
+	}
+
+	panel.Suppliers, err = queries.AllSuppliers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all suppliers: %v", err)
 	}
 
 	csrfToken := getCSRFTokenFromContext(ctx)

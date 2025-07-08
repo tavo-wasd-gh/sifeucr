@@ -3,9 +3,9 @@
   <table class="striped">
     <thead>
       <tr>
-        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="ID"      onkeyup="filterTable(event, 0)"></th>
-        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Usuario" onkeyup="filterTable(event, 1)"></th>
-        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Nombre"  onkeyup="filterTable(event, 2)"></th>
+        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="ID"      onkeyup="filterTable(this)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Usuario" onkeyup="filterTable(this)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Nombre"  onkeyup="filterTable(this)"></th>
         <th>Activo</th>
       </tr>
     </thead>
@@ -20,7 +20,7 @@
 <form
   id="adduser"
   method="POST"
-  action="/user/add"
+  action="/panel/user/add"
 >
   <input type="email" name="email" placeholder="Correo institucional" aria-label="Correo institucional" autocomplete="email" required>
   <input type="text" name="name" placeholder="Nombre completo" aria-label="Nombre completo" required>

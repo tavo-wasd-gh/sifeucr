@@ -30,6 +30,20 @@ function fetchAndSwap(event) {
     if (form.hasAttribute('loading-state')) form.setAttribute('aria-busy', 'true');
 
     const formData = new FormData(form);
+
+    for (const [key, value] of formData.entries()) {
+        const input = form.querySelector(`[name="${key}"]`);
+        if (!input || !value) continue;
+
+        if (input.type === 'date' || input.type === 'datetime-local' || input.type === 'datetime') {
+            const date = new Date(value);
+            if (!isNaN(date)) {
+                const unixTime = Math.floor(date.getTime() / 1000);
+                formData.set(key, unixTime);
+            }
+        }
+    }
+
     const fetchOptions = {
         method,
         headers: {
@@ -112,15 +126,81 @@ function updateCSRFTokenMeta(token) {
     meta.setAttribute('content', token);
 }
 
-function filterTable(event, colIndex) {
-    const input = event.target;
-    const table = input.closest("table");
-    const filterValue = input.value;
+function filterTable(inputChanged) {
+    const table = inputChanged.closest("table");
     const rows = table.tBodies[0].rows;
+    const inputs = table.querySelectorAll("thead input");
 
     for (let i = 0; i < rows.length; i++) {
-        const cell = rows[i].cells[colIndex];
-        const cellText = cell.textContent || cell.innerText;
-        rows[i].style.display = cellText.includes(filterValue) ? "" : "none";
+        let row = rows[i];
+        let visible = true;
+
+        for (let j = 0; j < inputs.length; j++) {
+            const input = inputs[j];
+            const filterValue = input.value.trim();
+            if (!filterValue) continue;
+
+            const colIndex = input.closest('th').cellIndex;
+            const cell = row.cells[colIndex];
+            if (!cell) continue;
+
+            const cellText = (cell.textContent || cell.innerText).trim();
+            const inputType = input.type;
+            const filterAttr = input.getAttribute("filter");
+
+            if ((inputType === "date" || inputType === "datetime-local" || inputType === "datetime") && filterValue) {
+                const cellDate = new Date(cellText);
+                const filterDate = new Date(filterValue);
+                if (isNaN(cellDate) || isNaN(filterDate)) {
+                    visible = false;
+                    break;
+                }
+
+                if (filterAttr === "before" && !(cellDate <= filterDate)) {
+                    visible = false;
+                    break;
+                }
+                if (filterAttr === "after" && !(cellDate >= filterDate)) {
+                    visible = false;
+                    break;
+                }
+            } else if (inputType === "number" && filterValue !== "") {
+                const cleanFilterValue = filterValue.replace(/,/g, '');
+                const cleanedCellText = cellText.replace(/[^\d.-]/g, '');
+                if (!cleanedCellText.includes(cleanFilterValue)) {
+                    visible = false;
+                    break;
+                }
+            } else if (filterValue) {
+                const hasUpperCase = /[A-Z]/.test(filterValue);
+                const cellToCompare = hasUpperCase ? cellText : cellText.toLowerCase();
+                const filterToCompare = hasUpperCase ? filterValue : filterValue.toLowerCase();
+                if (!cellToCompare.includes(filterToCompare)) {
+                    visible = false;
+                    break;
+                }
+            }
+        }
+
+        row.style.display = visible ? "" : "none";
+    }
+}
+
+function datetimeLocalToUnix(datetimeValue) {
+    const date = new Date(datetimeValue);
+    return Math.floor(date.getTime() / 1000);
+}
+
+function toggleModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal || modal.tagName !== 'DIALOG') {
+        console.warn(`No <dialog> found with ID: ${id}`);
+        return;
+    }
+
+    if (modal.hasAttribute('open')) {
+        modal.removeAttribute('open');
+    } else {
+        modal.setAttribute('open', '');
     }
 }

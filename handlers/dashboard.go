@@ -76,3 +76,33 @@ func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
 
 	return &dashboard, nil
 }
+
+func (h *Handler) DashboardMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, accountID, newst, newct, err := h.authenticate(r, false, config.Read)
+		if err != nil {
+			h.Log().Error("failed to authenticate user: %v", err)
+			views.RenderHTML(w, r, "login-page", nil)
+			return
+		}
+
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, config.UserIDKey,    userID)
+		ctx = context.WithValue(ctx, config.AccountIDKey, accountID)
+		ctx = context.WithValue(ctx, config.CSRFTokenKey, newct)
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     config.SessionTokenKey,
+			Value:    newst,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   h.Production(),
+			SameSite: http.SameSiteLaxMode,
+			MaxAge:   config.CookieMaxAge,
+		})
+
+		w.Header().Set("X-CSRF-Token", newct)
+		next.ServeHTTP(w, r.WithContext(ctx))
+
+	})
+}
