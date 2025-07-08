@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"git.tavo.one/tavo/axiom/forms"
 	"git.tavo.one/tavo/axiom/views"
@@ -33,8 +34,20 @@ func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	trimmedUser := userForm.Email
+	if strings.Contains(strings.ToLower(trimmedUser), "@ucr.ac.cr") {
+		pos := strings.IndexRune(trimmedUser, '@')
+		if pos != -1 {
+			trimmedUser = trimmedUser[:pos]
+		}
+	} else {
+		h.Log().Error("must be institutional email")
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
 	newUser := db.NewUserParams{
-		UserEmail:  userForm.Email,
+		UserEmail:  trimmedUser,
 		UserName:   userForm.Name,
 		UserActive: true,
 	}

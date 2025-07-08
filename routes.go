@@ -12,6 +12,9 @@ import (
 func routes(handler *handlers.Handler) *http.ServeMux {
 	router := http.NewServeMux()
 
+	// TODO: Setup if no users are found
+	// router.HandleFunc("GET /setup", handler.FirstTimeSetup)
+
 	router.HandleFunc("GET /",            handler.IndexPage)
 	router.HandleFunc("GET /proveedores", handler.SuppliersPage)
 	router.HandleFunc("GET /fse",         handler.FSEPage)

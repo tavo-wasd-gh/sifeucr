@@ -15,7 +15,7 @@ import (
 
 func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	type loginForm struct {
-		Email    string `form:"email" fmt:"trim,lower" validate:"email" req:"1"`
+		Email    string `form:"email" fmt:"trim,lower" req:"1"`
 		Password string `form:"password" req:"1"`
 		Account  int    `form:"account"`
 	}

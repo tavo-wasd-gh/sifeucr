@@ -18,22 +18,19 @@
     o consulta con Secretaría de Finanzas si tienes un usuario habilitado.
   </article>
   {{ end }}
-  <label for="email">Usuario</label>
   <input
-    id="email"
     type="email"
     name="email"
-    placeholder="nombre.apellidos@ucr.ac.cr"
-    aria-label="Email"
+    placeholder="Correo Institucional"
+    aria-label="Correo Institucional"
     autocomplete="email"
     required
   >
-  <label for="password">Contraseña</label>
   <input
-    id="password"
     type="password"
     name="password"
-    aria-label="Password"
+    placeholder="Contraseña"
+    aria-label="Contraseña"
     required
   >
   {{ if .MultipleAccounts }}

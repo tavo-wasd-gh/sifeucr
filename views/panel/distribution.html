@@ -1,6 +1,8 @@
 {{ define "distribution" }}
-<tr onclick="toggleModal('modal-dist-{{ .DistID }}')">
-  <td>{{ .DistID }}</td>
+<tr>
+  <td onclick="toggleModal('modal-dist-{{ .DistID }}')">
+    <a>{{ .DistID }}</a>
+  </td>
   <td>{{ .DistName }}</td>
   <td>{{ .DistEntryCode }}</td>
   <td>{{ .DistAccount }}</td>
