@@ -1,6 +1,8 @@
 .tmp/
 tmp/
 db.db
+db.db-shm
+db.db-wal
 sifeucr
 .env
 internal/db/
