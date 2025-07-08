@@ -93,7 +93,7 @@ var ViewFormatters = map[string]any{
 		return ""
 	},
 	"currency": formatAsCurrency,
-	"unixToStr": unixToDateStr,
+	"unixDateToStr": unixDateToStr,
 }
 
 func formatAsCurrency(amount float64) string {
@@ -120,7 +120,9 @@ func formatAsCurrency(amount float64) string {
     return fmt.Sprintf("₡%s%s.%s", sign, string(result), decimalPart)
 }
 
-func unixToDateStr(timestamp int64) string {
-	t := time.Unix(timestamp, 0).In(time.Local)
+// Show dates as UTC, because shifting n hours backwards will result in the date
+// changing to a day before. Convert to local time when checking validity.
+func unixDateToStr(timestamp int64) string {
+	t := time.Unix(timestamp, 0).UTC()
 	return t.Format("2006-01-02")
 }

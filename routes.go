@@ -21,30 +21,24 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 		handler.Dashboard),
 	)
 
-	// Panel read middleware, requires:
-	// - Disabled CSRF protection
-	// - ReadAdvanced permission
-	// - Redirect to /cuenta on error
+	// Panel read middleware
 	router.Handle(
 		"GET /panel",
 		middleware.With(middleware.Stack(
 			handler.AuthenticationMiddleware(
-				false,               // Enforce CSRF protection
-				config.ReadAdvanced, // Required permission
+				false,               // Do not enforce CSRF protection
+				config.ReadAdvanced, // Requires ReadAdvanced Permission
 				"/cuenta",           // Redirect on error
 			),
 		), handler.Panel),
 	)
 
-	// Panel modification middleware, requires:
-	// - CSRF protection
-	// - WriteAdvanced permission
-	// - No redirect on error
+	// Panel modification middleware
 	panelMod := middleware.Stack(
 		handler.AuthenticationMiddleware(
 			true,                 // Enforce CSRF protection
-			config.WriteAdvanced, // Required permission
-			"",                   // Redirect on error
+			config.WriteAdvanced, // Requires WriteAdvanced Permission
+			"",                   // Do not redirect on error
 		),
 	)
 
@@ -59,7 +53,7 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	// Distribuciones
 	router.Handle("POST /panel/dist/add",         middleware.With(panelMod, handler.AddDistribution))
 	router.Handle("POST /panel/dist/toggle/{id}", middleware.With(panelMod, handler.ToggleDistribution))
-	router.Handle( "PUT /panel/dist/update/{id}",  middleware.With(panelMod, handler.UpdateDistribution))
+	router.Handle( "PUT /panel/dist/update/{id}", middleware.With(panelMod, handler.UpdateDistribution))
 	// TODO: Proveedores
 	// router.Handle("POST /supplier/add",   middleware.With(panelMod, handler.AddSupplier))
 	// router.Handle("PUT /supplier/update", middleware.With(panelMod, handler.UpdateSupplier))

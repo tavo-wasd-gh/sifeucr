@@ -1,13 +1,11 @@
 {{ define "distribution" }}
-<tr>
-  <td onclick="toggleModal('modal-dist-{{ .DistID }}')">
-    {{ .DistID }}
-  </td>
+<tr onclick="toggleModal('modal-dist-{{ .DistID }}')">
+  <td>{{ .DistID }}</td>
   <td>{{ .DistName }}</td>
   <td>{{ .DistEntryCode }}</td>
   <td>{{ .DistAccount }}</td>
-  <td>{{ unixToStr .DistValidStart }}</td>
-  <td>{{ unixToStr .DistValidEnd }}</td>
+  <td>{{ unixDateToStr .DistValidStart }}</td>
+  <td>{{ unixDateToStr .DistValidEnd }}</td>
   <td>{{ currency .DistAmount }}</td>
   <td>
     <form method="POST" action="/panel/dist/toggle/{{ .DistID }}">
