@@ -5,7 +5,7 @@
   </td>
   <td>{{ .PeriodName }}</td>
   <td>{{ .AccountAbbr }}</td>
-  <td>{{ .EntryCode }}</td>
+  <td>[{{ .EntryCode }}] {{ .EntryObject }}</td>
   <td>{{ currency .DistAmount }}</td>
   <td>
     <form method="POST" action="/panel/dist/toggle/{{ .DistID }}">
