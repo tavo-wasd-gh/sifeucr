@@ -24,9 +24,24 @@
   method="POST"
   action="/panel/dist/add"
 >
-  <input type="number" name="period"  placeholder="Periodo" aria-label="Periodo" required>
-  <input type="number" name="account" placeholder="Cuenta"  aria-label="Cuenta"  required>
-  <input type="number" name="entry"   placeholder="Partida" aria-label="Partida" required>
+  <select name="period">
+    <option value="" selected disabled>Período</option>
+    {{ range .Periods }}
+    <option value="{{ .PeriodID }}">{{ .PeriodName }}</option>
+    {{ end }}
+  </select>
+  <select name="account">
+    <option value="" selected disabled>Cuenta</option>
+    {{ range .Accounts }}
+    <option value="{{ .AccountID }}">[{{ .AccountAbbr }}] {{ .AccountName }}</option>
+    {{ end }}
+  </select>
+  <select name="entry">
+    <option value="" selected disabled>Partida</option>
+    {{ range .BudgetEntries }}
+    <option value="{{ .EntryID }}">[{{ .EntryCode }}] {{ .EntryObject }}</option>
+    {{ end }}
+  </select>
   <input type="number" name="amount"  placeholder="Monto"   aria-label="Monto"   required>
   <button
     type="submit"

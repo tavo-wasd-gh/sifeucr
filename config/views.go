@@ -2,8 +2,8 @@ package config
 
 import (
 	"fmt"
-	"time"
 	"strings"
+	"time"
 )
 
 var base = []string{
@@ -101,32 +101,32 @@ var ViewFormatters = map[string]any{
 		}
 		return ""
 	},
-	"currency": formatAsCurrency,
+	"currency":      formatAsCurrency,
 	"unixDateToStr": unixDateToStr,
 }
 
 func formatAsCurrency(amount float64) string {
-    sign := ""
-    if amount < 0 {
-        sign = "-"
-        amount = -amount
-    }
+	sign := ""
+	if amount < 0 {
+		sign = "-"
+		amount = -amount
+	}
 
-    formatted := fmt.Sprintf("%.2f", amount)
-    parts := strings.Split(formatted, ".")
+	formatted := fmt.Sprintf("%.2f", amount)
+	parts := strings.Split(formatted, ".")
 
-    integerPart := parts[0]
-    decimalPart := parts[1]
+	integerPart := parts[0]
+	decimalPart := parts[1]
 
-    var result []byte
-    for i, digit := range integerPart {
-        if (len(integerPart)-i)%3 == 0 && i != 0 {
-            result = append(result, ',')
-        }
-        result = append(result, byte(digit))
-    }
+	var result []byte
+	for i, digit := range integerPart {
+		if (len(integerPart)-i)%3 == 0 && i != 0 {
+			result = append(result, ',')
+		}
+		result = append(result, byte(digit))
+	}
 
-    return fmt.Sprintf("₡%s%s.%s", sign, string(result), decimalPart)
+	return fmt.Sprintf("₡%s%s.%s", sign, string(result), decimalPart)
 }
 
 // Show dates as UTC, because shifting n hours backwards will result in the date

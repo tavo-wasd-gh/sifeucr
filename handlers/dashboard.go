@@ -87,7 +87,7 @@ func (h *Handler) DashboardMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, config.UserIDKey,    userID)
+		ctx = context.WithValue(ctx, config.UserIDKey, userID)
 		ctx = context.WithValue(ctx, config.AccountIDKey, accountID)
 		ctx = context.WithValue(ctx, config.CSRFTokenKey, newct)
 

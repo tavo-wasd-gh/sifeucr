@@ -12,10 +12,10 @@ import (
 
 func (h *Handler) AddDistribution(w http.ResponseWriter, r *http.Request) {
 	type addDistributionForm struct {
-		Period     int64   `form:"period"      req:"1"`
-		EntryCode  int64   `form:"entry"       req:"1"`
-		Account    int64   `form:"account"     req:"1"`
-		Amount     float64 `form:"amount"      req:"1"`
+		Period    int64   `form:"period"  req:"1"`
+		EntryCode int64   `form:"entry"   req:"1"`
+		Account   int64   `form:"account" req:"1"`
+		Amount    float64 `form:"amount"  req:"1"`
 	}
 
 	distributionForm, err := forms.FormToStruct[addDistributionForm](r)
@@ -26,11 +26,11 @@ func (h *Handler) AddDistribution(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newDistribution := db.AddDistributionParams{
-		DistPeriod:     distributionForm.Period,
-		DistEntryCode:  distributionForm.EntryCode,
-		DistAccount:    distributionForm.Account,
-		DistAmount:     distributionForm.Amount,
-		DistActive:     true,
+		DistPeriod:    distributionForm.Period,
+		DistEntryCode: distributionForm.EntryCode,
+		DistAccount:   distributionForm.Account,
+		DistAmount:    distributionForm.Amount,
+		DistActive:    true,
 	}
 
 	queries := db.New(h.DB())
@@ -41,6 +41,11 @@ func (h *Handler) AddDistribution(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// FIXME: loading a distribution only, but this template needs
+	// .PeriodName
+	// .AccountAbbr
+	// .EntryCode
+	// .EntryObject
 	if err = views.RenderHTML(w, r, "distribution", insertedDistribution); err != nil {
 		h.Log().Error("failed to render new distribution: %v", err)
 	}
@@ -85,8 +90,8 @@ func (h *Handler) UpdateDistribution(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedDistribution := db.UpdateDistributionParams{
-		DistID:         distID,
-		DistAmount:     distributionForm.Amount,
+		DistID:     distID,
+		DistAmount: distributionForm.Amount,
 	}
 
 	queries := db.New(h.DB())

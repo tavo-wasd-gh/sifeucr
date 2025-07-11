@@ -64,13 +64,13 @@ func main() {
 
 	handlerConfig := handlers.Config{
 		IsFirstTimeSetup: isFirstTimeSetup,
-		Production: isProduction,
+		Production:       isProduction,
 		Logger: &handlers.Logger{
 			Enabled: os.Getenv("DEBUG") == "1",
 		},
-		Views: nil,
-		DB: db,
-		S3: s3,
+		Views:    nil,
+		DB:       db,
+		S3:       s3,
 		Sessions: sessionStore,
 	}
 	handler := handlers.New(handlerConfig)

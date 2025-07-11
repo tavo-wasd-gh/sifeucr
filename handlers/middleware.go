@@ -27,7 +27,7 @@ func (h *Handler) AuthenticationMiddleware(enforceCSRFProtection bool, requiredP
 			}
 
 			ctx := r.Context()
-			ctx = context.WithValue(ctx, config.UserIDKey,    userID)
+			ctx = context.WithValue(ctx, config.UserIDKey, userID)
 			ctx = context.WithValue(ctx, config.AccountIDKey, accountID)
 			ctx = context.WithValue(ctx, config.CSRFTokenKey, newct)
 

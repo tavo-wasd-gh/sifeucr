@@ -21,10 +21,10 @@ func (h *Handler) AddBudgetEntry(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type budgetEntryForm struct {
-		Year    int64   `form:"year"   req:"1"`
-		Code    int64   `form:"code"   req:"1"`
-		Object  string  `form:"object" req:"1"`
-		Amount  float64 `form:"amount" req:"1"`
+		Year   int64   `form:"year"   req:"1"`
+		Code   int64   `form:"code"   req:"1"`
+		Object string  `form:"object" req:"1"`
+		Amount float64 `form:"amount" req:"1"`
 	}
 
 	entryForm, err := forms.FormToStruct[budgetEntryForm](r)
@@ -35,8 +35,8 @@ func (h *Handler) AddBudgetEntry(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newEntry := db.NewBudgetEntryParams{
-		EntryYear: entryForm.Year,
-		EntryCode: entryForm.Code,
+		EntryYear:   entryForm.Year,
+		EntryCode:   entryForm.Code,
 		EntryObject: entryForm.Object,
 		EntryAmount: entryForm.Amount,
 	}

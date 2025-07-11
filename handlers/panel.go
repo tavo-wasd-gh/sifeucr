@@ -18,7 +18,7 @@ type panel struct {
 	Periods       []db.Period
 	Distributions []db.AllDistributionsRow
 	Suppliers     []db.Supplier
-	CSRFToken string
+	CSRFToken     string
 }
 
 func (h *Handler) Panel(w http.ResponseWriter, r *http.Request) {

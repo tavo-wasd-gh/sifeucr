@@ -16,9 +16,9 @@ func InitDB(connDvr, connStr string) (*sql.DB, bool, error) {
 		return nil, false, err
 	}
 
-    if _, err := db.Exec("PRAGMA journal_mode = WAL"); err != nil {
-        return nil, false, err
-    }
+	if _, err := db.Exec("PRAGMA journal_mode = WAL"); err != nil {
+		return nil, false, err
+	}
 
 	var firstTimeSetup bool
 	err = db.QueryRow("SELECT NOT EXISTS (SELECT 1 FROM users)").Scan(&firstTimeSetup)
