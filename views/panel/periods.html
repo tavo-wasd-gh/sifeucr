@@ -1,0 +1,47 @@
+{{ define "periods" }}
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th><input type="text"                 style="all:unset;font-weight:normal;" placeholder="Identificador" onkeyup="filterTable(this)"></th>
+        <th><input type="date" filter="after"  style="all:unset;font-weight:normal;" placeholder="Inicio"        onkeyup="filterTable(this)"></th>
+        <th><input type="date" filter="before" style="all:unset;font-weight:normal;" placeholder="Fin"           onkeyup="filterTable(this)"></th>
+        <th>Activo</th>
+      </tr>
+    </thead>
+    <tbody id="period-rows">
+      {{ range .Periods }}
+      {{ template "period" . }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<label for="addperiod">Agregar Período</label>
+<form
+  id="addperiod"
+  method="POST"
+  action="/panel/period/add"
+>
+  <input type="name" name="name"  placeholder="Identificador" aria-label="Identificador" required>
+  <input type="date" name="start" placeholder="Inicio"        aria-label="Inicio" required>
+  <input type="date" name="end"   placeholder="Fin"           aria-label="Fin"  required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#period-rows"
+    swap="beforeend"
+    loading-state
+  >Agregar Período</button>
+</form>
+{{ range .Periods }}
+<dialog id="modal-period-{{ .PeriodID }}">
+  <article>
+    <header>
+      <button type="button" onclick="toggleModal('modal-period-{{ .PeriodID }}')">x</button>
+      <h3>Editar Período #{{ .PeriodID }}</h3>
+    </header>
+    {{ template "period-update-form" . }}
+  </article>
+</dialog>
+{{ end }}
+{{ end }}

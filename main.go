@@ -48,7 +48,7 @@ func main() {
 		log.Fatalf("failed to initialize templates: %v", err)
 	}
 
-	db, err := config.InitDB(os.Getenv("DB_CONNDVR"), os.Getenv("DB_CONNSTR"))
+	db, isFirstTimeSetup, err := config.InitDB(os.Getenv("DB_CONNDVR"), os.Getenv("DB_CONNSTR"))
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
@@ -63,13 +63,14 @@ func main() {
 	sessionStore := sessions.NewStore[config.Session](config.TokenLength, config.MaxSessions)
 
 	handlerConfig := handlers.Config{
+		IsFirstTimeSetup: isFirstTimeSetup,
 		Production: isProduction,
 		Logger: &handlers.Logger{
 			Enabled: os.Getenv("DEBUG") == "1",
 		},
-		Views:    nil,
-		DB:       db,
-		S3:       s3,
+		Views: nil,
+		DB: db,
+		S3: s3,
 		Sessions: sessionStore,
 	}
 	handler := handlers.New(handlerConfig)

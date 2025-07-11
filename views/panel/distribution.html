@@ -3,11 +3,9 @@
   <td onclick="toggleModal('modal-dist-{{ .DistID }}')">
     <a>{{ .DistID }}</a>
   </td>
-  <td>{{ .DistName }}</td>
-  <td>{{ .DistEntryCode }}</td>
-  <td>{{ .DistAccount }}</td>
-  <td>{{ unixDateToStr .DistValidStart }}</td>
-  <td>{{ unixDateToStr .DistValidEnd }}</td>
+  <td>{{ .PeriodName }}</td>
+  <td>{{ .AccountAbbr }}</td>
+  <td>{{ .EntryCode }}</td>
   <td>{{ currency .DistAmount }}</td>
   <td>
     <form method="POST" action="/panel/dist/toggle/{{ .DistID }}">

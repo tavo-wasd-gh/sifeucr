@@ -44,6 +44,9 @@ var ViewMap = map[string][]string{
 		"views/panel/users.html",
 		"views/panel/account.html",
 		"views/panel/accounts.html",
+		"views/panel/periods.html",
+		"views/panel/period.html",
+		"views/panel/period-update-form.html",
 		"views/panel/distributions.html",
 		"views/panel/distribution.html",
 		"views/panel/dist-update-form.html",
@@ -56,6 +59,12 @@ var ViewMap = map[string][]string{
 	},
 	"account": {
 		"views/panel/account.html",
+	},
+	"period": {
+		"views/panel/period.html",
+	},
+	"period-update-form": {
+		"views/panel/period-update-form.html",
 	},
 	"distribution": {
 		"views/panel/distribution.html",

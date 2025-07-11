@@ -71,17 +71,24 @@ CREATE TABLE IF NOT EXISTS "permissions" (
 *** Distribuciones
 
 #+begin_src sql
+CREATE TABLE IF NOT EXISTS "periods" (
+    "period_id"     INTEGER PRIMARY KEY NOT NULL,
+    "period_name"   TEXT    NOT NULL UNIQUE,
+    "period_start"  INTEGER NOT NULL,
+    "period_end"    INTEGER NOT NULL,
+    "period_active" BOOLEAN NOT NULL
+);
+#+end_src
+
+#+begin_src sql
 CREATE TABLE IF NOT EXISTS "distributions" (
     "dist_id"          INTEGER PRIMARY KEY NOT NULL,
-    "dist_name"        TEXT    NOT NULL UNIQUE,
+    "dist_period"      INTEGER NOT NULL REFERENCES "periods"("period_id"),
     "dist_entry_code"  INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
     "dist_account"     INTEGER NOT NULL REFERENCES "accounts"("account_id"),
-    "dist_valid_start" INTEGER NOT NULL,
-    "dist_valid_end"   INTEGER NOT NULL,
     "dist_amount"      REAL    NOT NULL,
     "dist_active"      BOOLEAN NOT NULL,
-    UNIQUE("dist_entry_code", "dist_account"),
-    UNIQUE("dist_name", "dist_entry_code")
+    UNIQUE("dist_period", "dist_entry_code", "dist_account")
 );
 #+end_src
 
@@ -250,11 +257,22 @@ SELECT * FROM accounts
 WHERE account_id = ? LIMIT 1;
 #+end_src
 
+** Periodos
+
+#+begin_src sql
+-- name: AllPeriods :many
+SELECT * FROM periods;
+#+end_src
+
 ** Distribuciones
 
 #+begin_src sql
 -- name: AllDistributions :many
-SELECT * FROM distributions;
+SELECT d.*, p.*, e.*, a.*
+FROM distributions  d
+JOIN periods        p ON d.dist_period     = p.period_id
+JOIN budget_entries e ON d.dist_entry_code = e.entry_id
+JOIN accounts       a ON d.dist_account    = a.account_id;
 #+end_src
 
 ** Suppliers
@@ -354,20 +372,52 @@ SET account_active = NOT account_active
 WHERE account_id = ?;
 #+end_src
 
+** Insertar Periodo
+
+#+begin_src sql
+-- name: AddPeriod :one
+INSERT INTO periods (
+    period_name,
+    period_start,
+    period_end,
+    period_active
+) VALUES (
+    ?, ?, ?, ?
+) RETURNING *;
+#+end_src
+
+** Actualizar Periodo
+
+#+begin_src sql
+-- name: UpdatePeriod :one
+UPDATE periods SET
+    period_name = ?,
+    period_start = ?,
+    period_end = ?
+WHERE period_id = ? RETURNING *;
+#+end_src
+
+** Cambiar estado del periodo
+
+#+begin_src sql
+-- name: TogglePeriodActiveByPeriodID :exec
+UPDATE periods
+SET period_active = NOT period_active
+WHERE period_id = ?;
+#+end_src
+
 ** Insertar Distribución
 
 #+begin_src sql
 -- name: AddDistribution :one
 INSERT INTO distributions (
-    dist_name,
+    dist_period,
     dist_entry_code,
     dist_account,
-    dist_valid_start,
-    dist_valid_end,
     dist_amount,
     dist_active
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 ) RETURNING *;
 #+end_src
 
@@ -385,9 +435,6 @@ WHERE dist_id = ?;
 #+begin_src sql
 -- name: UpdateDistribution :one
 UPDATE distributions SET
-    dist_name = ?,
-    dist_valid_start = ?,
-    dist_valid_end = ?,
     dist_amount = ?
 WHERE dist_id = ? RETURNING *;
 #+end_src

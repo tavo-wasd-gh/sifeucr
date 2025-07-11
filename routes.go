@@ -12,9 +12,6 @@ import (
 func routes(handler *handlers.Handler) *http.ServeMux {
 	router := http.NewServeMux()
 
-	// TODO: Setup if no users are found
-	// router.HandleFunc("GET /setup", handler.FirstTimeSetup)
-
 	router.HandleFunc("GET /",            handler.IndexPage)
 	router.HandleFunc("GET /proveedores", handler.SuppliersPage)
 	router.HandleFunc("GET /fse",         handler.FSEPage)
@@ -23,6 +20,9 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 		middleware.With(middleware.Stack(handler.DashboardMiddleware),
 		handler.Dashboard),
 	)
+
+	// TODO: Configure first time
+	router.HandleFunc("GET /panel/setup", handler.FirstTimeSetup)
 
 	// Panel read middleware
 	router.Handle(
@@ -45,6 +45,7 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 		),
 	)
 
+	// TODO: Check active status on all handlers and middlewares where active is relevant
 	// Presupuesto
 	router.Handle("POST /panel/budget/add", middleware.With(panelMod, handler.AddBudgetEntry))
 	// Usuarios
@@ -53,6 +54,10 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	// Cuentas
 	router.Handle("POST /panel/account/add",         middleware.With(panelMod, handler.AddAccount))
 	router.Handle("POST /panel/account/toggle/{id}", middleware.With(panelMod, handler.ToggleAccount))
+	// Periodos
+	router.Handle("POST /panel/period/add",         middleware.With(panelMod, handler.AddPeriod))
+	router.Handle("POST /panel/period/toggle/{id}", middleware.With(panelMod, handler.TogglePeriod))
+	router.Handle( "PUT /panel/period/update/{id}", middleware.With(panelMod, handler.UpdatePeriod))
 	// Distribuciones
 	router.Handle("POST /panel/dist/add",         middleware.With(panelMod, handler.AddDistribution))
 	router.Handle("POST /panel/dist/toggle/{id}", middleware.With(panelMod, handler.ToggleDistribution))
@@ -62,7 +67,9 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	// router.Handle("PUT /supplier/update", middleware.With(panelMod, handler.UpdateSupplier))
 	// router.Handle("POST /catalog/add",    middleware.With(panelMod, handler.AddCatalog))
 	// router.Handle("PUT /catalog/update",  middleware.With(panelMod, handler.UpdateCatalog))
+
 	// TODO: Solicitudes
+	// Check read/write and readother/writeother permissions depending on the required permissions
 	//     - Modificaciones Globales
 	//     - Modificaciones Internas
 	//     - Compras

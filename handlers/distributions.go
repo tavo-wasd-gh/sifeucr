@@ -12,11 +12,9 @@ import (
 
 func (h *Handler) AddDistribution(w http.ResponseWriter, r *http.Request) {
 	type addDistributionForm struct {
-		Name       string  `form:"name"        req:"1"`
+		Period     int64   `form:"period"      req:"1"`
 		EntryCode  int64   `form:"entry"       req:"1"`
 		Account    int64   `form:"account"     req:"1"`
-		ValidStart int64   `form:"valid_start" req:"1"`
-		ValidEnd   int64   `form:"valid_end"   req:"1"`
 		Amount     float64 `form:"amount"      req:"1"`
 	}
 
@@ -28,11 +26,9 @@ func (h *Handler) AddDistribution(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newDistribution := db.AddDistributionParams{
-		DistName:       distributionForm.Name,
+		DistPeriod:     distributionForm.Period,
 		DistEntryCode:  distributionForm.EntryCode,
 		DistAccount:    distributionForm.Account,
-		DistValidStart: distributionForm.ValidStart,
-		DistValidEnd:   distributionForm.ValidEnd,
 		DistAmount:     distributionForm.Amount,
 		DistActive:     true,
 	}
@@ -78,10 +74,7 @@ func (h *Handler) UpdateDistribution(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type updateDistributionForm struct {
-		Name       string  `form:"name"        req:"1"`
-		ValidStart int64   `form:"valid_start" req:"1"`
-		ValidEnd   int64   `form:"valid_end"   req:"1"`
-		Amount     float64 `form:"amount"      req:"1"`
+		Amount float64 `form:"amount" req:"1"`
 	}
 
 	distributionForm, err := forms.FormToStruct[updateDistributionForm](r)
@@ -92,11 +85,8 @@ func (h *Handler) UpdateDistribution(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedDistribution := db.UpdateDistributionParams{
-		DistName:       distributionForm.Name,
-		DistValidStart: distributionForm.ValidStart,
-		DistValidEnd:   distributionForm.ValidEnd,
-		DistAmount:     distributionForm.Amount,
 		DistID:         distID,
+		DistAmount:     distributionForm.Amount,
 	}
 
 	queries := db.New(h.DB())

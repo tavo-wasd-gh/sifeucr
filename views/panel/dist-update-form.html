@@ -4,12 +4,7 @@
   method="PUT"
   action="/panel/dist/update/{{ .DistID }}"
 >
-  <input type="text"               value="{{ .DistName }}"                     name="name"        placeholder="Identificador" aria-label="Identificador" required>
-  <input type="number" step="1"    value="{{ .DistEntryCode }}"                name="entry"       placeholder="Partida"       aria-label="Partida"       disabled>
-  <input type="text"   step="1"    value="{{ .DistAccount }}"                  name="account"     placeholder="Cuenta"        aria-label="Cuenta"        disabled>
-  <input type="date"               value="{{ unixDateToStr .DistValidStart }}" name="valid_start" placeholder="Válida desde"  aria-label="Válida desde"  required>
-  <input type="date"               value="{{ unixDateToStr .DistValidEnd }}"   name="valid_end"   placeholder="Válida hasta"  aria-label="Válida hasta"  required>
-  <input type="number" step=".01"  value="{{ .DistAmount }}"                   name="amount"      placeholder="Monto"         aria-label="Monto"         required>
+  <input type="number" step=".01"  value="{{ .DistAmount }}" name="amount" placeholder="Monto" aria-label="Monto" required>
   <button
     type="submit"
     onclick="fetchAndSwap(event)"

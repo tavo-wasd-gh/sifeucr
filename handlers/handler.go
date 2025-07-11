@@ -24,18 +24,23 @@ type Logger struct {
 }
 
 type Config struct {
-	Production bool
-	Logger     *Logger
-	Views      map[string]*template.Template
-	DB         *sql.DB
-	S3         *storage.Client
-	Sessions   *sessions.SessionStore[config.Session]
+	IsFirstTimeSetup bool
+	Production       bool
+	Logger           *Logger
+	Views            map[string]*template.Template
+	DB               *sql.DB
+	S3               *storage.Client
+	Sessions         *sessions.SessionStore[config.Session]
 }
 
 func New(cfg Config) *Handler {
 	return &Handler{
 		cfg: cfg,
 	}
+}
+
+func (h *Handler) IsFirstTimeSetup() bool {
+	return h.cfg.IsFirstTimeSetup
 }
 
 func (h *Handler) Production() bool {
