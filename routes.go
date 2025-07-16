@@ -20,9 +20,10 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 		middleware.With(middleware.Stack(handler.DashboardMiddleware),
 			handler.Dashboard),
 	)
+	router.HandleFunc("GET /cerrar", handler.Logout)
 
-	// TODO: Configure first time
-	router.HandleFunc("GET /panel/setup", handler.FirstTimeSetup)
+	router.HandleFunc("GET /panel/setup", handler.FirstTimeSetupPage)
+	router.HandleFunc("POST /panel/setup", handler.FirstTimeSetup)
 
 	// Panel read middleware
 	router.Handle(
@@ -52,6 +53,9 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /panel/user/add", middleware.With(panelMod, handler.AddUser))
 	router.Handle("POST /panel/user/toggle/{id}", middleware.With(panelMod, handler.ToggleUser))
 	// Cuentas
+	router.Handle("POST /panel/perm/add", middleware.With(panelMod, handler.AddPermission))
+	router.Handle("PUT /panel/perm/toggle/{permName}/{id}", middleware.With(panelMod, handler.TogglePermission))
+	// Permisos
 	router.Handle("POST /panel/account/add", middleware.With(panelMod, handler.AddAccount))
 	router.Handle("POST /panel/account/toggle/{id}", middleware.With(panelMod, handler.ToggleAccount))
 	// Periodos

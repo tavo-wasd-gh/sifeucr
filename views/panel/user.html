@@ -1,6 +1,8 @@
 {{ define "user" }}
 <tr>
-  <td>{{ .UserEmail }}</td>
+  <td onclick="toggleModal('modal-user-{{ .UserID }}')">
+    <a>{{ .UserEmail }}</a>
+  </td>
   <td>{{ .UserName }}</td>
   <td>
     <form method="POST" action="/panel/user/toggle/{{ .UserID }}">

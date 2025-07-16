@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"sifeucr/internal/db"
 )
 
 var base = []string{
@@ -14,6 +16,11 @@ var base = []string{
 }
 
 var ViewMap = map[string][]string{
+	"setup-page": append(
+		base,
+		"views/panel/setup.html",
+		"views/panel/setup-page.html",
+	),
 	"login-page": append(
 		base,
 		"views/login.html",
@@ -44,6 +51,8 @@ var ViewMap = map[string][]string{
 		"views/panel/users.html",
 		"views/panel/account.html",
 		"views/panel/accounts.html",
+		"views/panel/user-permissions.html",
+		"views/panel/permission.html",
 		"views/panel/periods.html",
 		"views/panel/period.html",
 		"views/panel/period-update-form.html",
@@ -59,6 +68,9 @@ var ViewMap = map[string][]string{
 	},
 	"account": {
 		"views/panel/account.html",
+	},
+	"permission": {
+		"views/panel/permission.html",
 	},
 	"period": {
 		"views/panel/period.html",
@@ -103,6 +115,49 @@ var ViewFormatters = map[string]any{
 	},
 	"currency":      formatAsCurrency,
 	"unixDateToStr": unixDateToStr,
+	"eq": func(a, b any) bool {
+		switch va := a.(type) {
+		case int:
+			vb, ok := b.(int)
+			return ok && va == vb
+		case int64:
+			vb, ok := b.(int64)
+			return ok && va == vb
+		case float64:
+			vb, ok := b.(float64)
+			return ok && va == vb
+		case string:
+			vb, ok := b.(string)
+			return ok && va == vb
+		default:
+			return false
+		}
+	},
+	"filterPermissionsByUser" : func(perms []db.AllPermissionsRow, userID int64) []db.AllPermissionsRow {
+		var out []db.AllPermissionsRow
+		for _, p := range perms {
+			if p.PermissionUser == userID {
+				out = append(out, p)
+			}
+		}
+		return out
+	},
+	"hasPermission": HasPermission,
+	"dict": func(values ...any) (map[string]any, error) {
+		if len(values)%2 != 0 {
+			return nil, fmt.Errorf("invalid dict call: uneven number of arguments")
+		}
+
+		dict := make(map[string]any, len(values)/2)
+		for i := 0; i < len(values); i += 2 {
+			key, ok := values[i].(string)
+			if !ok {
+				return nil, fmt.Errorf("dict keys must be strings, got %T", values[i])
+			}
+			dict[key] = values[i+1]
+		}
+		return dict, nil
+	},
 }
 
 func formatAsCurrency(amount float64) string {

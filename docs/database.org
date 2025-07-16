@@ -285,6 +285,12 @@ SELECT * FROM suppliers;
 ** Permisos
 
 #+begin_src sql
+-- name: AllPermissions :many
+SELECT a.*, u.*, p.*
+FROM users       u
+JOIN permissions p ON u.user_id    = p.permission_user
+JOIN accounts    a ON a.account_id = p.permission_account;
+
 -- name: PermissionsByUserID :many
 SELECT a.*, u.*, p.*
 FROM active_users       u
@@ -370,6 +376,30 @@ RETURNING *;
 UPDATE accounts
 SET account_active = NOT account_active
 WHERE account_id = ?;
+#+end_src
+
+** Insertar Permiso
+
+#+begin_src sql
+-- name: AddPermission :one
+INSERT INTO permissions (
+    permission_user,
+    permission_account,
+    permission_integer,
+    permission_active
+) VALUES (
+    ?, ?, ?, ?
+)
+RETURNING *;
+#+end_src
+
+** Cambiar estado de permiso
+
+#+begin_src sql
+-- name: TogglePermissionByPermissionID :exec
+UPDATE permissions
+SET permission_integer = ?
+WHERE permission_id = ?;
 #+end_src
 
 ** Insertar Periodo

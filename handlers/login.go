@@ -17,7 +17,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	type loginForm struct {
 		Email    string `form:"email" fmt:"trim,lower" req:"1"`
 		Password string `form:"password" req:"1"`
-		Account  int    `form:"account"`
+		Account  int64  `form:"account"`
 	}
 
 	login, err := forms.FormToStruct[loginForm](r)
@@ -75,18 +75,35 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		chosenAccountID = perms[0].AccountID
 
 	default:
-		type multiple struct {
-			MultipleAccounts bool
-			Permissions      []db.PermissionsByUserIDRow
+		// Multiple, check if claimed account is valid
+		for _, perm := range perms {
+			if login.Account == perm.AccountID {
+				chosenAccountID = perm.AccountID
+				break
+			}
 		}
 
-		m := multiple{
-			MultipleAccounts: true,
-			Permissions:      perms,
-		}
+		if chosenAccountID == 0 {
+			type multiple struct {
+				ExternalEmail    bool
+				Error            bool
+				MultipleAccounts bool
+				Permissions      []db.PermissionsByUserIDRow
+			}
 
-		views.RenderHTML(w, r, "login", m)
-		return
+			m := multiple{
+				ExternalEmail:    false,
+				Error:            false,
+				MultipleAccounts: true,
+				Permissions:      perms,
+			}
+
+			if err := views.RenderHTML(w, r, "login", m); err != nil {
+				h.Log().Error("error rendering multiple account login: %v", err)
+			}
+
+			return
+		}
 	}
 
 	if h.Production() {

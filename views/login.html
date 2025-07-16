@@ -36,8 +36,8 @@
   {{ if .MultipleAccounts }}
   <select name="account" aria-label="Cuenta" required>
     <option selected disabled value="">Cuenta</option>
-    {{ range .AllowedAccounts }}
-    <option value="{{ .ID }}">{{ .Name }}</option>
+    {{ range .Permissions }}
+    <option value="{{ .AccountID }}">[{{ .AccountAbbr }}] {{ .AccountName }}</option>
     {{ end }}
   </select>
   {{ end }}

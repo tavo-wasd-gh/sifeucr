@@ -15,6 +15,8 @@ type panel struct {
 	BudgetEntries []db.BudgetEntry
 	Users         []db.User
 	Accounts      []db.Account
+	Permissions   []db.AllPermissionsRow
+	PermissionTypes []config.PermissionType
 	Periods       []db.Period
 	Distributions []db.AllDistributionsRow
 	Suppliers     []db.Supplier
@@ -58,6 +60,12 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all accounts: %v", err)
 	}
+
+	panel.Permissions, err = queries.AllPermissions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all accounts: %v", err)
+	}
+	panel.PermissionTypes = config.PermissionTypes
 
 	panel.Periods, err = queries.AllPeriods(ctx)
 	if err != nil {

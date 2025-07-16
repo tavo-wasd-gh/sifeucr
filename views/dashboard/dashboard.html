@@ -7,7 +7,12 @@
   </div>
   {{ if .User.UserName }}
   <div>
-    <button class="secondary outline">{{ firstWord .User.UserName }}</button>
+    <a href="#">
+      <button class="secondary outline">{{ firstWord .User.UserName }}</button>
+    </a>
+    <a href="/cerrar">
+      <button class="secondary outline">Salir</button>
+    </a>
     {{ if .ReadAdvanced }}
     <a href="/panel">
       <button class="contrast">Panel</button>

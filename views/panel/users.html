@@ -31,4 +31,15 @@
     loading-state
   >Agregar Usuario</button>
 </form>
+{{ range .Users }}
+<dialog id="modal-user-{{ .UserID }}">
+  <article>
+    <header>
+      <button type="button" onclick="toggleModal('modal-user-{{ .UserID }}')">x</button>
+      <h3>Usuario #{{ .UserID }}</h3>
+    </header>
+    {{ template "user-permissions" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "Permissions" $.Permissions "PermissionTypes" $.PermissionTypes "Users" $.Users "Accounts" $.Accounts) }}
+  </article>
+</dialog>
+{{ end }}
 {{ end }}

@@ -1,0 +1,47 @@
+{{ define "user-permissions" }}
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th>Cuenta</th>
+        <th>Lectura</th>
+        <th>Escritura</th>
+        <th>Lectura Otros</th>
+        <th>Escritura Otros</th>
+        <th>Lectura Avanzado</th>
+        <th>Escritura Avanzado</th>
+      </tr>
+    </thead>
+    <tbody id="perms-rows-{{ .UserID }}">
+      {{ $userPerms := filterPermissionsByUser .Permissions .UserID }}
+      {{ range $userPerms }}
+      {{ template "permission" (dict "Permission" . "PermissionTypes" $.PermissionTypes) }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<label for="addpermission">Agregar Permiso</label>
+<form
+  id="addpermission"
+  method="POST"
+  action="/panel/perm/add"
+>
+  <select name="user">
+    <option value="{{ .UserID }}" selected>[{{ .UserEmail }}] {{ .UserName }}</option>
+  </select>
+  <select name="account">
+    <option value="" selected disabled>Cuenta</option>
+    {{ range .Accounts }}
+    <option value="{{ .AccountID }}">[{{ .AccountAbbr }}] {{ .AccountName }}</option>
+    {{ end }}
+  </select>
+  <input type="number" name="integer" placeholder="Permiso (3=regular)" aria-label="Permiso" required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#perms-rows-{{ .UserID }}"
+    swap="beforeend"
+    loading-state
+  >Agregar Permiso</button>
+</form>
+{{ end }}
