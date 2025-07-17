@@ -66,11 +66,11 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /panel/dist/add", middleware.With(panelMod, handler.AddDistribution))
 	router.Handle("POST /panel/dist/toggle/{id}", middleware.With(panelMod, handler.ToggleDistribution))
 	router.Handle("PUT /panel/dist/update/{id}", middleware.With(panelMod, handler.UpdateDistribution))
-	// TODO: Proveedores
-	// router.Handle("POST /supplier/add",   middleware.With(panelMod, handler.AddSupplier))
-	// router.Handle("PUT /supplier/update", middleware.With(panelMod, handler.UpdateSupplier))
-	// router.Handle("POST /catalog/add",    middleware.With(panelMod, handler.AddCatalog))
-	// router.Handle("PUT /catalog/update",  middleware.With(panelMod, handler.UpdateCatalog))
+	// Proveedores
+	router.Handle("POST /supplier/add", middleware.With(panelMod, handler.AddSupplier))
+	router.Handle("PUT /supplier/update/{id}", middleware.With(panelMod, handler.UpdateSupplier))
+	router.Handle("POST /catalog/add", middleware.With(panelMod, handler.AddCatalog))
+	router.Handle("PUT /catalog/update/{id}", middleware.With(panelMod, handler.UpdateCatalog))
 
 	// TODO: Solicitudes
 	// Check read/write and readother/writeother permissions depending on the required permissions

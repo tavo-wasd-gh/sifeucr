@@ -1,0 +1,22 @@
+{{ define "supplier-update-form" }}
+<form
+  id="form-supplier-{{ .SupplierID }}"
+  method="PUT"
+  action="/panel/supplier/update/{{ .SupplierID }}"
+>
+  <input type="text" name="name"  placeholder="Nombre" aria-label="Nombre" required>
+  <input type="text" name="email" placeholder="Correo" aria-label="Correo" required>
+  <select>
+    <option value="506" selected>+506</option>
+  </select>
+  <input type="number" step="1" name="phone"    placeholder="Teléfono"  aria-label="Teléfono"  required>
+  <input type="text"            name="location" placeholder="Ubicación" aria-label="Ubicación" required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#form-supplier-{{ .SupplierID }}"
+    swap="outerHTML"
+    loading-state
+  >Actualizar Proveedor</button>
+</form>
+{{ end }}

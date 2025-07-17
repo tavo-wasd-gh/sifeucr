@@ -59,6 +59,12 @@ var ViewMap = map[string][]string{
 		"views/panel/distributions.html",
 		"views/panel/distribution.html",
 		"views/panel/dist-update-form.html",
+		"views/panel/suppliers.html",
+		"views/panel/supplier.html",
+		"views/panel/supplier-update-form.html",
+		"views/panel/catalogs.html",
+		"views/panel/catalog.html",
+		"views/panel/catalog-update-form.html",
 	),
 	"budget": {
 		"views/panel/budget.html",
@@ -83,6 +89,12 @@ var ViewMap = map[string][]string{
 	},
 	"dist-update-form": {
 		"views/panel/dist-update-form.html",
+	},
+	"supplier-update-form": {
+		"views/panel/supplier-update-form.html",
+	},
+	"catalog-update-form": {
+		"views/panel/catalog-update-form.html",
 	},
 
 	"index-page": append(

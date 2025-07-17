@@ -20,6 +20,7 @@ type panel struct {
 	Periods       []db.Period
 	Distributions []db.AllDistributionsRow
 	Suppliers     []db.Supplier
+	Catalogs      []db.SuppliersCatalog
 	CSRFToken     string
 }
 
@@ -80,6 +81,11 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	panel.Suppliers, err = queries.AllSuppliers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all suppliers: %v", err)
+	}
+
+	panel.Catalogs, err = queries.AllCatalogs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all catalogs: %v", err)
 	}
 
 	csrfToken := getCSRFTokenFromContext(ctx)

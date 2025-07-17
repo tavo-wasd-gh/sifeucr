@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS "suppliers" (
     "supplier_email"              TEXT    NOT NULL,
     "supplier_phone_country_code" INTEGER NOT NULL DEFAULT '506', -- https://en.wikipedia.org/wiki/List_of_telephone_country_codes
     "supplier_phone"              INTEGER NOT NULL,
-    "supplier_location"           TEXT
+    "supplier_location"           TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "suppliers_catalogs" (
@@ -275,11 +275,18 @@ JOIN budget_entries e ON d.dist_entry_code = e.entry_id
 JOIN accounts       a ON d.dist_account    = a.account_id;
 #+end_src
 
-** Suppliers
+** Proveedores
 
 #+begin_src sql
 -- name: AllSuppliers :many
 SELECT * FROM suppliers;
+#+end_src
+
+** Catálogos
+
+#+begin_src sql
+-- name: AllCatalogs :many
+SELECT * FROM suppliers_catalogs;
 #+end_src
 
 ** Permisos
@@ -472,7 +479,7 @@ WHERE dist_id = ? RETURNING *;
 ** Insertar Proveedor
 
 #+begin_src sql
--- name: NewSupplier :exec
+-- name: AddSupplier :one
 INSERT INTO suppliers (
     supplier_id,
     supplier_name,
@@ -482,6 +489,46 @@ INSERT INTO suppliers (
     supplier_location
 ) VALUES (
     ?, ?, ?, ?, ?, ?
-);
+) RETURNING *;
 #+end_src
 
+** Actualizar Proveedor
+
+#+begin_src sql
+-- name: UpdateSupplier :one
+UPDATE suppliers SET
+    supplier_name = ?,
+    supplier_email = ?,
+    supplier_phone_country_code = ?,
+    supplier_phone = ?,
+    supplier_location = ?
+WHERE supplier_id = ? RETURNING *;
+#+end_src
+
+** Insertar Catálogo
+
+#+begin_src sql
+-- name: AddCatalog :one
+INSERT INTO suppliers_catalogs (
+    catalog_provider,
+    catalog_grouping,
+    catalog_article,
+    catalog_description,
+    catalog_amount
+) VALUES (
+    ?, ?, ?, ?, ?
+) RETURNING *;
+#+end_src
+
+** Actualizar Catálogo
+
+#+begin_src sql
+-- name: UpdateCatalog :one
+UPDATE suppliers_catalogs SET
+    catalog_provider = ?,
+    catalog_grouping = ?,
+    catalog_article = ?,
+    catalog_description = ?,
+    catalog_amount = ?
+WHERE catalog_id = ? RETURNING *;
+#+end_src

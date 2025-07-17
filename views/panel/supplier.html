@@ -1,0 +1,9 @@
+{{ define "supplier" }}
+<tr>
+  <td>{{ .SupplierID }}</td>
+  <td>{{ .SupplierName }}</td>
+  <td>{{ .SupplierEmail }}</td>
+  <td>+{{ .SupplierPhoneCountryCode }} {{ .SupplierPhone }}</td>
+  <td>{{ .SupplierLocation }}</td>
+</tr>
+{{ end }}

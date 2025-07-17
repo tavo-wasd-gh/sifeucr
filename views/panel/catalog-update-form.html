@@ -1,0 +1,26 @@
+{{ define "catalog-update-form" }}
+<form
+  id="form-catalog-{{ .CatalogID }}"
+  method="PUT"
+  action="/panel/catalog/update/{{ .CatalogID }}"
+>
+  <select name="supplier">
+    <option value="" selected disabled>Proveedor</option>
+    {{ range .Suppliers }}
+    <option value="{{ .SupplierID }}">[{{ .SupplierID }}] {{ .SupplierName }}</option>
+    {{ end }}
+  </select>
+  <input type="number" step="1"    name="grouping" placeholder="Agrupación"  aria-label="Agrupación"  required>
+  <input type="number" step="1"    name="article"  placeholder="Artículo"    aria-label="Artículo"    required>
+  <input type="text"               name="location" placeholder="Ubicación"   aria-label="Ubicación"   required>
+  <input type="text"               name="desc"     placeholder="Descripción" aria-label="Descripción" required>
+  <input type="number" step="0.01" name="amount"   placeholder="Monto"       aria-label="Monto"       required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#form-catalog-{{ .CatalogID }}"
+    swap="outerHTML"
+    loading-state
+  >Actualizar Catálogo</button>
+</form>
+{{ end }}

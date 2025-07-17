@@ -1,0 +1,42 @@
+{{ define "suppliers" }}
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Cédula"    onkeyup="filterTable(this)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Nombre"    onkeyup="filterTable(this)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Correo"    onkeyup="filterTable(this)"></th>
+        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Teléfono"  onkeyup="filterTable(this)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Ubicación" onkeyup="filterTable(this)"></th>
+      </tr>
+    </thead>
+    <tbody id="supplier-rows">
+      {{ range .Suppliers }}
+      {{ template "supplier" . }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<label for="addsupplier">Agregar Proveedor</label>
+<form
+  id="addsupplier"
+  method="POST"
+  action="/panel/supplier/add"
+>
+  <input type="number" step="1" name="id"    placeholder="Cédula" aria-label="Cédula" required>
+  <input type="text"            name="name"  placeholder="Nombre" aria-label="Nombre" required>
+  <input type="text"            name="email" placeholder="Correo" aria-label="Correo" required>
+  <select>
+    <option value="506" selected>+506</option>
+  </select>
+  <input type="number" step="1" name="phone"    placeholder="Teléfono"  aria-label="Teléfono"  required>
+  <input type="text"            name="location" placeholder="Ubicación" aria-label="Ubicación" required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#supplier-rows"
+    swap="beforeend"
+    loading-state
+  >Agregar Proveedor</button>
+</form>
+{{ end }}
