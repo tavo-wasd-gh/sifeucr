@@ -1,11 +1,6 @@
 {{ define "catalog" }}
 <tr>
-  <td onclick="toggleModal('modal-catalog-{{ .CatalogID }}')">
-    <a>{{ .CatalogProvider }}</a>
-  </td>
   <td>{{ .CatalogGrouping }}</td>
-  <td>{{ .CatalogArticle }}</td>
-  <td>{{ .CatalogDescription }}</td>
-  <td>{{ currency .CatalogAmount }}</td>
+  <td>[{{ .SupplierID }}] {{ .SupplierName }}</td>
 </tr>
 {{ end }}

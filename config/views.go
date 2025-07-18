@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"strings"
+	"strconv"
 	"time"
 
 	"sifeucr/internal/db"
@@ -64,7 +65,9 @@ var ViewMap = map[string][]string{
 		"views/panel/supplier-update-form.html",
 		"views/panel/catalogs.html",
 		"views/panel/catalog.html",
-		"views/panel/catalog-update-form.html",
+		"views/panel/items.html",
+		"views/panel/item.html",
+		"views/panel/item-update-form.html",
 	),
 	"budget": {
 		"views/panel/budget.html",
@@ -90,11 +93,20 @@ var ViewMap = map[string][]string{
 	"dist-update-form": {
 		"views/panel/dist-update-form.html",
 	},
+	"supplier": {
+		"views/panel/supplier.html",
+	},
 	"supplier-update-form": {
 		"views/panel/supplier-update-form.html",
 	},
-	"catalog-update-form": {
-		"views/panel/catalog-update-form.html",
+	"catalog": {
+		"views/panel/catalog.html",
+	},
+	"item": {
+		"views/panel/item.html",
+	},
+	"item-update-form": {
+		"views/panel/item-update-form.html",
 	},
 
 	"index-page": append(
@@ -170,6 +182,24 @@ var ViewFormatters = map[string]any{
 		}
 		return dict, nil
 	},
+	"phone": func(countryCode, phone int64) string {
+		cc := strconv.FormatInt(countryCode, 10)
+		pn := fmt.Sprintf("%d", phone)
+
+		switch cc {
+		case "1": // US/Canada
+			if len(pn) == 10 {
+				return fmt.Sprintf("+1 (%s) %s-%s", pn[0:3], pn[3:6], pn[6:])
+			}
+		case "506": // Costa Rica
+			return fmt.Sprintf("+506 %s-%s", pn[0:4], pn[4:])
+		default:
+			return fmt.Sprintf("+%s %s", cc, pn)
+		}
+
+		return pn
+	},
+	"formatID": formatID,
 }
 
 func formatAsCurrency(amount float64) string {
@@ -201,4 +231,21 @@ func formatAsCurrency(amount float64) string {
 func unixDateToStr(timestamp int64) string {
 	t := time.Unix(timestamp, 0).UTC()
 	return t.Format("2006-01-02")
+}
+
+// Format as Costa Rican ID
+func formatID(id int64) string {
+	idStr := strconv.FormatInt(id, 10)
+
+	switch len(idStr) {
+	case 9:
+		// Física: 0#-####-####
+		return fmt.Sprintf("%s-%s-%s", string(idStr[0]), idStr[1:5], idStr[5:])
+	case 10:
+		// Jurídica/Gobierno Central/Inst. Autónoma: #-###-######
+		return fmt.Sprintf("%s-%s-%s", idStr[0:1], idStr[1:4], idStr[4:])
+	default:
+		// Any other: return raw number
+		return idStr
+	}
 }

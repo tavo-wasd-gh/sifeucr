@@ -104,14 +104,19 @@ CREATE TABLE IF NOT EXISTS "suppliers" (
     "supplier_location"           TEXT    NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS "suppliers_catalogs" (
+CREATE TABLE IF NOT EXISTS "catalogs" (
     "catalog_id"          INTEGER PRIMARY KEY NOT NULL,
-    "catalog_provider"    INTEGER NOT NULL REFERENCES "suppliers"("supplier_id"),
-    "catalog_grouping"    INTEGER NOT NULL,
-    "catalog_article"     INTEGER NOT NULL,
-    "catalog_description" TEXT    NOT NULL,
-    "catalog_amount"      REAL    NOT NULL,
-    UNIQUE("catalog_grouping", "catalog_article")
+    "catalog_supplier"    INTEGER NOT NULL REFERENCES "suppliers"("supplier_id"),
+    "catalog_grouping"    INTEGER NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS "items" (
+    "item_id"          INTEGER PRIMARY KEY NOT NULL,
+    "item_catalog"     INTEGER NOT NULL REFERENCES "catalogs"("catalog_id"),
+    "item_number"      INTEGER NOT NULL,
+    "item_description" TEXT    NOT NULL,
+    "item_amount"      REAL    NOT NULL,
+    UNIQUE("item_catalog", "item_number")
 );
 #+end_src
 
@@ -185,10 +190,9 @@ CREATE TABLE IF NOT EXISTS "purchases" (
 CREATE TABLE IF NOT EXISTS "purchases_breakdown" (
     "breakdown_id"       INTEGER PRIMARY KEY NOT NULL,
     "breakdown_purchase" INTEGER NOT NULL REFERENCES "purchases"("purchase_id"),
-    "breakdown_grouping" INTEGER NOT NULL REFERENCES "suppliers_catalogs"("catalog_grouping"),
-    "breakdown_article"  INTEGER NOT NULL REFERENCES "suppliers_catalogs"("catalog_article"),
+    "breakdown_item"     INTEGER NOT NULL REFERENCES "items"("item_id"),
     "breakdown_quantity" REAL    NOT NULL,
-    UNIQUE("breakdown_purchase", "breakdown_grouping", "breakdown_article")
+    UNIQUE("breakdown_purchase", "breakdown_item")
 );
 #+end_src
 
@@ -211,12 +215,37 @@ SELECT * FROM users
 WHERE user_active = 1;
 #+end_src
 
+*** Distribuciones
+
+#+begin_src sql
+CREATE VIEW IF NOT EXISTS full_distributions AS
+SELECT d.*, p.*, e.*, a.*
+FROM distributions  d
+JOIN periods        p ON d.dist_period     = p.period_id
+JOIN budget_entries e ON d.dist_entry_code = e.entry_id
+JOIN accounts       a ON d.dist_account    = a.account_id;
+#+end_src
+
 *** Permisos activos
 
 #+begin_src sql
 CREATE VIEW IF NOT EXISTS active_permissions AS
 SELECT * FROM permissions
 WHERE permission_active = 1;
+#+end_src
+
+*** Artículos
+
+#+begin_src sql
+CREATE VIEW IF NOT EXISTS full_catalogs AS
+SELECT c.*, s.*
+FROM catalogs  c
+JOIN suppliers s ON c.catalog_supplier = s.supplier_id;
+
+CREATE VIEW IF NOT EXISTS full_catalog_items AS
+SELECT i.*, c.*
+FROM items         i
+JOIN full_catalogs c ON i.item_catalog = c.catalog_id
 #+end_src
 
 * DQL: Consultas
@@ -268,11 +297,11 @@ SELECT * FROM periods;
 
 #+begin_src sql
 -- name: AllDistributions :many
-SELECT d.*, p.*, e.*, a.*
-FROM distributions  d
-JOIN periods        p ON d.dist_period     = p.period_id
-JOIN budget_entries e ON d.dist_entry_code = e.entry_id
-JOIN accounts       a ON d.dist_account    = a.account_id;
+SELECT * FROM full_distributions;
+
+-- name: DistributionByID :one
+SELECT * FROM full_distributions
+WHERE dist_id = ?;
 #+end_src
 
 ** Proveedores
@@ -286,12 +315,27 @@ SELECT * FROM suppliers;
 
 #+begin_src sql
 -- name: AllCatalogs :many
-SELECT * FROM suppliers_catalogs;
+SELECT * FROM full_catalogs;
+
+-- name: CatalogByID :one
+SELECT * FROM full_catalogs
+WHERE catalog_id = ?;
+
+-- name: AllCatalogItems :many
+SELECT * FROM full_catalog_items;
+
+-- name: CatalogItemByID :one
+SELECT * FROM full_catalog_items
+WHERE item_id = ?;
 #+end_src
 
 ** Permisos
 
 #+begin_src sql
+-- name: PermissionByID :one
+SELECT * FROM permissions
+WHERE permission_id = ?;
+
 -- name: AllPermissions :many
 SELECT a.*, u.*, p.*
 FROM users       u
@@ -509,26 +553,31 @@ WHERE supplier_id = ? RETURNING *;
 
 #+begin_src sql
 -- name: AddCatalog :one
-INSERT INTO suppliers_catalogs (
-    catalog_provider,
-    catalog_grouping,
-    catalog_article,
-    catalog_description,
-    catalog_amount
+INSERT INTO catalogs (
+    catalog_supplier,
+    catalog_grouping
 ) VALUES (
-    ?, ?, ?, ?, ?
+    ?, ?
+) RETURNING *;
+
+-- name: AddItem :one
+INSERT INTO items (
+    item_catalog,
+    item_number,
+    item_description,
+    item_amount
+) VALUES (
+    ?, ?, ?, ?
 ) RETURNING *;
 #+end_src
 
 ** Actualizar Catálogo
 
 #+begin_src sql
--- name: UpdateCatalog :one
-UPDATE suppliers_catalogs SET
-    catalog_provider = ?,
-    catalog_grouping = ?,
-    catalog_article = ?,
-    catalog_description = ?,
-    catalog_amount = ?
-WHERE catalog_id = ? RETURNING *;
+-- name: UpdateItem :one
+UPDATE items SET
+    item_number = ?,
+    item_description = ?,
+    item_amount = ?
+WHERE item_id = ? RETURNING *;
 #+end_src

@@ -12,16 +12,17 @@ import (
 )
 
 type panel struct {
-	BudgetEntries []db.BudgetEntry
-	Users         []db.User
-	Accounts      []db.Account
-	Permissions   []db.AllPermissionsRow
+	BudgetEntries   []db.BudgetEntry
+	Users           []db.User
+	Accounts        []db.Account
+	Permissions     []db.AllPermissionsRow
 	PermissionTypes []config.PermissionType
-	Periods       []db.Period
-	Distributions []db.AllDistributionsRow
-	Suppliers     []db.Supplier
-	Catalogs      []db.SuppliersCatalog
-	CSRFToken     string
+	Periods         []db.Period
+	Distributions   []db.FullDistribution
+	Suppliers       []db.Supplier
+	Catalogs        []db.FullCatalog
+	Items           []db.FullCatalogItem
+	CSRFToken       string
 }
 
 func (h *Handler) Panel(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +87,11 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	panel.Catalogs, err = queries.AllCatalogs(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all catalogs: %v", err)
+	}
+
+	panel.Items, err = queries.AllCatalogItems(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all items: %v", err)
 	}
 
 	csrfToken := getCSRFTokenFromContext(ctx)

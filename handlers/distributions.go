@@ -34,18 +34,22 @@ func (h *Handler) AddDistribution(w http.ResponseWriter, r *http.Request) {
 	}
 
 	queries := db.New(h.DB())
-	insertedDistribution, err := queries.AddDistribution(r.Context(), newDistribution)
+	ctx := r.Context()
+
+	i, err := queries.AddDistribution(ctx, newDistribution)
 	if err != nil {
 		h.Log().Error("error adding distribution: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
-	// FIXME: loading a distribution only, but this template needs
-	// .PeriodName
-	// .AccountAbbr
-	// .EntryCode
-	// .EntryObject
+	insertedDistribution, err := queries.DistributionByID(ctx, i.DistID)
+	if err != nil {
+		h.Log().Error("error querying new distribution: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
 	if err = views.RenderHTML(w, r, "distribution", insertedDistribution); err != nil {
 		h.Log().Error("failed to render new distribution: %v", err)
 	}

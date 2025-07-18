@@ -1,0 +1,54 @@
+{{ define "items" }}
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th><input type="number" step="1"    style="all:unset;font-weight:normal;" placeholder="Agrupación"  onkeyup="filterTable(this)"></th>
+        <th><input type="number" step="1"    style="all:unset;font-weight:normal;" placeholder="Artículo"    onkeyup="filterTable(this)"></th>
+        <th><input type="text"               style="all:unset;font-weight:normal;" placeholder="Proveedor"   onkeyup="filterTable(this)"></th>
+        <th><input type="text"               style="all:unset;font-weight:normal;" placeholder="Descripción" onkeyup="filterTable(this)"></th>
+        <th><input type="number" step="0.01" style="all:unset;font-weight:normal;" placeholder="Monto"       onkeyup="filterTable(this)"></th>
+      </tr>
+    </thead>
+    <tbody id="item-rows">
+      {{ range .Items }}
+      {{ template "item" . }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+<label for="additem">Agregar Artículo</label>
+<form
+  id="additem"
+  method="POST"
+  action="/panel/item/add"
+>
+  <select name="catalog">
+    <option value="" selected disabled>Agrupación</option>
+    {{ range .Catalogs }}
+    <option value="{{ .CatalogID }}">{{ .CatalogGrouping }}</option>
+    {{ end }}
+  </select>
+  <input type="number" step="1" name="number" placeholder="Artículo" aria-label="Artículo" required>
+  <input type="text" name="desc" placeholder="Descripción" aria-label="Descripción" required>
+  <input type="number" step="0.01" name="amount" placeholder="Monto" aria-label="Monto" required>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="#item-rows"
+    swap="beforeend"
+    loading-state
+  >Agregar Artículo</button>
+</form>
+{{ range .Items }}
+<dialog id="modal-item-{{ .ItemID }}">
+  <article>
+    <header>
+      <button type="button" onclick="toggleModal('modal-item-{{ .ItemID }}')">x</button>
+      <h3>Artículo #{{ .ItemID }}</h3>
+    </header>
+    {{ template "item-update-form" . }}
+  </article>
+</dialog>
+{{ end }}
+{{ end }}

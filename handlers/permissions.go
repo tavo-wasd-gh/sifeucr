@@ -81,10 +81,7 @@ func (h *Handler) TogglePermission(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 	ctx := r.Context()
 
-	perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
-		UserID:    getUserIDFromContext(ctx),
-		AccountID: getAccountIDFromContext(ctx),
-	})
+	perm, err := queries.PermissionByID(ctx, permID)
 	if err != nil {
 		h.Log().Error("error fetching permission: %v", err)
 		http.Error(w, "Permission not found", http.StatusInternalServerError)

@@ -3,11 +3,8 @@
   <table class="striped">
     <thead>
       <tr>
-        <th><input type="text"               style="all:unset;font-weight:normal;" placeholder="Proveedor"   onkeyup="filterTable(this)"></th>
-        <th><input type="number"             style="all:unset;font-weight:normal;" placeholder="Agrupación"  onkeyup="filterTable(this)"></th>
-        <th><input type="number"             style="all:unset;font-weight:normal;" placeholder="Artículo"    onkeyup="filterTable(this)"></th>
-        <th><input type="text"               style="all:unset;font-weight:normal;" placeholder="Descripción" onkeyup="filterTable(this)"></th>
-        <th><input type="number" step="0.01" style="all:unset;font-weight:normal;" placeholder="Monto"       onkeyup="filterTable(this)"></th>
+        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Agrupación" onkeyup="filterTable(this)"></th>
+        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Proveedor"  onkeyup="filterTable(this)"></th>
       </tr>
     </thead>
     <tbody id="catalog-rows">
@@ -23,17 +20,13 @@
   method="POST"
   action="/panel/catalog/add"
 >
+  <input type="number" step="1" name="grouping" placeholder="Agrupación"  aria-label="Agrupación"  required>
   <select name="supplier">
     <option value="" selected disabled>Proveedor</option>
     {{ range .Suppliers }}
     <option value="{{ .SupplierID }}">[{{ .SupplierID }}] {{ .SupplierName }}</option>
     {{ end }}
   </select>
-  <input type="number" step="1"    name="grouping" placeholder="Agrupación"  aria-label="Agrupación"  required>
-  <input type="number" step="1"    name="article"  placeholder="Artículo"    aria-label="Artículo"    required>
-  <input type="text"               name="location" placeholder="Ubicación"   aria-label="Ubicación"   required>
-  <input type="text"               name="desc"     placeholder="Descripción" aria-label="Descripción" required>
-  <input type="number" step="0.01" name="amount"   placeholder="Monto"       aria-label="Monto"       required>
   <button
     type="submit"
     onclick="fetchAndSwap(event)"
@@ -42,15 +35,4 @@
     loading-state
   >Agregar Catálogo</button>
 </form>
-{{ range .Catalogs }}
-<dialog id="modal-catalog-{{ .CatalogID }}">
-  <article>
-    <header>
-      <button type="button" onclick="toggleModal('modal-catalog-{{ .CatalogID }}')">x</button>
-      <h3>Editar Catálogo #{{ .CatalogID }}</h3>
-    </header>
-    {{ template "catalog-update-form" . }}
-  </article>
-</dialog>
-{{ end }}
 {{ end }}
