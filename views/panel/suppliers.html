@@ -3,10 +3,10 @@
   <table class="striped">
     <thead>
       <tr>
-        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Cédula"    onkeyup="filterTable(this)"></th>
+        <th><input type="text" filter="number" inputmode="numeric" style="all:unset;font-weight:normal;" placeholder="Cédula" onkeyup="filterTable(this)"></th>
         <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Nombre"    onkeyup="filterTable(this)"></th>
         <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Correo"    onkeyup="filterTable(this)"></th>
-        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Teléfono"  onkeyup="filterTable(this)"></th>
+        <th><input type="text" filter="number" inputmode="numeric" style="all:unset;font-weight:normal;" placeholder="Teléfono" onkeyup="filterTable(this)"></th>
         <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Ubicación" onkeyup="filterTable(this)"></th>
       </tr>
     </thead>
@@ -26,7 +26,7 @@
   <input type="number" step="1" name="id"    placeholder="Cédula" aria-label="Cédula" required>
   <input type="text"            name="name"  placeholder="Nombre" aria-label="Nombre" required>
   <input type="text"            name="email" placeholder="Correo" aria-label="Correo" required>
-  <select>
+  <select name="country">
     <option value="506" selected>+506</option>
   </select>
   <input type="number" step="1" name="phone"    placeholder="Teléfono"  aria-label="Teléfono"  required>

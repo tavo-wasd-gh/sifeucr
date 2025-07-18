@@ -165,8 +165,17 @@ function filterTable(inputChanged) {
                     break;
                 }
             } else if (inputType === "number" && filterValue !== "") {
-                const cleanFilterValue = filterValue.replace(/,/g, '');
-                const cleanedCellText = cellText.replace(/[^\d.-]/g, '');
+                const cleanFilterValue = filterValue.replace(/[^\d.]/g, '').replace(/^0+/, '');
+                const cleanedCellText = cellText.replace(/[^\d.]/g, '').replace(/^0+/, '');
+
+                if (!cleanedCellText.includes(cleanFilterValue)) {
+                    visible = false;
+                    break;
+                }
+            } else if (filterAttr === "number" && filterValue !== "") {
+                const cleanFilterValue = filterValue.replace(/[^\d.]/g, '').replace(/^0+/, '');
+                const cleanedCellText = cellText.replace(/[^\d.]/g, '').replace(/^0+/, '');
+
                 if (!cleanedCellText.includes(cleanFilterValue)) {
                     visible = false;
                     break;
