@@ -50,10 +50,10 @@ func (h *Handler) AddCatalog(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 	type addItemForm struct {
-		Catalog  int64   `form:"catalog" validate:"nonzero"`
-		Number   int64   `form:"number" validate:"nonzero"`
-		Desc     string  `form:"desc" fmt:"trim"`
-		Amount   float64 `form:"amount"`
+		Catalog int64   `form:"catalog" validate:"nonzero"`
+		Number  int64   `form:"number" validate:"nonzero"`
+		Desc    string  `form:"desc" fmt:"trim"`
+		Amount  float64 `form:"amount"`
 	}
 
 	form, err := forms.FormToStruct[addItemForm](r)
@@ -67,10 +67,10 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 
 	i, err := queries.AddItem(ctx, db.AddItemParams{
-		ItemCatalog: form.Catalog,
-		ItemNumber: form.Number,
+		ItemCatalog:     form.Catalog,
+		ItemNumber:      form.Number,
 		ItemDescription: form.Desc,
-		ItemAmount: form.Amount,
+		ItemAmount:      form.Amount,
 	})
 	if err != nil {
 		h.Log().Error("error adding item: %v", err)
@@ -100,9 +100,9 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type updateItemForm struct {
-		Number   int64   `form:"number" validate:"nonzero"`
-		Desc     string  `form:"desc" fmt:"trim"`
-		Amount   float64 `form:"amount"`
+		Number int64   `form:"number" validate:"nonzero"`
+		Desc   string  `form:"desc" fmt:"trim"`
+		Amount float64 `form:"amount"`
 	}
 
 	form, err := forms.FormToStruct[updateItemForm](r)
@@ -116,10 +116,10 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 
 	i, err := queries.UpdateItem(ctx, db.UpdateItemParams{
-		ItemID: itemID,
-		ItemNumber: form.Number,
+		ItemID:          itemID,
+		ItemNumber:      form.Number,
 		ItemDescription: form.Desc,
-		ItemAmount: form.Amount,
+		ItemAmount:      form.Amount,
 	})
 	if err != nil {
 		h.Log().Error("error updating item: %v", err)

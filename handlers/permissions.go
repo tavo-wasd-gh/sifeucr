@@ -43,7 +43,7 @@ func (h *Handler) AddPermission(w http.ResponseWriter, r *http.Request) {
 	}
 
 	insertedPermissionFull, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
-		UserID: insertedPermission.PermissionUser,
+		UserID:    insertedPermission.PermissionUser,
 		AccountID: insertedPermission.PermissionAccount,
 	})
 	if err != nil {
@@ -52,13 +52,13 @@ func (h *Handler) AddPermission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type permissionRow struct{
+	type permissionRow struct {
 		Permission      db.PermissionByUserIDAndAccountIDRow
 		PermissionTypes []config.PermissionType
 	}
 
 	perm := permissionRow{
-		Permission: insertedPermissionFull,
+		Permission:      insertedPermissionFull,
 		PermissionTypes: config.PermissionTypes,
 	}
 
@@ -106,7 +106,7 @@ func (h *Handler) TogglePermission(w http.ResponseWriter, r *http.Request) {
 
 	newPerm := db.TogglePermissionByPermissionIDParams{
 		PermissionInteger: newPermInteger,
-		PermissionID: permID,
+		PermissionID:      permID,
 	}
 
 	err = queries.TogglePermissionByPermissionID(r.Context(), newPerm)

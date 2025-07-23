@@ -85,14 +85,13 @@ func (h *Handler) FirstTimeSetup(w http.ResponseWriter, r *http.Request) {
 	firstPerm := db.AddPermissionParams{
 		PermissionUser:    insertedUser.UserID,
 		PermissionAccount: insertedAccount.AccountID,
-		PermissionInteger:
-		config.Read |
+		PermissionInteger: config.Read |
 			config.Write |
 			config.ReadOther |
 			config.WriteOther |
 			config.ReadAdvanced |
 			config.WriteAdvanced,
-		PermissionActive:  true,
+		PermissionActive: true,
 	}
 
 	_, err = queries.AddPermission(ctx, firstPerm)

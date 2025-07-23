@@ -2,8 +2,8 @@ package config
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	"sifeucr/internal/db"
@@ -157,7 +157,7 @@ var ViewFormatters = map[string]any{
 			return false
 		}
 	},
-	"filterPermissionsByUser" : func(perms []db.AllPermissionsRow, userID int64) []db.AllPermissionsRow {
+	"filterPermissionsByUser": func(perms []db.AllPermissionsRow, userID int64) []db.AllPermissionsRow {
 		var out []db.AllPermissionsRow
 		for _, p := range perms {
 			if p.PermissionUser == userID {

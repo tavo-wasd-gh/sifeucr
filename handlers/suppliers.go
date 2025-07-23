@@ -31,12 +31,12 @@ func (h *Handler) AddSupplier(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 
 	insertedSupplier, err := queries.AddSupplier(ctx, db.AddSupplierParams{
-		SupplierID: form.ID,
-		SupplierName: form.Name,
-		SupplierEmail: form.Email,
+		SupplierID:               form.ID,
+		SupplierName:             form.Name,
+		SupplierEmail:            form.Email,
 		SupplierPhoneCountryCode: form.Cntry,
-		SupplierPhone: form.Phone,
-		SupplierLocation: form.Loctn,
+		SupplierPhone:            form.Phone,
+		SupplierLocation:         form.Loctn,
 	})
 	if err != nil {
 		h.Log().Error("error adding supplier: %v", err)
@@ -77,12 +77,12 @@ func (h *Handler) UpdateSupplier(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 
 	updatedSupplier, err := queries.UpdateSupplier(ctx, db.UpdateSupplierParams{
-		SupplierID: supplierID,
-		SupplierName: form.Name,
-		SupplierEmail: form.Email,
+		SupplierID:               supplierID,
+		SupplierName:             form.Name,
+		SupplierEmail:            form.Email,
 		SupplierPhoneCountryCode: form.Cntry,
-		SupplierPhone: form.Phone,
-		SupplierLocation: form.Loctn,
+		SupplierPhone:            form.Phone,
+		SupplierLocation:         form.Loctn,
 	})
 	if err != nil {
 		h.Log().Error("error updating supplier: %v", err)
