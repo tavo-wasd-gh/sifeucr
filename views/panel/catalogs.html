@@ -1,18 +1,20 @@
 {{ define "catalogs" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Agrupación" onkeyup="filterTable(this)"></th>
-        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Proveedor"  onkeyup="filterTable(this)"></th>
-      </tr>
-    </thead>
-    <tbody id="catalog-rows">
-      {{ range .Catalogs }}
-      {{ template "catalog" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="number" placeholder="Agrupación" onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Proveedor"  onkeyup="filterTable(this)"></th>
+        </tr>
+      </thead>
+      <tbody id="catalog-rows">
+        {{ range .Catalogs }}
+        {{ template "catalog" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="addcatalog">Agregar Catálogo</label>
 <form

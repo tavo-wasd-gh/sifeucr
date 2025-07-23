@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS "accounts" (
 );
 #+end_src
 
-**** Permisos
+*** Permisos
 
 #+begin_src go
 type Permission int
@@ -129,8 +129,7 @@ CREATE TABLE IF NOT EXISTS "requests" (
     "req_account" INTEGER NOT NULL REFERENCES "accounts"("account_id"),
     "req_issued"  INTEGER NOT NULL,
     "req_descr"   TEXT    NOT NULL,
-    "req_justif"  TEXT    NOT NULL,
-    "req_notes"   TEXT
+    "req_justif"  TEXT    NOT NULL
 );
 #+end_src
 
@@ -161,7 +160,7 @@ CREATE TABLE IF NOT EXISTS "distribution_modifications" (
     "dist_mod_debit_dist"      INTEGER NOT NULL REFERENCES "distributions"("dist_id"),
     "dist_mod_credit_dist"     INTEGER NOT NULL REFERENCES "distributions"("dist_id"),
     "dist_mod_amount"          REAL    NOT NULL,
-    "dist_mod_letter"          TEXT
+    "dist_mod_letter"          TEXT    NOT NULL DEFAULT ''
 );
 #+end_src
 
@@ -173,18 +172,26 @@ Ejecuciones de presupuesto gravadas. Deben rebajarse de una distribución presup
 CREATE TABLE IF NOT EXISTS "purchases" (
     "purchase_id"              INTEGER PRIMARY KEY NOT NULL,
     "purchase_request"         INTEGER NOT NULL REFERENCES "requests"("req_id"),
-    "purchase_entry"           INTEGER NOT NULL REFERENCES "budget_entries"("entry_id"),
+    "purchase_dist"            INTEGER NOT NULL REFERENCES "distributions"("dist_id"),
     "purchase_required"        INTEGER NOT NULL,
-    "purchase_supplier"        INTEGER REFERENCES "suppliers"("supplier_id"),
+    "purchase_supplier"        INTEGER NOT NULL REFERENCES "suppliers"("supplier_id"),
+    "purchase_justif_approved" BOOLEAN NOT NULL,
     "purchase_currency"        TEXT    DEFAULT 'CRC', -- https://en.wikipedia.org/wiki/ISO_4217
     "purchase_ex_rate_colones" REAL    DEFAULT '1.00',
-    "purchase_gross_amount"    REAL,
+    "purchase_gross_amount"    REAL    NOT NULL,
     "purchase_discount"        REAL    DEFAULT '0.00',
     "purchase_tax_rate"        REAL    DEFAULT '0.02',
-    "purchase_geco_sol"        TEXT,
-    "purchase_geco_ord"        TEXT,
-    "purchase_letter"          TEXT,
-    "purchase_justif_approved" BOOLEAN NOT NULL
+    "purchase_geco_sol"        TEXT    NOT NULL UNIQUE DEFAULT '',
+    "purchase_geco_ord"        TEXT    NOT NULL UNIQUE DEFAULT '',
+    "purchase_bill"            TEXT    NOT NULL DEFAULT '',
+    "purchase_transfer"        TEXT    NOT NULL DEFAULT '',
+    "purchase_status"          TEXT    NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS "purchases_docs" (
+    "doc_id"       INTEGER PRIMARY KEY NOT NULL,
+    "doc_purchase" INTEGER NOT NULL REFERENCES "purchases"("purchase_id"),
+    "doc_url"      TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "purchases_breakdown" (
@@ -440,8 +447,7 @@ INSERT INTO permissions (
     permission_active
 ) VALUES (
     ?, ?, ?, ?
-)
-RETURNING *;
+) RETURNING *;
 #+end_src
 
 ** Cambiar estado de permiso
@@ -580,4 +586,44 @@ UPDATE items SET
     item_description = ?,
     item_amount = ?
 WHERE item_id = ? RETURNING *;
+#+end_src
+
+** Insertar Solicitudes
+
+#+begin_src sql
+-- name: AddRequest :one
+INSERT INTO requests (
+    req_user,
+    req_account,
+    req_issued,
+    req_descr,
+    req_justif
+) VALUES (
+    ?, ?, strftime('%s','now'), ?, ?
+) RETURNING *;
+#+end_src
+
+** Insertar Compras
+
+#+begin_src sql
+-- name: AddPurchase :one
+INSERT INTO purchases (
+    purchase_request,
+    purchase_dist,
+    purchase_required,
+    purchase_supplier,
+    purchase_justif_approved,
+    purchase_currency,
+    purchase_ex_rate_colones,
+    purchase_gross_amount,
+    purchase_discount,
+    purchase_tax_rate,
+    purchase_geco_sol,
+    purchase_geco_ord,
+    purchase_bill,
+    purchase_transfer,
+    purchase_status
+) VALUES (
+    ?, ?, ?, ?, 0, 'CRC', 1.00, ?, 0.00, 0.02, ?, ?, ?, ?, 'Solicitado'
+) RETURNING *;
 #+end_src

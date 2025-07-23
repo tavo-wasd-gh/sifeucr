@@ -1,21 +1,23 @@
 {{ define "items" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="number" step="1"    placeholder="Agrupación"  onkeyup="filterTable(this)"></th>
-        <th><input type="number" step="1"    placeholder="Artículo"    onkeyup="filterTable(this)"></th>
-        <th><input type="text"               placeholder="Proveedor"   onkeyup="filterTable(this)"></th>
-        <th><input type="text"               placeholder="Descripción" onkeyup="filterTable(this)"></th>
-        <th><input type="number" step="0.01" placeholder="Monto"       onkeyup="filterTable(this)"></th>
-      </tr>
-    </thead>
-    <tbody id="item-rows">
-      {{ range .Items }}
-      {{ template "item" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="number" step="1"    placeholder="Agrupación"  onkeyup="filterTable(this)"></th>
+          <th><input type="number" step="1"    placeholder="Artículo"    onkeyup="filterTable(this)"></th>
+          <th><input type="text"               placeholder="Proveedor"   onkeyup="filterTable(this)"></th>
+          <th><input type="text"               placeholder="Descripción" onkeyup="filterTable(this)"></th>
+          <th><input type="number" step="0.01" placeholder="Monto"       onkeyup="filterTable(this)"></th>
+        </tr>
+      </thead>
+      <tbody id="item-rows">
+        {{ range .Items }}
+        {{ template "item" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="additem">Agregar Artículo</label>
 <form

@@ -1,21 +1,23 @@
 {{ define "suppliers" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="text" filter="number" inputmode="numeric" style="all:unset;font-weight:normal;" placeholder="Cédula" onkeyup="filterTable(this)"></th>
-        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Nombre"    onkeyup="filterTable(this)"></th>
-        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Correo"    onkeyup="filterTable(this)"></th>
-        <th><input type="text" filter="number" inputmode="numeric" style="all:unset;font-weight:normal;" placeholder="Teléfono" onkeyup="filterTable(this)"></th>
-        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Ubicación" onkeyup="filterTable(this)"></th>
-      </tr>
-    </thead>
-    <tbody id="supplier-rows">
-      {{ range .Suppliers }}
-      {{ template "supplier" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="text" placeholder="Cédula"    onkeyup="filterTable(this)" filter="number" inputmode="numeric"></th>
+          <th><input type="text" placeholder="Nombre"    onkeyup="filterTable(this)"></th>
+          <th><input type="text" placeholder="Correo"    onkeyup="filterTable(this)"></th>
+          <th><input type="text" placeholder="Teléfono"  onkeyup="filterTable(this)" filter="number" inputmode="numeric"></th>
+          <th><input type="text" placeholder="Ubicación" onkeyup="filterTable(this)"></th>
+        </tr>
+      </thead>
+      <tbody id="supplier-rows">
+        {{ range .Suppliers }}
+        {{ template "supplier" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="addsupplier">Agregar Proveedor</label>
 <form

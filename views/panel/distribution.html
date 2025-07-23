@@ -5,9 +5,9 @@
   </td>
   <td>{{ .PeriodName }}</td>
   <td>{{ .AccountAbbr }}</td>
-  <td>[{{ .EntryCode }}] {{ .EntryObject }}</td>
-  <td>{{ currency .DistAmount }}</td>
-  <td>
+  <td tags="{{ .EntryCode }}">{{ .EntryObject }}</td>
+  <td style="text-align:right;">{{ currency .DistAmount }}</td>
+  <td style="text-align:right;">
     <form method="POST" action="/panel/dist/toggle/{{ .DistID }}">
       <input
         type="checkbox"

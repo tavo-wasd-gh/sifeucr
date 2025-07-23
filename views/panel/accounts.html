@@ -1,19 +1,21 @@
 {{ define "accounts" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Siglas" onkeyup="filterTable(this)"></th>
-        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Nombre" onkeyup="filterTable(this)"></th>
-        <th>Activa</th>
-      </tr>
-    </thead>
-    <tbody id="account-rows">
-      {{ range .Accounts }}
-      {{ template "account" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="text" placeholder="Siglas" onkeyup="filterTable(this)"></th>
+          <th><input type="text" placeholder="Nombre" onkeyup="filterTable(this)"></th>
+          <th>Activa</th>
+        </tr>
+      </thead>
+      <tbody id="account-rows">
+        {{ range .Accounts }}
+        {{ template "account" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="addaccount">Agregar Cuenta</label>
 <form

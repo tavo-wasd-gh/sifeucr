@@ -8,12 +8,10 @@ import (
 	"sifeucr/config"
 )
 
-func (h *Handler) IndexPage(w http.ResponseWriter, r *http.Request) {
-	views.RenderHTML(w, r, "index-page", nil)
-}
-
-func (h *Handler) LoginPage(w http.ResponseWriter, r *http.Request) {
-	views.RenderHTML(w, r, "login-page", nil)
+func (h *Handler) Static(key string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		views.RenderHTML(w, r, key, nil)
+	}
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -34,12 +32,4 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/cuenta", http.StatusFound)
-}
-
-func (h *Handler) SuppliersPage(w http.ResponseWriter, r *http.Request) {
-	views.RenderHTML(w, r, "suppliers-page", nil)
-}
-
-func (h *Handler) FSEPage(w http.ResponseWriter, r *http.Request) {
-	views.RenderHTML(w, r, "fse-page", nil)
 }

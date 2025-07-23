@@ -1,6 +1,11 @@
-{{ define "main-report" }}
+{{ define "purchases" }}
 <details>
-  <summary>Control Madre</summary>
+  <summary>
+    <a href="/compra">
+      Solicitar
+    </a>
+    - Compras
+  </summary>
   <div class="body-width">
     <div class="overflow-auto">
       <table class="striped">
@@ -19,20 +24,17 @@
             <th><input type="text"                   placeholder="Proveedor"     onkeyup="filterTable(this)"></th>
             <th><input type="text"                   placeholder="Solicitud"     onkeyup="filterTable(this)"></th>
             <th><input type="text"                   placeholder="Orden"         onkeyup="filterTable(this)"></th>
-            <th><input type="number" step="1"        placeholder="Factura"       onkeyup="filterTable(this)"></th>
-            <th><input type="text"                   placeholder="Transferencia" onkeyup="filterTable(this)"></th>
-            <th><input type="text"                   placeholder="Estado"        onkeyup="filterTable(this)"></th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          {{ if not .ReadAdvanced }}
+          {{ range .Purchases }}
           <tr>
             <td>{{ .ReqID }}</td>
             <td>{{ unixDateToStr .ReqIssued }}</td>
             <td>{{ unixDateToStr .PurchaseRequired }}</td>
             <td>{{ .ReqDesc }}</td>
-            <td>{{ .ReqDesc }}</td>
+            <td>{{ .ReqJustif }}</td>
             <td>{{ .AccountAbbr }}</td>
             <td>{{ .PeriodName }}</td>
             <td>{{ .UserEmail }}</td>
@@ -41,9 +43,6 @@
             <td>{{ .SupplierName }}</td>
             <td>{{ .PurchaseGecoSol }}</td>
             <td>{{ .PurchaseGecoOrd }}</td>
-            <td>{{ .PurchaseBill }}</td>
-            <td>{{ .PurchaseTransfer }}</td>
-            <td>{{ .PurchaseStatus }}</td>
             <td>Docs</td>
           </tr>
           {{ end }}

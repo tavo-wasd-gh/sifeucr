@@ -3,8 +3,8 @@
   <td onclick="toggleModal('modal-user-{{ .UserID }}')">
     <a>{{ .UserEmail }}</a>
   </td>
-  <td>{{ .UserName }}</td>
-  <td>
+  <td >{{ .UserName }}</td>
+  <td style="text-align:right;">
     <form method="POST" action="/panel/user/toggle/{{ .UserID }}">
       <input
         type="checkbox"

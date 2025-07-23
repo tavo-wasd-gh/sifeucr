@@ -5,7 +5,7 @@
   </td>
   <td>{{ unixDateToStr .PeriodStart }}</td>
   <td>{{ unixDateToStr .PeriodEnd }}</td>
-  <td>
+  <td style="text-align:right;">
     <form method="POST" action="/panel/period/toggle/{{ .PeriodID }}">
       <input
         type="checkbox"

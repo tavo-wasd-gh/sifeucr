@@ -15,10 +15,10 @@ type dashboard struct {
 	User      db.User
 	Account   db.Account
 	CSRFToken string
-	Requests  []db.Request
+	Purchases []db.Purchase
 	// Advanced
+	// AllRequests  []db.AllRequestsRow
 	ReadAdvanced bool
-	// mainReport   MainReport
 }
 
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
@@ -64,11 +64,6 @@ func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
 	dashboard.Account, err = queries.AccountByID(ctx, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query account by ID: %v", err)
-	}
-
-	dashboard.Requests, err = queries.RequestsByAccountID(ctx, accountID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query requests by accountID: %v", err)
 	}
 
 	csrfToken := getCSRFTokenFromContext(ctx)

@@ -1,20 +1,22 @@
 {{ define "budgets" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Año"    onkeyup="filterTable(this)"></th>
-        <th><input type="number"            style="all:unset;font-weight:normal;" placeholder="Código" onkeyup="filterTable(this)"></th>
-        <th><input type="text"              style="all:unset;font-weight:normal;" placeholder="Objeto" onkeyup="filterTable(this)"></th>
-        <th><input type="number" step="any" style="all:unset;font-weight:normal;" placeholder="Monto"  onkeyup="filterTable(this)"></th>
-      </tr>
-    </thead>
-    <tbody id="budget-rows">
-      {{ range .BudgetEntries }}
-      {{ template "budget" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="number"            placeholder="Año"    onkeyup="filterTable(this)"></th>
+          <th><input type="number"            placeholder="Código" onkeyup="filterTable(this)"></th>
+          <th><input type="text"              placeholder="Objeto" onkeyup="filterTable(this)"></th>
+          <th><input type="number" step="any" placeholder="Monto"  onkeyup="filterTable(this)"></th>
+        </tr>
+      </thead>
+      <tbody id="budget-rows">
+        {{ range .BudgetEntries }}
+        {{ template "budget" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="#addentry">Agregar Partida</label>
 <form

@@ -1,19 +1,21 @@
 {{ define "users" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Usuario" onkeyup="filterTable(this)"></th>
-        <th><input type="text" style="all:unset;font-weight:normal;" placeholder="Nombre"  onkeyup="filterTable(this)"></th>
-        <th>Activo</th>
-      </tr>
-    </thead>
-    <tbody id="user-rows">
-      {{ range .Users }}
-      {{ template "user" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="text" placeholder="Usuario" onkeyup="filterTable(this)"></th>
+          <th><input type="text" placeholder="Nombre"  onkeyup="filterTable(this)"></th>
+          <th>Activo</th>
+        </tr>
+      </thead>
+      <tbody id="user-rows">
+        {{ range .Users }}
+        {{ template "user" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="adduser">Agregar Usuario</label>
 <form
@@ -22,7 +24,7 @@
   action="/panel/user/add"
 >
   <input type="email" name="email" placeholder="Correo institucional" aria-label="Correo institucional" autocomplete="email" required>
-  <input type="text" name="name" placeholder="Nombre completo" aria-label="Nombre completo" required>
+  <input type="text"  name="name"  placeholder="Nombre completo"      aria-label="Nombre completo"                           required>
   <button
     type="submit"
     onclick="fetchAndSwap(event)"

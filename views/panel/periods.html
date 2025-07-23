@@ -1,20 +1,22 @@
 {{ define "periods" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="text"                 style="all:unset;font-weight:normal;" placeholder="Identificador" onkeyup="filterTable(this)"></th>
-        <th><input type="date" filter="after"  style="all:unset;font-weight:normal;" placeholder="Inicio"        onkeyup="filterTable(this)"></th>
-        <th><input type="date" filter="before" style="all:unset;font-weight:normal;" placeholder="Fin"           onkeyup="filterTable(this)"></th>
-        <th>Activo</th>
-      </tr>
-    </thead>
-    <tbody id="period-rows">
-      {{ range .Periods }}
-      {{ template "period" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="text"                 placeholder="Identificador" onkeyup="filterTable(this)"></th>
+          <th><input type="date" filter="after"  placeholder="Inicio"        onkeyup="filterTable(this)"></th>
+          <th><input type="date" filter="before" placeholder="Fin"           onkeyup="filterTable(this)"></th>
+          <th>Activo</th>
+        </tr>
+      </thead>
+      <tbody id="period-rows">
+        {{ range .Periods }}
+        {{ template "period" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="addperiod">Agregar Período</label>
 <form

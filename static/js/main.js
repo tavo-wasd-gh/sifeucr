@@ -145,6 +145,7 @@ function filterTable(inputChanged) {
             if (!cell) continue;
 
             const cellText = (cell.textContent || cell.innerText).trim();
+            const tags = cell.getAttribute("tags") || cell.getAttribute("data-tags") || "";
             const inputType = input.type;
             const filterAttr = input.getAttribute("filter");
 
@@ -183,8 +184,13 @@ function filterTable(inputChanged) {
             } else if (filterValue) {
                 const hasUpperCase = /[A-Z]/.test(filterValue);
                 const cellToCompare = hasUpperCase ? cellText : cellText.toLowerCase();
+                const tagsToCompare = hasUpperCase ? tags : tags.toLowerCase();
                 const filterToCompare = hasUpperCase ? filterValue : filterValue.toLowerCase();
-                if (!cellToCompare.includes(filterToCompare)) {
+
+                if (
+                    !cellToCompare.includes(filterToCompare) &&
+                    !tagsToCompare.includes(filterToCompare)
+                ) {
                     visible = false;
                     break;
                 }

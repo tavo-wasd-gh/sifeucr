@@ -1,6 +1,6 @@
 {{ define "catalog" }}
 <tr>
   <td>{{ .CatalogGrouping }}</td>
-  <td>[{{ .SupplierID }}] {{ .SupplierName }}</td>
+  <td tags="{{ .SupplierID }} {{ formatID .SupplierID }}">{{ .SupplierName }}</td>
 </tr>
 {{ end }}

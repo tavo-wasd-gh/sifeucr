@@ -12,9 +12,9 @@ import (
 func routes(handler *handlers.Handler) *http.ServeMux {
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /", handler.IndexPage)
-	router.HandleFunc("GET /proveedores", handler.SuppliersPage)
-	router.HandleFunc("GET /fse", handler.FSEPage)
+	router.HandleFunc("GET /", handler.Static("index-page"))
+	router.HandleFunc("GET /proveedores", handler.Static("suppliers-page"))
+	router.HandleFunc("GET /fse", handler.Static("fse-page"))
 	router.HandleFunc("POST /cuenta", handler.LoginForm)
 	router.Handle("GET /cuenta",
 		middleware.With(middleware.Stack(handler.DashboardMiddleware),
@@ -73,11 +73,17 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /panel/item/add", middleware.With(panelMod, handler.AddItem))
 	router.Handle("PUT /panel/item/update/{id}", middleware.With(panelMod, handler.UpdateItem))
 
-	// TODO: Solicitudes
-	// Check read/write and readother/writeother permissions depending on the required permissions
-	//     - Modificaciones Globales
-	//     - Modificaciones Internas
-	//     - Compras
+	router.HandleFunc("GET /compra", handler.Static("forms-purchase-form-page"))
+	router.Handle("POST /request/purchase", middleware.With(
+		middleware.Stack(
+			handler.AuthenticationMiddleware(
+				true,         // Enforce CSRF protection
+				config.Write, // Requires Write Permission
+				"",           // Do not redirect on error
+			),
+			handler.PurchaseMiddleware(),
+		), handler.Static("404")),
+	)
 
 	return router
 }

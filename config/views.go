@@ -36,10 +36,12 @@ var ViewMap = map[string][]string{
 		"views/dashboard/dashboard.html",
 		"views/dashboard/dashboard-page.html",
 		"views/dashboard/main-report.html",
+		"views/dashboard/purchases.html",
 	),
 	"dashboard": {
 		"views/dashboard/dashboard.html",
 		"views/dashboard/main-report.html",
+		"views/dashboard/purchases.html",
 	},
 
 	"panel-page": append(
@@ -108,6 +110,12 @@ var ViewMap = map[string][]string{
 	"item-update-form": {
 		"views/panel/item-update-form.html",
 	},
+
+	"forms-purchase-form-page": append(
+		base,
+		"views/forms/purchase-form.html",
+		"views/forms/purchase-form-page.html",
+	),
 
 	"index-page": append(
 		base,

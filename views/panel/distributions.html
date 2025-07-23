@@ -1,22 +1,24 @@
 {{ define "distributions" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="ID"      onkeyup="filterTable(this)"></th>
-        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Periodo" onkeyup="filterTable(this)"></th>
-        <th><input type="number" style="all:unset;font-weight:normal;" placeholder="Cuenta"  onkeyup="filterTable(this)"></th>
-        <th><input type="text"   style="all:unset;font-weight:normal;" placeholder="Partida" onkeyup="filterTable(this)"></th>
-        <th><input type="text" filter="number" inputmode="numeric" style="all:unset;font-weight:normal;" placeholder="Monto" onkeyup="filterTable(this)"></th>
-        <th>Activa</th>
-      </tr>
-    </thead>
-    <tbody id="distribution-rows">
-      {{ range .Distributions }}
-      {{ template "distribution" . }}
-      {{ end }}
-    </tbody>
-  </table>
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="number" placeholder="ID"      onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Periodo" onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Cuenta"  onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Partida" onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Monto"   onkeyup="filterTable(this)" filter="number" inputmode="numeric"></th>
+          <th>Activa</th>
+        </tr>
+      </thead>
+      <tbody id="distribution-rows">
+        {{ range .Distributions }}
+        {{ template "distribution" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
 </div>
 <label for="adddist">Agregar Distribución</label>
 <form
