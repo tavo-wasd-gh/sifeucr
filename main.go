@@ -1,13 +1,16 @@
 package main
 
 import (
+	"compress/gzip"
 	"embed"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"strings"
 
 	"git.tavo.one/tavo/axiom/sessions"
 	"git.tavo.one/tavo/axiom/storage"
@@ -84,7 +87,9 @@ func main() {
 
 	router.Handle(
 		"GET /s/",
-		http.StripPrefix("/s/", http.FileServer(http.FS(staticFiles))),
+		http.StripPrefix("/s/",
+			gzipHandler(http.FileServer(http.FS(staticFiles))),
+		),
 	)
 
 	stop := make(chan os.Signal, 1)
@@ -103,4 +108,31 @@ func main() {
 	<-stop
 
 	log.Printf("shutting down...")
+}
+
+func gzipHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Add("Vary", "Accept-Encoding")
+
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+
+		gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		h.ServeHTTP(gzw, r)
+	})
+}
+
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
 }
