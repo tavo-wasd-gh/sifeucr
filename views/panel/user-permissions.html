@@ -1,24 +1,9 @@
 {{ define "user-permissions" }}
-<div class="overflow-auto">
-  <table class="striped">
-    <thead>
-      <tr>
-        <th>Cuenta</th>
-        <th>Lectura</th>
-        <th>Escritura</th>
-        <th>Lectura Otros</th>
-        <th>Escritura Otros</th>
-        <th>Lectura Avanzado</th>
-        <th>Escritura Avanzado</th>
-      </tr>
-    </thead>
-    <tbody id="perms-rows-{{ .UserID }}">
-      {{ $userPerms := filterPermissionsByUser .Permissions .UserID }}
-      {{ range $userPerms }}
-      {{ template "permission" (dict "Permission" . "PermissionTypes" $.PermissionTypes) }}
-      {{ end }}
-    </tbody>
-  </table>
+<div id="user-{{ .UserID }}-perms">
+  {{ $userPerms := filterPermissionsByUser .Permissions .UserID }}
+  {{ range $userPerms }}
+  {{ template "permission" (dict "Permission" . "PermissionTypes" $.PermissionTypes) }}
+  {{ end }}
 </div>
 <label for="addpermission">Agregar Permiso</label>
 <form
@@ -39,7 +24,7 @@
   <button
     type="submit"
     onclick="fetchAndSwap(event)"
-    target="#perms-rows-{{ .UserID }}"
+    target="#user-{{ .UserID }}-perms"
     swap="beforeend"
     loading-state
   >Agregar Permiso</button>

@@ -55,7 +55,7 @@
 <dialog id="modal-dist-{{ .DistID }}">
   <article>
     <header>
-      <button type="button" onclick="toggleModal('modal-dist-{{ .DistID }}')">x</button>
+      <button rel="prev" type="button" onclick="toggleModal('modal-dist-{{ .DistID }}')"></button>
       <h3>Editar Distribución #{{ .DistID }}</h3>
     </header>
     {{ template "dist-update-form" . }}

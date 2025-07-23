@@ -35,7 +35,7 @@
 <dialog id="modal-user-{{ .UserID }}">
   <article>
     <header>
-      <button type="button" onclick="toggleModal('modal-user-{{ .UserID }}')">x</button>
+      <button rel="prev" type="button" onclick="toggleModal('modal-user-{{ .UserID }}')"></button>
       <h3>Usuario #{{ .UserID }}</h3>
     </header>
     {{ template "user-permissions" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "Permissions" $.Permissions "PermissionTypes" $.PermissionTypes "Users" $.Users "Accounts" $.Accounts) }}

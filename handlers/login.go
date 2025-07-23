@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"net/mail"
 	"strings"
 
 	"git.tavo.one/tavo/axiom/forms"
@@ -20,6 +21,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		Account  int64  `form:"account"`
 	}
 
+	// Cast form, the only possible query injection is by Email or Passw.
 	login, err := forms.FormToStruct[loginForm](r)
 	if err != nil {
 		h.Log().Error("error casting form to struct: %v", err)
@@ -27,6 +29,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Make sure it is an institution email
 	if strings.Contains(login.Email, "@") {
 		if !strings.Contains(strings.ToLower(login.Email), "@ucr.ac.cr") {
 			// Is an external provider
@@ -37,6 +40,27 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		login.Email += "@ucr.ac.cr"
 	}
 
+	// ParseAddress parses a single RFC 5322 address.
+	_, err = mail.ParseAddress(login.Email)
+	if err != nil {
+		h.Log().Error("invalid email: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	// Validates Password and Email against SMTP server, login.Password is not
+	// used anymore after this.
+	if h.Production() {
+		s := smtp.Client("smtp.ucr.ac.cr", "587", login.Password)
+
+		if err := s.Validate(login.Email); err != nil {
+			h.Log().Error("error validating user %s: %v", login.Email, err)
+			views.RenderHTML(w, r, "login", map[string]any{"Error": true})
+			return
+		}
+	}
+
+	// Remove domain, DB only stores user
 	dbuser := login.Email
 	pos := strings.IndexRune(dbuser, '@')
 	if pos != -1 {
@@ -44,9 +68,11 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	queries := db.New(h.DB())
-
 	ctx := r.Context()
 
+	// User is already parsed and validated, query uses parameters instead of
+	// manually assembling the SQL statement.
+	// See: https://go.dev/doc/database/sql-injection
 	userID, err := queries.UserIDByUserEmail(ctx, dbuser)
 	if err != nil {
 		h.Log().Error("error querying user_id by user_email: %v", err)
@@ -54,6 +80,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check available accounts
 	perms, err := queries.PermissionsByUserID(ctx, userID)
 	if err != nil {
 		h.Log().Error("error querying allowed_accounts by user_id: %v", err)
@@ -75,15 +102,17 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		chosenAccountID = perms[0].AccountID
 
 	default:
-		// Multiple, check if claimed account is valid
-		for _, perm := range perms {
-			if login.Account == perm.AccountID {
-				chosenAccountID = perm.AccountID
-				break
+		// Multiple:
+		// -> With login.Account: Check if claimed account is valid.
+		// -> Else: Render login with allowed permissions.
+		if login.Account != 0 {
+			for _, perm := range perms {
+				if login.Account == perm.AccountID {
+					chosenAccountID = perm.AccountID
+					break
+				}
 			}
-		}
-
-		if chosenAccountID == 0 {
+		} else {
 			type multiple struct {
 				ExternalEmail    bool
 				Error            bool
@@ -102,16 +131,6 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 				h.Log().Error("error rendering multiple account login: %v", err)
 			}
 
-			return
-		}
-	}
-
-	if h.Production() {
-		s := smtp.Client("smtp.ucr.ac.cr", "587", login.Password)
-
-		if err := s.Validate(login.Email); err != nil {
-			h.Log().Error("error validating user %s: %v", login.Email, err)
-			views.RenderHTML(w, r, "login", map[string]any{"Error": true})
 			return
 		}
 	}
