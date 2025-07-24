@@ -1,25 +1,31 @@
 {{ define "permission" }}
 <table>
-  <tr>
-    <td><strong>{{ .Permission.AccountAbbr }}</strong></td>
-    <td></td>
-  </tr>
+  <thead>
+    <tr>
+      <th>{{ .Permission.AccountAbbr }}</th>
+      <th></th>
+    </tr>
+  </thead>
   {{ range .PermissionTypes }}
-  <tr>
-    <td>{{ .Label }}</td>
-    <td style="text-align: right;">
-      <form method="PUT" action="/panel/perm/toggle/{{ .Name }}/{{ $.Permission.PermissionID }}">
-        <input
-          type="checkbox"
-          role="switch"
-          {{ if hasPermission $.Permission.PermissionInteger .Bit }}checked{{ end }}
-          onchange="fetchAndSwap(event)"
-          swap="none"
-          loading-state
-        >
-      </form>
-    </td>
-  </tr>
+  <tbody>
+    <tr>
+      <td>{{ .Label }}</td>
+      <td>
+        <div style="display:flex;justify-content:flex-end;">
+          <form method="PUT" action="/panel/perm/toggle/{{ .Name }}/{{ $.Permission.PermissionID }}">
+            <input
+              type="checkbox"
+              role="switch"
+              {{ if hasPermission $.Permission.PermissionInteger .Bit }}checked{{ end }}
+              onchange="fetchAndSwap(event)"
+              swap="none"
+              loading-state
+            >
+          </form>
+        </div>
+      </td>
+    </tr>
+  </tbody>
   {{ end }}
 </table>
 {{ end }}

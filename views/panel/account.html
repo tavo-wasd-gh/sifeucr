@@ -3,16 +3,18 @@
   <td>{{ .AccountAbbr }}</td>
   <td>{{ .AccountName }}</td>
   <td style="text-align:right;">
-    <form method="POST" action="/panel/account/toggle/{{ .AccountID }}">
-      <input
-        type="checkbox"
-        role="switch"
-        {{ if .AccountActive }}checked{{ end }}
-        onchange="fetchAndSwap(event)"
-        swap="none"
-        loading-state
-      >
-    </form>
+    <div style="display:flex;justify-content:flex-end;">
+      <form method="POST" action="/panel/account/toggle/{{ .AccountID }}">
+        <input
+          type="checkbox"
+          role="switch"
+          {{ if .AccountActive }}checked{{ end }}
+          onchange="fetchAndSwap(event)"
+          swap="none"
+          loading-state
+        >
+      </form>
   </td>
+    </div>
 </tr>
 {{ end }}

@@ -11,8 +11,7 @@
   --axiom-color: #373c44;
   --axiom-color-title: #2d3138;
   --axiom-color-muted: #646b79;
-  --axiom-color-link-fg: #0172ad;
-  --axiom-color-link-bg: #fff;
+  --axiom-color-link: #0172ad;
   --axiom-color-selection: #029ae840;
 
   /* elements */
@@ -22,28 +21,43 @@
   --axiom-padding: 1rem;
   --axiom-border-radius: 0.4rem;
 
+  /* buttons */
+  --axiom-color-button: #0172ad;
+  --axiom-color-button-fg: #fff;
+
   /* icons */
   --axiom-icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(136, 145, 164)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   --axiom-icon-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(136, 145, 164)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
+  --axiom-icon-loading: url("data:image/svg+xml,%3Csvg fill='none' height='24' width='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' %3E%3Cstyle%3E g %7B animation: rotate 2s linear infinite; transform-origin: center center; %7D circle %7B stroke-dasharray: 75,100; stroke-dashoffset: -5; animation: dash 1.5s ease-in-out infinite; stroke-linecap: round; %7D @keyframes rotate %7B 0%25 %7B transform: rotate(0deg); %7D 100%25 %7B transform: rotate(360deg); %7D %7D @keyframes dash %7B 0%25 %7B stroke-dasharray: 1,100; stroke-dashoffset: 0; %7D 50%25 %7B stroke-dasharray: 44.5,100; stroke-dashoffset: -17.5; %7D 100%25 %7B stroke-dasharray: 44.5,100; stroke-dashoffset: -62; %7D %7D %3C/style%3E%3Cg%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='rgb(136, 145, 164)' stroke-width='4' /%3E%3C/g%3E%3C/svg%3E");
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark colors */
+    /* background */
+    --axiom-color-background: #13171F;
+    --axiom-color-background-secondary: #e2e2e2;
+
+    /* color */
+    --axiom-color: #c2c7d0;
+    --axiom-color-title: #e0e3e7;
+    --axiom-color-muted: #7b8495;
+    --axiom-color-link: #01aaff;
+    --axiom-color-selection: #01aaff30;
+
+    /* elements */
+    --axiom-color-border: #2a3140;
   }
 }
 
-body {
-  --axiom-body-font-family: var(--axiom-font-family-sans);
-  --axiom-body-color: var(--axiom-color);
-  --axiom-body-text-align: left;
-  --axiom-body-max-width: 40rem;
-  --axiom-body-line-height: 1.5rem;
+* {
+  background-color: var(--axiom-color-background);
+  color: var(--axiom-color);
+}
 
-  font-family: var(--axiom-body-font-family);
-  color: var(--axiom-body-color);
-  text-align: var(--axiom-body-text-align);
-  line-height: var(--axiom-body-line-height);
+body {
+  font-family: var(--axiom-font-family-sans);
+  text-align: left;
+  line-height: 1.5rem;
   height: 100vh;
   width: 56rem;
   max-width: 90vw;
@@ -70,7 +84,7 @@ h1, h2, h3, h4, h5, h6 {
 
 a {
   text-decoration: none;
-  color: var(--axiom-color-link-fg);
+  color: var(--axiom-color-link);
 }
 
 header {
@@ -103,6 +117,10 @@ nav ul li {
   overflow-x: auto;
 }
 
+.muted {
+  color: var(--axiom-color-muted);
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -118,6 +136,7 @@ input,
 button,
 select,
 textarea {
+  color: var(--axiom-color);
   white-space: nowrap;
   font-size: 1.1rem;
   margin: calc(var(--axiom-padding) * .5) 0;
@@ -127,23 +146,24 @@ textarea {
   background-color: #00000002;
 }
 
+textarea {
+  resize: vertical;
+  white-space: wrap;
+}
+
 canvas {
   /* TODO: canvas */
 }
 
-textarea {
-  resize: vertical;
-}
-
 button {
-  background-color: var(--axiom-color-link-fg);
-  color: var(--axiom-color-link-bg);
+  background-color: var(--axiom-color-button);
+  color: var(--axiom-color-button-fg);
   cursor: pointer;
 }
 
 button.outline {
   background-color: #0000;
-  color: var(--axiom-color-link-fg);
+  color: var(--axiom-color-button);
 }
 
 [type="checkbox"][role="switch"] {
@@ -177,8 +197,8 @@ button.outline {
 
 
 [type="checkbox"][role="switch"]:checked {
-  background-color: var(--axiom-color-link-fg);
-  border-color: var(--axiom-color-link-fg);
+  background-color: var(--axiom-color-link);
+  border-color: var(--axiom-color-link);
 }
 
 [type="checkbox"][role="switch"]:checked::after {
@@ -194,7 +214,6 @@ details {
 }
 
 details summary {
-  font-size: 1.1rem;
   list-style-type: none;
   cursor: pointer;
 }
@@ -266,12 +285,11 @@ dialog > article {
   background-color: var(--axiom-color-background);
 }
 
-dialog > article > header {
-  padding: calc(var(--axiom-padding) * 0.5) 0;
+article > header {
+  margin-top: calc(var(--axiom-padding) * -1);
 }
 
 dialog > article > header :is(a, button)[rel="prev"] {
-  display: block;
   float: right;
   width: 2.5rem;
   height: 2.5rem;
@@ -301,4 +319,19 @@ dialog > article > header :is(a, button)[rel="prev"] {
   grid-template-columns: repeat(auto-fit,minmax(20rem,1fr));
   grid-column-gap: var(--axiom-padding);
   grid-row-gap: var(--axiom-padding);
+}
+
+[aria-busy="true"]:not(input, textarea, html, form)::before {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-image: var(--axiom-icon-loading);
+  background-size: 1em auto;
+  background-repeat: no-repeat;
+  content: "";
+  vertical-align: -.125em;
+}
+
+[aria-busy="true"]:not(input, textarea):is(button, [type="submit"], [type="button"], [type="reset"], [role="button"]):not(.outline)::before {
+  filter: brightness(0) invert(1);
 }

@@ -6,16 +6,18 @@
   <td>{{ unixDateToStr .PeriodStart }}</td>
   <td>{{ unixDateToStr .PeriodEnd }}</td>
   <td style="text-align:right;">
-    <form method="POST" action="/panel/period/toggle/{{ .PeriodID }}">
-      <input
-        type="checkbox"
-        role="switch"
-        {{ if .PeriodActive }}checked{{ end }}
-        onchange="fetchAndSwap(event)"
-        swap="none"
-        loading-state
-      >
-    </form>
+    <div style="display:flex;justify-content:flex-end;">
+      <form method="POST" action="/panel/period/toggle/{{ .PeriodID }}">
+        <input
+          type="checkbox"
+          role="switch"
+          {{ if .PeriodActive }}checked{{ end }}
+          onchange="fetchAndSwap(event)"
+          swap="none"
+          loading-state
+        >
+      </form>
+    </div>
   </td>
 </tr>
 {{ end }}

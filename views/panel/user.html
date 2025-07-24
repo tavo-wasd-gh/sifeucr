@@ -5,16 +5,18 @@
   </td>
   <td >{{ .UserName }}</td>
   <td style="text-align:right;">
-    <form method="POST" action="/panel/user/toggle/{{ .UserID }}">
-      <input
-        type="checkbox"
-        role="switch"
-        {{ if .UserActive }}checked{{ end }}
-        onchange="fetchAndSwap(event)"
-        swap="none"
-        loading-state
-      >
-    </form>
+    <div style="display:flex;justify-content:flex-end;">
+      <form method="POST" action="/panel/user/toggle/{{ .UserID }}">
+        <input
+          type="checkbox"
+          role="switch"
+          {{ if .UserActive }}checked{{ end }}
+          onchange="fetchAndSwap(event)"
+          swap="none"
+          loading-state
+        >
+      </form>
+    </div>
   </td>
 </tr>
 {{ end }}
