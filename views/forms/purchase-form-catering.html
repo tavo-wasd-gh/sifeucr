@@ -1,0 +1,124 @@
+{{ define "purchase-form-catering" }}
+<form
+  id="addpurchase"
+  method="POST"
+  action="/request/purchase"
+>
+  <input type="hidden" value="catering">
+  <label for="#purchase-date">Fecha y hora para la que se requiere:</label>
+  <input
+    id="purchase-date"
+    type="datetime-local"
+    name="purchase_required"
+    placeholder="Requerido"
+    required
+  >
+  <input
+    type="text"
+    name="purchase_desc"
+    placeholder="Detalle"
+    required
+  >
+  <textarea
+    name="purchase_justif"
+    placeholder="Justificación"
+    required
+  ></textarea>
+  <select name="purchase_catalog[]" required>
+    <option value="" selected disabled>Agrupación</option>
+  </select>
+  <div class="carousel">
+    <select name="purchase_item[]" required>
+      <option value="" selected disabled>Artículo</option>
+    </select>
+    <input
+      id="purchase-item-quantity"
+      type="number" step="1"
+      name="purchase_item_quantity[]"
+      placeholder="Cantidad"
+      required
+    >
+  </div>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p style="text-align:right;white-space:nowrap;">
+    <small>Unidad: <span id="purchase-item-amount">{{ currency 4500 }}</span></small>
+    <br>
+    <small>Suma (1): <span id="purchase-item-sum">{{ currency 4500 }}</span></small>
+    <br>
+    <small>IVA (2%): <span id="purchase-item-tax" data-tax="0.02">{{ currency 90 }}</span></small>
+    <br>
+    <big>Total: <span id="purchase-total">{{ currency 4590 }}</span></big>
+    <br>
+  </p>
+  <button class="outline">Agregar Línea</button>
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Agrupación</th>
+          <th>Artículo</th>
+          <th>Descripción</th>
+          <th>Unidad</th>
+          <th>Cantidad</th>
+          <th>Suma</th>
+          <th>IVA (2%)</th>
+          <th>Total</th>
+          <th>Eliminar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1460</td>
+          <td>14</td>
+          <td>Almuerzos para la...</td>
+          <td style="text-align:right;">{{ currency 4500 }}</td>
+          <td>1</td>
+          <td style="text-align:right;">{{ currency 4500 }}</td>
+          <td style="text-align:right;">{{ currency 90 }}</td>
+          <td style="text-align:right;">{{ currency 4590 }}</td>
+          <td style="text-align:right;">x</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="text-align:right;">
+    <small>IVA (2%): <span id="purchase-tax" data-tax="0.02">{{ currency 0 }}</span></small>
+    <br>
+    <big>Total: <span id="purchase-total">{{ currency 0 }}</span></big>
+  </p>
+  <canvas id="purchase-form-catering-signature"></canvas>
+  <script>
+   // TODO: canvas
+  </script>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    swap="none"
+    loading-state
+  >Solicitar Compra</button>
+</form>
+<script>
+ const grossInput = document.getElementById("purchase-gross");
+ const taxDisplay = document.getElementById("purchase-tax");
+ const totalDisplay = document.getElementById("purchase-total");
+ const taxRate = parseFloat(taxDisplay.dataset.tax);
+
+ const formatCurrency = (amount) => {
+   return amount.toLocaleString("es-CR", {
+     style: "currency",
+     currency: "CRC",
+     minimumFractionDigits: 2,
+     maximumFractionDigits: 2,
+   });
+ };
+
+ grossInput.addEventListener("input", function () {
+   const gross = parseFloat(grossInput.value) || 0;
+   const tax = gross * taxRate;
+   const total = gross + tax;
+
+   taxDisplay.textContent = formatCurrency(tax);
+   totalDisplay.textContent = formatCurrency(total);
+ });
+</script>
+{{ end }}

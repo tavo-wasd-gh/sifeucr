@@ -46,7 +46,6 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 		),
 	)
 
-	// TODO: Check active status on all handlers and middlewares where active is relevant
 	// Presupuesto
 	router.Handle("POST /panel/budget/add", middleware.With(panelMod, handler.AddBudgetEntry))
 	// Usuarios
@@ -73,7 +72,20 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /panel/item/add", middleware.With(panelMod, handler.AddItem))
 	router.Handle("PUT /panel/item/update/{id}", middleware.With(panelMod, handler.UpdateItem))
 
-	router.HandleFunc("GET /compra", handler.Static("forms-purchase-form-page"))
+	// Vista de formularios
+	formStack := middleware.Stack(
+		handler.AuthenticationMiddleware(
+			false,        // Do not enforce CSRF protection
+			config.Write, // Requires Write Permission
+			"/cuenta",    // Redirect on error
+		),
+		handler.PurchaseMiddleware(),
+	)
+
+	router.Handle("GET /compra", middleware.With(formStack, handler.Static("forms-purchase-form-page")))
+	router.Handle("GET /compra/otro", middleware.With(formStack, handler.Static("forms-purchase-form-generic")))
+	router.Handle("GET /compra/catering", middleware.With(formStack, handler.Static("forms-purchase-form-catering")))
+
 	router.Handle("POST /request/purchase", middleware.With(
 		middleware.Stack(
 			handler.AuthenticationMiddleware(

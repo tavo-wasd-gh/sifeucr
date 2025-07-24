@@ -10,7 +10,9 @@ import (
 
 func (h *Handler) Static(key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		views.RenderHTML(w, r, key, nil)
+		if err := views.RenderHTML(w, r, key, nil); err != nil {
+			h.Log().Error("error rendering static page: %v", err)
+		}
 	}
 }
 

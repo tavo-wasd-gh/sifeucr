@@ -1,0 +1,76 @@
+{{ define "purchase-form-generic" }}
+<form
+  id="addpurchase"
+  method="POST"
+  action="/request/purchase"
+>
+  <input type="hidden" value="other">
+  <label for="#purchase-date">Fecha y hora para la que se requiere:</label>
+  <input
+    id="purchase-date"
+    type="datetime-local"
+    name="purchase_required"
+    placeholder="Requerido"
+    required
+  >
+  <input
+    type="text"
+    name="purchase_desc"
+    placeholder="Detalle"
+    required
+  >
+  <textarea
+    name="purchase_justif"
+    placeholder="Justificación"
+    required
+  ></textarea>
+  <div class="carousel">
+    <select name="purchase_supplier" required>
+      <option value="" selected disabled>Proveedor</option>
+    </select>
+    <button>Inscribir Nuevo</button>
+  </div>
+  <input
+    id="purchase-gross"
+    type="number" step="0.01"
+    name="purchase_gross_amount"
+    placeholder="Monto bruto"
+    required
+  >
+  <p style="text-align:right;">
+    <small>IVA (2%): <span id="purchase-tax" data-tax="0.02">{{ currency 0 }}</span></small>
+    <br>
+    <big>Total: <span id="purchase-total">{{ currency 0 }}</span></big>
+  </p>
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    swap="none"
+    loading-state
+  >Solicitar Compra</button>
+</form>
+<script>
+ const grossInput = document.getElementById("purchase-gross");
+ const taxDisplay = document.getElementById("purchase-tax");
+ const totalDisplay = document.getElementById("purchase-total");
+ const taxRate = parseFloat(taxDisplay.dataset.tax);
+
+ const formatCurrency = (amount) => {
+   return amount.toLocaleString("es-CR", {
+     style: "currency",
+     currency: "CRC",
+     minimumFractionDigits: 2,
+     maximumFractionDigits: 2,
+   });
+ };
+
+ grossInput.addEventListener("input", function () {
+   const gross = parseFloat(grossInput.value) || 0;
+   const tax = gross * taxRate;
+   const total = gross + tax;
+
+   taxDisplay.textContent = formatCurrency(tax);
+   totalDisplay.textContent = formatCurrency(total);
+ });
+</script>
+{{ end }}

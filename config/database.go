@@ -6,8 +6,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitDB(connDvr, connStr string) (*sql.DB, bool, error) {
-	db, err := sql.Open(connDvr, connStr)
+const (
+	DEFAULT_DRIVER = "sqlite3"
+)
+
+func InitDB(dbFile string) (*sql.DB, bool, error) {
+	db, err := sql.Open(DEFAULT_DRIVER, dbFile)
 	if err != nil {
 		return nil, false, err
 	}
