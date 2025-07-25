@@ -136,9 +136,11 @@ input,
 button,
 select,
 textarea {
+  box-sizing: border-box;
   color: var(--axiom-color);
   white-space: nowrap;
   font-size: 1.1rem;
+  width: 100%;
   margin: calc(var(--axiom-padding) * .5) 0;
   padding: var(--axiom-padding);
   border: var(--axiom-border);
@@ -316,12 +318,13 @@ dialog > article > header :is(a, button)[rel="prev"] {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(20rem,1fr));
+  grid-template-columns: repeat(auto-fit, minmax(20em, 1fr));
   grid-column-gap: var(--axiom-padding);
   grid-row-gap: var(--axiom-padding);
 }
 
 [aria-busy="true"]:not(input, textarea, html, form)::before {
+  margin-right: 0.5em;
   display: inline-block;
   width: 1em;
   height: 1em;

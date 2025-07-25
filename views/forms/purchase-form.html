@@ -1,20 +1,30 @@
 {{ define "purchase-form" }}
 <h1>Solicitud de Compra</h1>
-<div>
-<form
-  action=""
-  method="GET"
->
-  <select
-    onchange="this.form.setAttribute('action', this.value); fetchAndSwap(event)"
-    target="#addpurchase"
-    swap="outerHTML"
-  >
-    <option value="" selected disabled>Tipo</option>
-    <option value="/compra/catering">Alimentación</option>
-    <option value="/compra/otro">Otro</option>
-  </select>
-</form>
 <form id="addpurchase">
-</div>
+  <select id="fields-purchase-type">
+    <option value="" selected disabled>Tipo</option>
+    <option value="catering">Alimentación</option>
+    <option value="generic">Otro</option>
+  </select>
+  <div class="form-section" id="field-generic" style="display:none;">
+    {{ template "purchase-form-generic" . }}
+  </div>
+  <div class="form-section" id="field-catering" style="display:none;">
+    {{ template "purchase-form-catering" . }}
+  </div>
+</form>
+<script>
+ // Show form fields depending on selected form type
+ document.getElementById('fields-purchase-type').addEventListener('change', (e) => {
+   const selected = e.target.value;
+   document.querySelectorAll('.form-section').forEach(section => {
+     section.style.display = 'none';
+   });
+   const selectedSection = document.getElementById(`field-${selected}`);
+   if (selectedSection) {
+     selectedSection.style.display = 'block';
+   }
+ });
+</script>
+<button type="sumbit">Solicitar Compra</button>
 {{ end }}

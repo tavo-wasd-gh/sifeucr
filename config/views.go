@@ -115,13 +115,9 @@ var ViewMap = map[string][]string{
 		base,
 		"views/forms/purchase-form.html",
 		"views/forms/purchase-form-page.html",
-	),
-	"forms-purchase-form-generic": {
 		"views/forms/purchase-form-generic.html",
-	},
-	"forms-purchase-form-catering": {
 		"views/forms/purchase-form-catering.html",
-	},
+	),
 
 	"index-page": append(
 		base,

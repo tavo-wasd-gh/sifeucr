@@ -1,124 +1,257 @@
 {{ define "purchase-form-catering" }}
-<form
-  id="addpurchase"
-  method="POST"
-  action="/request/purchase"
+<label for="#purchase-form-catering-date">Fecha y hora para la que se requiere:</label>
+<input
+  id="purchase-form-catering-date"
+  type="datetime-local"
+  name="purchase-required"
+  placeholder="Requerido"
+  required
 >
-  <input type="hidden" value="catering">
-  <label for="#purchase-date">Fecha y hora para la que se requiere:</label>
-  <input
-    id="purchase-date"
-    type="datetime-local"
-    name="purchase_required"
-    placeholder="Requerido"
-    required
-  >
-  <input
-    type="text"
-    name="purchase_desc"
-    placeholder="Detalle"
-    required
-  >
-  <textarea
-    name="purchase_justif"
-    placeholder="Justificación"
-    required
-  ></textarea>
-  <select name="purchase_catalog[]" required>
-    <option value="" selected disabled>Agrupación</option>
-  </select>
-  <div class="carousel">
-    <select name="purchase_item[]" required>
-      <option value="" selected disabled>Artículo</option>
+<input
+  type="text"
+  name="purchase-desc"
+  placeholder="Detalle"
+  required
+>
+<textarea
+  name="purchase-justif"
+  placeholder="Justificación"
+  required
+></textarea>
+<select id="purchase-form-catering-catalog" required>
+  <option value="" selected disabled>Agrupación</option>
+  <!-- TODO: range catalogs -->
+  <option value="1460">1460 (Nombre del Proveedor)</option>
+  <!-- end -->
+</select>
+<p id="purchase-form-catering-item-desc"></p>
+<div class="grid">
+  <span>
+    <select id="purchase-form-catering-items" name="purchase-items[]" required>
+      <option value="" data-catalog="" data-desc="" data-amount="0" selected disabled>Artículo</option>
+      <!-- TODO: range items -->
+      <option
+          hidden
+          value="1"
+          data-catalog="1460"
+          data-desc="Descripción del artículo de este catálogo..."
+          data-amount="1000">
+          Ejemplo
+      </option>
+      <!-- end -->
     </select>
+    <script>
+     // Remove the hidden attr in the ones that match
+     (function () {
+         const catalogSelect = document.getElementById("purchase-form-catering-catalog");
+         const itemSelect = document.getElementById("purchase-form-catering-items");
+         catalogSelect.addEventListener("change", () => {
+             const selectedCatalog = catalogSelect.value;
+             // Loop through item options
+             Array.from(itemSelect.options).forEach((option) => {
+                 const itemCatalog = option.dataset.catalog || "";
+                 // Always allow empty catalog items
+                 if (itemCatalog === "" || itemCatalog === selectedCatalog) {
+                     option.hidden = false;
+                 } else {
+                     option.hidden = true;
+                 }
+             });
+             // Optionally reset selection if current is invalid
+             if (
+                 itemSelect.selectedIndex !== -1 &&
+                 itemSelect.options[itemSelect.selectedIndex].hidden
+             ) {
+                 itemSelect.selectedIndex = 0;
+             }
+         });
+     })();
+    </script>
+    <br>
     <input
-      id="purchase-item-quantity"
-      type="number" step="1"
-      name="purchase_item_quantity[]"
+      id="purchase-form-catering-item-quantity"
+      type="number" step="any"
+      name="purchase-item-quantity[]"
       placeholder="Cantidad"
       required
     >
-  </div>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  </span>
   <p style="text-align:right;white-space:nowrap;">
-    <small>Unidad: <span id="purchase-item-amount">{{ currency 4500 }}</span></small>
+    <small>Unidad: <span id="purchase-form-catering-item-amount">{{ currency 4500 }}</span></small>
     <br>
-    <small>Suma (1): <span id="purchase-item-sum">{{ currency 4500 }}</span></small>
+    <small>Suma (<span id="purchase-form-catering-item-count">1</span>): <span id="purchase-form-catering-item-sum">{{ currency 4500 }}</span></small>
     <br>
-    <small>IVA (2%): <span id="purchase-item-tax" data-tax="0.02">{{ currency 90 }}</span></small>
+    <small>IVA (2%): <span id="purchase-form-catering-item-tax" data-tax="0.02">{{ currency 90 }}</span></small>
     <br>
-    <big>Total: <span id="purchase-total">{{ currency 4590 }}</span></big>
+    <big>Línea: <span id="purchase-form-catering-item-line">{{ currency 4590 }}</span></big>
     <br>
   </p>
-  <button class="outline">Agregar Línea</button>
-  <div class="overflow-auto">
-    <table class="striped">
-      <thead>
-        <tr>
-          <th>Agrupación</th>
-          <th>Artículo</th>
-          <th>Descripción</th>
-          <th>Unidad</th>
-          <th>Cantidad</th>
-          <th>Suma</th>
-          <th>IVA (2%)</th>
-          <th>Total</th>
-          <th>Eliminar</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>1460</td>
-          <td>14</td>
-          <td>Almuerzos para la...</td>
-          <td style="text-align:right;">{{ currency 4500 }}</td>
-          <td>1</td>
-          <td style="text-align:right;">{{ currency 4500 }}</td>
-          <td style="text-align:right;">{{ currency 90 }}</td>
-          <td style="text-align:right;">{{ currency 4590 }}</td>
-          <td style="text-align:right;">x</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <p style="text-align:right;">
-    <small>IVA (2%): <span id="purchase-tax" data-tax="0.02">{{ currency 0 }}</span></small>
-    <br>
-    <big>Total: <span id="purchase-total">{{ currency 0 }}</span></big>
-  </p>
-  <canvas id="purchase-form-catering-signature"></canvas>
-  <script>
-   // TODO: canvas
-  </script>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    swap="none"
-    loading-state
-  >Solicitar Compra</button>
-</form>
+</div>
 <script>
- const grossInput = document.getElementById("purchase-gross");
- const taxDisplay = document.getElementById("purchase-tax");
- const totalDisplay = document.getElementById("purchase-total");
- const taxRate = parseFloat(taxDisplay.dataset.tax);
+(function () {
+  const itemSelect = document.getElementById("purchase-form-catering-items");
+  const quantityInput = document.getElementById("purchase-form-catering-item-quantity");
 
- const formatCurrency = (amount) => {
-   return amount.toLocaleString("es-CR", {
-     style: "currency",
-     currency: "CRC",
-     minimumFractionDigits: 2,
-     maximumFractionDigits: 2,
-   });
- };
+  const amountSpan = document.getElementById("purchase-form-catering-item-amount");
+  const sumSpan = document.getElementById("purchase-form-catering-item-sum");
+  const countSpan = document.getElementById("purchase-form-catering-item-count");
+  const taxSpan = document.getElementById("purchase-form-catering-item-tax");
+  const lineSpan = document.getElementById("purchase-form-catering-item-line");
+  const descPara = document.getElementById("purchase-form-catering-item-desc");
 
- grossInput.addEventListener("input", function () {
-   const gross = parseFloat(grossInput.value) || 0;
-   const tax = gross * taxRate;
-   const total = gross + tax;
+  const taxRate = parseFloat(taxSpan.dataset.tax);
 
-   taxDisplay.textContent = formatCurrency(tax);
-   totalDisplay.textContent = formatCurrency(total);
- });
+  const formatCurrency = (amount) => {
+    return amount.toLocaleString("es-CR", {
+      style: "currency",
+      currency: "CRC",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  function updateLineCalculation() {
+    const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+    const unitAmount = parseFloat(selectedOption.dataset.amount || 0);
+    const description = selectedOption.dataset.desc || "";
+    const quantity = parseInt(quantityInput.value, 10) || 0;
+
+    const sum = unitAmount * quantity;
+    const tax = sum * taxRate;
+    const total = sum + tax;
+
+    amountSpan.textContent = formatCurrency(unitAmount);
+    sumSpan.textContent = formatCurrency(sum);
+    countSpan.textContent = quantity;
+    taxSpan.textContent = formatCurrency(tax);
+    lineSpan.textContent = formatCurrency(total);
+    descPara.textContent = description;
+  }
+
+  itemSelect.addEventListener("change", updateLineCalculation);
+  quantityInput.addEventListener("input", updateLineCalculation);
+
+  // Run once at start
+  updateLineCalculation();
+})();
+</script>
+<button type="button" class="outline" id="purchase-form-catering-add-line">Agregar Línea</button>
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th>Agrupación</th>
+        <th>Artículo</th>
+        <th>Descripción</th>
+        <th>Unidad</th>
+        <th>Cantidad</th>
+        <th>Suma</th>
+        <th>IVA (2%)</th>
+        <th>Total</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody id="purchase-form-catering-item-rows">
+    </tbody>
+  </table>
+</div>
+<p style="text-align:right;">
+  <small>IVA (2%): <span id="purchase-form-catering-tax" data-tax="0.02">{{ currency 0 }}</span></small>
+  <br>
+  <big>Total: <span id="purchase-form-catering-total">{{ currency 0 }}</span></big>
+</p>
+<!-- <canvas id="purchase-form-catering-signature"></canvas> -->
+<!-- <script> -->
+<!-- // TODO: canvas -->
+<!-- </script> -->
+<script>
+(function () {
+  const catalogSelect = document.getElementById("purchase-form-catering-catalog");
+  const itemSelect = document.getElementById("purchase-form-catering-items");
+  const quantityInput = document.getElementById("purchase-form-catering-item-quantity");
+  const addButton = document.getElementById("purchase-form-catering-add-line");
+  const rowsContainer = document.getElementById("purchase-form-catering-item-rows");
+
+  const taxRate = parseFloat(document.getElementById("purchase-form-catering-item-tax").dataset.tax);
+
+  const formatCurrency = (amount) =>
+    amount.toLocaleString("es-CR", {
+      style: "currency",
+      currency: "CRC",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  addButton.addEventListener("click", () => {
+    const catalogOption = catalogSelect.options[catalogSelect.selectedIndex];
+    const catalogValue = catalogOption.value;
+
+    const itemOption = itemSelect.options[itemSelect.selectedIndex];
+    const itemId = itemOption.value;
+    const itemText = itemOption.textContent;
+    const itemAmount = parseFloat(itemOption.dataset.amount || 0);
+    const itemDesc = itemOption.dataset.desc || "";
+    const quantity = parseInt(quantityInput.value, 10) || 0;
+
+    // Validation
+    if (!catalogValue || !itemId || quantity <= 0) {
+      alert("Debe seleccionar una agrupación, un artículo y una cantidad válida.");
+      return;
+    }
+
+    const sum = itemAmount * quantity;
+    const tax = sum * taxRate;
+    const total = sum + tax;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>
+        <input type="hidden" name="purchase_items_group[]" value="${catalogValue}">
+        ${catalogValue}
+      </td>
+      <td>
+        <input type="hidden" name="purchase_items[]" value="${itemId}">
+        ${itemId}
+      </td>
+      <td>
+        <input type="hidden" name="purchase_item_desc[]" value="${itemDesc}">
+        ${itemDesc}
+      </td>
+      <td style="text-align:right;">
+        <input type="hidden" name="purchase_item_amount[]" value="${itemAmount}">
+        ${formatCurrency(itemAmount)}
+      </td>
+      <td>
+        <input type="hidden" name="purchase_item_quantity[]" value="${quantity}">
+        ${quantity}
+      </td>
+      <td style="text-align:right;">
+        <input type="hidden" name="purchase_item_sum[]" value="${sum}">
+        ${formatCurrency(sum)}
+      </td>
+      <td style="text-align:right;">
+        <input type="hidden" name="purchase_item_tax[]" value="${tax}">
+        ${formatCurrency(tax)}
+      </td>
+      <td style="text-align:right;">
+        <input type="hidden" name="purchase_item_total[]" value="${total}">
+        ${formatCurrency(total)}
+      </td>
+      <td style="text-align:right;">
+        <a href="#" class="remove-line">Quitar</a>
+      </td>
+    `;
+
+    rowsContainer.appendChild(row);
+  });
+
+  // Delegate removal
+  rowsContainer.addEventListener("click", function (e) {
+    if (e.target.classList.contains("remove-line")) {
+      e.preventDefault();
+      e.target.closest("tr").remove();
+    }
+  });
+})();
 </script>
 {{ end }}
