@@ -83,8 +83,6 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	)
 
 	router.Handle("GET /compra", middleware.With(formStack, handler.Static("forms-purchase-form-page")))
-	router.Handle("GET /compra/otro", middleware.With(formStack, handler.Static("forms-purchase-form-generic")))
-	router.Handle("GET /compra/catering", middleware.With(formStack, handler.Static("forms-purchase-form-catering")))
 
 	router.Handle("POST /request/purchase", middleware.With(
 		middleware.Stack(
