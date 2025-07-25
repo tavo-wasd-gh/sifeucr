@@ -26,22 +26,22 @@
   method="POST"
   action="/panel/dist/add"
 >
-  <select name="period">
+  <select id="panel-distributions-select-period" name="period">
     <option value="" selected disabled>Período</option>
     {{ range .Periods }}
     <option value="{{ .PeriodID }}">{{ .PeriodName }}</option>
     {{ end }}
   </select>
-  <select name="account">
+  <select id="panel-distributions-select-account" name="account">
     <option value="" selected disabled>Cuenta</option>
     {{ range .Accounts }}
     <option value="{{ .AccountID }}">[{{ .AccountAbbr }}] {{ .AccountName }}</option>
     {{ end }}
   </select>
-  <select name="entry">
+  <select id="panel-distributions-select-budget" name="entry">
     <option value="" selected disabled>Partida</option>
     {{ range .BudgetEntries }}
-    <option value="{{ .EntryID }}">[{{ .EntryCode }}] {{ .EntryObject }}</option>
+    <option value="{{ .EntryID }}">[{{ .EntryYear }}] [{{ .EntryCode }}] {{ .EntryObject }}</option>
     {{ end }}
   </select>
   <input type="number" name="amount"  placeholder="Monto"   aria-label="Monto"   required>
@@ -53,15 +53,4 @@
     loading-state
   >Agregar Distribución</button>
 </form>
-{{ range .Distributions }}
-<dialog id="modal-dist-{{ .DistID }}">
-  <article>
-    <header>
-      <button rel="prev" type="button" onclick="toggleModal('modal-dist-{{ .DistID }}')"></button>
-      <h3>Editar Distribución #{{ .DistID }}</h3>
-    </header>
-    {{ template "dist-update-form" . }}
-  </article>
-</dialog>
-{{ end }}
 {{ end }}

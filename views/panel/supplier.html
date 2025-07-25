@@ -6,4 +6,7 @@
   <td>{{ phone .SupplierPhoneCountryCode .SupplierPhone }}</td>
   <td>{{ .SupplierLocation }}</td>
 </tr>
+<div style="display:none;">
+  <option data-oob="#panel-catalog-select-supplier" swap="beforeend" value="{{ .SupplierID }}">[{{ formatID .SupplierID }}] {{ .SupplierName }}</option>
+</div>
 {{ end }}

@@ -22,6 +22,9 @@ var ViewMap = map[string][]string{
 		"views/panel/setup.html",
 		"views/panel/setup-page.html",
 	),
+	"setup-result": {
+		"views/panel/setup-result.html",
+	},
 	"login-page": append(
 		base,
 		"views/login.html",
@@ -55,6 +58,7 @@ var ViewMap = map[string][]string{
 		"views/panel/account.html",
 		"views/panel/accounts.html",
 		"views/panel/user-permissions.html",
+		"views/panel/user-modal.html",
 		"views/panel/permission.html",
 		"views/panel/periods.html",
 		"views/panel/period.html",
@@ -76,6 +80,9 @@ var ViewMap = map[string][]string{
 	},
 	"user": {
 		"views/panel/user.html",
+		"views/panel/user-modal.html",
+		"views/panel/user-permissions.html",
+		"views/panel/permission.html",
 	},
 	"account": {
 		"views/panel/account.html",
@@ -85,12 +92,14 @@ var ViewMap = map[string][]string{
 	},
 	"period": {
 		"views/panel/period.html",
+		"views/panel/period-update-form.html",
 	},
 	"period-update-form": {
 		"views/panel/period-update-form.html",
 	},
 	"distribution": {
 		"views/panel/distribution.html",
+		"views/panel/dist-update-form.html",
 	},
 	"dist-update-form": {
 		"views/panel/dist-update-form.html",
@@ -106,6 +115,7 @@ var ViewMap = map[string][]string{
 	},
 	"item": {
 		"views/panel/item.html",
+		"views/panel/item-update-form.html",
 	},
 	"item-update-form": {
 		"views/panel/item-update-form.html",

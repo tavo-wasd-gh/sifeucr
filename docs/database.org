@@ -280,6 +280,10 @@ WHERE user_id = ? LIMIT 1;
 -- name: UserIDByUserEmail :one
 SELECT user_id FROM users
 WHERE user_email = ? LIMIT 1;
+
+-- name: ActiveUserIDByUserEmail :one
+SELECT user_id FROM active_users
+WHERE user_email = ? LIMIT 1;
 #+end_src
 
 ** Cuentas
@@ -351,12 +355,26 @@ JOIN accounts    a ON a.account_id = p.permission_account;
 
 -- name: PermissionsByUserID :many
 SELECT a.*, u.*, p.*
+FROM users       u
+JOIN permissions p ON u.user_id    = p.permission_user
+JOIN accounts    a ON a.account_id = p.permission_account
+WHERE u.user_id = ?;
+
+-- name: ActivePermissionsByUserID :many
+SELECT a.*, u.*, p.*
 FROM active_users       u
 JOIN active_permissions p ON u.user_id    = p.permission_user
 JOIN active_accounts    a ON a.account_id = p.permission_account
 WHERE u.user_id = ?;
 
 -- name: PermissionByUserIDAndAccountID :one
+SELECT a.*, u.*, p.*
+FROM permissions p
+JOIN users       u ON u.user_id    = p.permission_user
+JOIN accounts    a ON a.account_id = p.permission_account
+WHERE u.user_id = ? AND a.account_id = ?;
+
+-- name: ActivePermissionByUserIDAndAccountID :one
 SELECT a.*, u.*, p.*
 FROM active_permissions p
 JOIN active_users       u ON u.user_id    = p.permission_user

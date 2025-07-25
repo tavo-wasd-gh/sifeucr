@@ -23,10 +23,10 @@
   action="/panel/catalog/add"
 >
   <input type="number" step="1" name="grouping" placeholder="Agrupación"  aria-label="Agrupación"  required>
-  <select name="supplier">
+  <select id="panel-catalog-select-supplier" name="supplier">
     <option value="" selected disabled>Proveedor</option>
     {{ range .Suppliers }}
-    <option value="{{ .SupplierID }}">[{{ .SupplierID }}] {{ .SupplierName }}</option>
+    <option value="{{ .SupplierID }}">[{{ formatID .SupplierID }}] {{ .SupplierName }}</option>
     {{ end }}
   </select>
   <button

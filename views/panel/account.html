@@ -17,4 +17,12 @@
   </td>
     </div>
 </tr>
+<div style="display:none;">
+  <option
+    data-oob="#panel-distributions-select-account"
+    swap="beforeend"
+    value="{{ .AccountID }}">
+    [{{ .AccountAbbr }}] {{ .AccountName }}
+  </option>
+</div>
 {{ end }}

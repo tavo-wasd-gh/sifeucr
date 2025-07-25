@@ -11,18 +11,12 @@ function fetchAndSwap(event) {
     const swap = el.getAttribute('swap') || 'innerHTML';
 
     let targetEl = null;
-    if (targetSelector?.startsWith('#')) {
+    if (targetSelector) {
         targetEl = document.querySelector(targetSelector);
-    } else if (targetSelector) {
-        targetEl = document.querySelector(targetSelector);
-        if (!targetEl) {
-            console.warn(`No element found for selector: '${targetSelector}'`);
+        if (!targetEl && swap !== 'none' && swap !== 'delete') {
+            console.error('Target element not found for selector:', targetSelector);
+            return;
         }
-    }
-
-    if (!targetEl && swap !== 'none' && swap !== 'delete') {
-        console.error('Target element not found for selector:', targetSelector);
-        return;
     }
 
     const loadingEls = form.querySelectorAll('[loading-state], [loading-state=""]');
@@ -35,11 +29,10 @@ function fetchAndSwap(event) {
         const input = form.querySelector(`[name="${key}"]`);
         if (!input || !value) continue;
 
-        if (input.type === 'date' || input.type === 'datetime-local' || input.type === 'datetime') {
+        if (['date', 'datetime-local', 'datetime'].includes(input.type)) {
             const date = new Date(value);
             if (!isNaN(date)) {
-                const unixTime = Math.floor(date.getTime() / 1000);
-                formData.set(key, unixTime);
+                formData.set(key, Math.floor(date.getTime() / 1000));
             }
         }
     }
@@ -61,9 +54,7 @@ function fetchAndSwap(event) {
     fetch(action, fetchOptions)
         .then(async res => {
             const newCsrfToken = res.headers.get('X-CSRF-Token');
-            if (newCsrfToken) {
-                updateCSRFTokenMeta(newCsrfToken);
-            }
+            if (newCsrfToken) updateCSRFTokenMeta(newCsrfToken);
 
             const responseText = await res.text();
             if (res.status !== 200) {
@@ -71,35 +62,78 @@ function fetchAndSwap(event) {
                 return;
             }
 
-            switch (swap) {
-                case 'innerHTML':
-                    targetEl.innerHTML = responseText;
-                    break;
-                case 'outerHTML':
-                    targetEl.outerHTML = responseText;
-                    break;
-                case 'textContent':
-                    targetEl.textContent = responseText;
-                    break;
-                case 'beforebegin':
-                    targetEl.insertAdjacentHTML('beforebegin', responseText);
-                    break;
-                case 'afterbegin':
-                    targetEl.insertAdjacentHTML('afterbegin', responseText);
-                    break;
-                case 'beforeend':
-                    targetEl.insertAdjacentHTML('beforeend', responseText);
-                    break;
-                case 'afterend':
-                    targetEl.insertAdjacentHTML('afterend', responseText);
-                    break;
-                case 'delete':
-                    targetEl?.remove();
-                    break;
-                case 'none':
-                    break;
-                default:
-                    console.warn('Unknown swap type:', swap);
+            const range = document.createRange();
+            const fragment = range.createContextualFragment(responseText);
+
+            // ---- Handle OOB elements BEFORE main insert
+            const oobNodes = Array.from(fragment.querySelectorAll('[data-oob]'));
+            oobNodes.forEach(oob => {
+                const selector = oob.getAttribute('data-oob');
+                const swapType = oob.getAttribute('swap') || 'innerHTML';
+                const target = document.querySelector(selector);
+
+                if (!target) {
+                    console.warn(`OOB target not found: ${selector}`);
+                    return;
+                }
+
+                const oobClone = oob.cloneNode(true);
+
+                switch (swapType) {
+                    case 'innerHTML':
+                        target.innerHTML = '';
+                        target.appendChild(oobClone);
+                        break;
+                    case 'outerHTML':
+                        target.replaceWith(oobClone);
+                        break;
+                    case 'textContent':
+                        target.textContent = oob.textContent;
+                        break;
+                    case 'beforebegin':
+                    case 'afterbegin':
+                    case 'beforeend':
+                    case 'afterend':
+                        target.insertAdjacentHTML(swapType, oob.outerHTML);
+                        break;
+                    case 'delete':
+                        target.remove();
+                        break;
+                    case 'none':
+                        break;
+                    default:
+                        console.warn('Unknown OOB swap type:', swapType);
+                }
+
+                // Remove OOB node from the fragment so it doesn’t get inserted again
+                oob.remove();
+            });
+
+            // ---- Apply main content swap
+            if (swap !== 'none') {
+                switch (swap) {
+                    case 'innerHTML':
+                        targetEl.innerHTML = '';
+                        targetEl.appendChild(fragment);
+                        break;
+                    case 'outerHTML':
+                        targetEl.replaceWith(fragment);
+                        break;
+                    case 'textContent':
+                        targetEl.textContent = responseText;
+                        break;
+                    case 'beforebegin':
+                    case 'afterbegin':
+                    case 'beforeend':
+                    case 'afterend':
+                        targetEl.insertAdjacentHTML(swap, responseText);
+                        break;
+                    case 'delete':
+                        targetEl?.remove();
+                        break;
+                    default:
+                        console.warn('Unknown swap type:', swap);
+                }
             }
         })
         .catch(err => {

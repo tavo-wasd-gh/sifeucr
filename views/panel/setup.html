@@ -1,6 +1,5 @@
 {{ define "setup" }}
 <form
-  id="setupForm"
   method="POST"
   action="/panel/setup"
 >
@@ -46,7 +45,7 @@
     type="submit"
     onclick="fetchAndSwap(event)"
     target="main"
-    swap="none"
+    swap="innerHTML"
     loading-state
   >
     Configurar

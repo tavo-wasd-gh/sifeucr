@@ -11,7 +11,7 @@
       </thead>
       <tbody id="user-rows">
         {{ range .Users }}
-        {{ template "user" . }}
+        {{ template "user" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "UserActive" .UserActive "AddUserForm" $.AddUserForm) }}
         {{ end }}
       </tbody>
     </table>
@@ -33,15 +33,9 @@
     loading-state
   >Agregar Usuario</button>
 </form>
-{{ range .Users }}
-<dialog id="modal-user-{{ .UserID }}">
-  <article>
-    <header>
-      <button rel="prev" type="button" onclick="toggleModal('modal-user-{{ .UserID }}')"></button>
-      <h3>Usuario #{{ .UserID }}</h3>
-    </header>
-    {{ template "user-permissions" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "Permissions" $.Permissions "PermissionTypes" $.PermissionTypes "Users" $.Users "Accounts" $.Accounts) }}
-  </article>
-</dialog>
-{{ end }}
+<div id="modals-users">
+  {{ range .Users }}
+  {{ template "user-modal" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "UserActive" .UserActive "Permissions" $.Permissions "PermissionTypes" $.PermissionTypes "Users" $.Users "Accounts" $.Accounts) }}
+  {{ end }}
+</div>
 {{ end }}

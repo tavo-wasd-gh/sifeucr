@@ -8,4 +8,13 @@
   <td>{{ .ItemDescription }}</td>
   <td style="text-align:right;">{{ currency .ItemAmount }}</td>
 </tr>
+<dialog id="modal-item-{{ .ItemID }}">
+  <article>
+    <header>
+      <button rel="prev" type="button" onclick="toggleModal('modal-item-{{ .ItemID }}')"></button>
+      <h3>Artículo #{{ .ItemID }}</h3>
+    </header>
+    {{ template "item-update-form" . }}
+  </article>
+</dialog>
 {{ end }}

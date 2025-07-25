@@ -60,7 +60,30 @@ func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = views.RenderHTML(w, r, "user", insertedUser); err != nil {
+	type viewDataStruct struct {
+		UserID int64
+		UserEmail string
+		UserName string
+		UserActive bool
+		Permissions []db.AllPermissionsRow
+		PermissionTypes []config.PermissionType
+		Accounts []db.Account
+		AddUserForm bool
+	}
+
+	allAccounts, err := queries.AllAccounts(ctx)
+
+	viewData := viewDataStruct{
+		UserID: insertedUser.UserID,
+		UserEmail: insertedUser.UserEmail,
+		UserName: insertedUser.UserName,
+		UserActive: insertedUser.UserActive,
+		Accounts: allAccounts,
+		PermissionTypes: config.PermissionTypes,
+		AddUserForm: true,
+	}
+
+	if err = views.RenderHTML(w, r, "user", viewData); err != nil {
 		h.Log().Error("failed to render new user: %v", err)
 	}
 }

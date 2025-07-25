@@ -3,4 +3,7 @@
   <td>{{ .CatalogGrouping }}</td>
   <td tags="{{ .SupplierID }} {{ formatID .SupplierID }}">{{ .SupplierName }}</td>
 </tr>
+<div style="display:none;">
+  <option data-oob="#panel-items-select-catalog" swap="beforeend" value="{{ .CatalogID }}">{{ .CatalogGrouping }}</option>
+</div>
 {{ end }}

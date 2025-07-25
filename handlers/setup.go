@@ -101,5 +101,7 @@ func (h *Handler) FirstTimeSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/cuenta", http.StatusFound)
+	if err := views.RenderHTML(w, r, "setup-result", nil); err != nil {
+		h.Log().Error("error rendering result: %v", err)
+	}
 }

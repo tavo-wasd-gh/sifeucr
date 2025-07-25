@@ -73,7 +73,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	// User is already parsed and validated, query uses parameters instead of
 	// manually assembling the SQL statement.
 	// See: https://go.dev/doc/database/sql-injection
-	userID, err := queries.UserIDByUserEmail(ctx, dbuser)
+	userID, err := queries.ActiveUserIDByUserEmail(ctx, dbuser)
 	if err != nil {
 		h.Log().Error("error querying user_id by user_email: %v", err)
 		views.RenderHTML(w, r, "login", map[string]any{"Error": true})
@@ -81,7 +81,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check available accounts
-	perms, err := queries.PermissionsByUserID(ctx, userID)
+	perms, err := queries.ActivePermissionsByUserID(ctx, userID)
 	if err != nil {
 		h.Log().Error("error querying allowed_accounts by user_id: %v", err)
 		views.RenderHTML(w, r, "login", map[string]any{"Error": true})
@@ -117,7 +117,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 				ExternalEmail    bool
 				Error            bool
 				MultipleAccounts bool
-				Permissions      []db.PermissionsByUserIDRow
+				Permissions      []db.ActivePermissionsByUserIDRow
 			}
 
 			m := multiple{
@@ -135,7 +135,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
+	perm, err := queries.ActivePermissionByUserIDAndAccountID(ctx, db.ActivePermissionByUserIDAndAccountIDParams{
 		UserID:    userID,
 		AccountID: chosenAccountID,
 	})

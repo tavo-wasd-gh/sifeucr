@@ -85,7 +85,7 @@ func (h *Handler) authenticate(
 
 	ctx := r.Context()
 	queries := db.New(h.DB())
-	perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
+	perm, err := queries.ActivePermissionByUserIDAndAccountID(ctx, db.ActivePermissionByUserIDAndAccountIDParams{
 		UserID:    session.UserID,
 		AccountID: session.AccountID,
 	})
@@ -98,7 +98,7 @@ func (h *Handler) authenticate(
 
 	// DEBUG: Check loading-state indicators
 	if !h.Production() {
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(400 * time.Millisecond)
 	}
 
 	return session.UserID, session.AccountID, newst, newct, nil

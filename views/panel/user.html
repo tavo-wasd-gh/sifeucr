@@ -19,4 +19,7 @@
     </div>
   </td>
 </tr>
+{{ if .AddUserForm }}
+{{ template "user-modal" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "Permissions" .Permissions "PermissionTypes" .PermissionTypes "Accounts" .Accounts) }}
+{{ end }}
 {{ end }}

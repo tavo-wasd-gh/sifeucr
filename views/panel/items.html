@@ -25,10 +25,10 @@
   method="POST"
   action="/panel/item/add"
 >
-  <select name="catalog">
+  <select id="panel-items-select-catalog" name="catalog">
     <option value="" selected disabled>Agrupación</option>
     {{ range .Catalogs }}
-    <option value="{{ .CatalogID }}">{{ .CatalogGrouping }}</option>
+    <option value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .SupplierName }}</option>
     {{ end }}
   </select>
   <input type="number" step="1" name="number" placeholder="Artículo" aria-label="Artículo" required>
@@ -42,15 +42,4 @@
     loading-state
   >Agregar Artículo</button>
 </form>
-{{ range .Items }}
-<dialog id="modal-item-{{ .ItemID }}">
-  <article>
-    <header>
-      <button rel="prev" type="button" onclick="toggleModal('modal-item-{{ .ItemID }}')"></button>
-      <h3>Artículo #{{ .ItemID }}</h3>
-    </header>
-    {{ template "item-update-form" . }}
-  </article>
-</dialog>
-{{ end }}
 {{ end }}
