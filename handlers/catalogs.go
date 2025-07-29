@@ -50,10 +50,11 @@ func (h *Handler) AddCatalog(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 	type addItemForm struct {
-		Catalog int64   `form:"catalog" validate:"nonzero"`
-		Number  int64   `form:"number" validate:"nonzero"`
-		Desc    string  `form:"desc" fmt:"trim"`
-		Amount  float64 `form:"amount"`
+		Catalog int64   `req:"1" form:"catalog" validate:"nonzero"`
+		Number  int64   `req:"1" form:"number" validate:"nonzero"`
+		Summary string  `req:"1" form:"summary" fmt:"trim"`
+		Desc    string  `req:"1" form:"desc" fmt:"trim"`
+		Amount  float64 `req:"1" form:"amount"`
 	}
 
 	form, err := forms.FormToStruct[addItemForm](r)
@@ -69,6 +70,7 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 	i, err := queries.AddItem(ctx, db.AddItemParams{
 		ItemCatalog:     form.Catalog,
 		ItemNumber:      form.Number,
+		ItemSummary:     form.Summary,
 		ItemDescription: form.Desc,
 		ItemAmount:      form.Amount,
 	})
@@ -100,9 +102,10 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type updateItemForm struct {
-		Number int64   `form:"number" validate:"nonzero"`
-		Desc   string  `form:"desc" fmt:"trim"`
-		Amount float64 `form:"amount"`
+		Number  int64   `req:"1" form:"number" validate:"nonzero"`
+		Summary string  `req:"1" form:"summary" fmt:"trim"`
+		Desc    string  `req:"1" form:"desc" fmt:"trim"`
+		Amount  float64 `req:"1" form:"amount"`
 	}
 
 	form, err := forms.FormToStruct[updateItemForm](r)
@@ -118,6 +121,7 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	i, err := queries.UpdateItem(ctx, db.UpdateItemParams{
 		ItemID:          itemID,
 		ItemNumber:      form.Number,
+		ItemSummary:     form.Summary,
 		ItemDescription: form.Desc,
 		ItemAmount:      form.Amount,
 	})

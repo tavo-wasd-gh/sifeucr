@@ -29,9 +29,9 @@ var publicFS embed.FS
 var viewFS embed.FS
 
 const (
-	DEFAULT_DATA_DIR     = "/var/lib/sifeucr/data"  // SF_DATA_DIR
-	DEFAULT_DB_FILE      = "/var/lib/sifeucr/db.db" // SF_DB_FILE
-	DEFAULT_MAX_OBJ_SIZE = 4 << 20                  // SF_MAX_OBJ_SIZE (4MB default)
+	DEFAULT_DATA_DIR     = "./data"  // SF_DATA_DIR
+	DEFAULT_DB_FILE      = "./db.db" // SF_DB_FILE
+	DEFAULT_MAX_OBJ_SIZE = 4 << 20   // SF_MAX_OBJ_SIZE (4MB default)
 )
 
 func main() {

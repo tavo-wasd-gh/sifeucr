@@ -1,5 +1,21 @@
 # SIFEUCR
 
+## Install
+
+### Create user and directories
+
+``` sh
+useradd -m sifeucr
+mkdir -p /etc/sifeucr /var/lib/sifeucr/data
+
+cp /path/to/config.env /etc/sifeucr/config.env
+cp /path/to/init.db /var/lib/sifeucr/db.db
+cp /path/to/sifeucr-bin /usr/local/bin/sifeucr
+
+chown -R sifeucr:sifeucr /etc/sifeucr && chmod 770 /etc/sifeucr
+chown -R sifeucr:sifeucr /var/lib/sifeucr && chmod 750 /var/lib/sifeucr
+```
+
 ## v2.6.0 Plugins
 
 - [ ] Verificar automáticamente estado de proveedores

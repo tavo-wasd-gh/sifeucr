@@ -1,3 +1,14 @@
+document.addEventListener("DOMContentLoaded", (event) => {
+
+    // Auto-size textareas
+    document.addEventListener('input', function (event) {
+        if (event.target.tagName.toLowerCase() === 'textarea') {
+            event.target.style.height = 'auto';
+            event.target.style.height = event.target.scrollHeight + 'px';
+        }
+    });
+});
+
 function fetchAndSwap(event) {
     event.preventDefault();
 

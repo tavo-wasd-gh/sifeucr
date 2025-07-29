@@ -97,6 +97,10 @@ nav {
   align-items: center;
 }
 
+nav > *:not(:last-child) {
+  padding-right: var(--axiom-padding);
+}
+
 nav ul {
   padding: 0;
   display: flex;
@@ -104,7 +108,7 @@ nav ul {
   list-style: none;
 }
 
-nav ul li {
+nav ul li:not(:last-child) {
   padding-right: var(--axiom-padding);
 }
 
@@ -150,7 +154,10 @@ textarea {
 
 textarea {
   resize: vertical;
-  white-space: wrap;
+  white-space: pre-wrap;
+  min-height: 2em;
+  max-height: 65vh;
+  overflow-y: auto;
 }
 
 canvas {
@@ -159,6 +166,7 @@ canvas {
 
 button {
   background-color: var(--axiom-color-button);
+  border-color: var(--axiom-color-button);
   color: var(--axiom-color-button-fg);
   cursor: pointer;
 }
@@ -257,6 +265,7 @@ th > input,
 td > input {
   all: unset;
   font-weight: normal;
+  max-width: 10em;
 }
 
 dialog[open] {

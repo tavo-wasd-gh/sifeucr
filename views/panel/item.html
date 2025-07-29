@@ -5,7 +5,8 @@
     <a>{{ .ItemNumber }}</a>
   </td>
   <td tags="{{ .SupplierID }} {{ formatID .SupplierID }}">{{ .SupplierName }}</td>
-  <td>{{ .ItemDescription }}</td>
+  <td>{{ summary .ItemSummary 30 }}</td>
+  <td>{{ summary .ItemDescription 30 }}</td>
   <td style="text-align:right;">{{ currency .ItemAmount }}</td>
 </tr>
 <dialog id="modal-item-{{ .ItemID }}">

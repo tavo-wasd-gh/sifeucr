@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS "items" (
     "item_id"          INTEGER PRIMARY KEY NOT NULL,
     "item_catalog"     INTEGER NOT NULL REFERENCES "catalogs"("catalog_id"),
     "item_number"      INTEGER NOT NULL,
+    "item_summary"     TEXT    NOT NULL,
     "item_description" TEXT    NOT NULL,
     "item_amount"      REAL    NOT NULL,
     UNIQUE("item_catalog", "item_number")
@@ -588,10 +589,11 @@ INSERT INTO catalogs (
 INSERT INTO items (
     item_catalog,
     item_number,
+    item_summary,
     item_description,
     item_amount
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 ) RETURNING *;
 #+end_src
 
@@ -601,6 +603,7 @@ INSERT INTO items (
 -- name: UpdateItem :one
 UPDATE items SET
     item_number = ?,
+    item_summary = ?,
     item_description = ?,
     item_amount = ?
 WHERE item_id = ? RETURNING *;

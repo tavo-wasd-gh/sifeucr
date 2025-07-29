@@ -5,7 +5,8 @@
   action="/panel/item/update/{{ .ItemID }}"
 >
   <input type="number" value="{{ .ItemNumber }}"      name="number"  placeholder="Artículo"    aria-label="Artículo"    required>
-  <input type="text"   value="{{ .ItemDescription }}" name="desc"    placeholder="Descripción" aria-label="Descripción" required>
+  <input type="text"   value="{{ .ItemSummary }}"     name="summary" placeholder="Resumen"     aria-label="Resumen"     required>
+  <textarea            value="{{ .ItemDescription }}" name="desc"    placeholder="Descripción" aria-label="Descripción" required>{{ .ItemDescription }}</textarea>
   <input type="number" value="{{ .ItemAmount }}"      name="amount"  placeholder="Monto"       aria-label="Monto"       required>
   <button
     type="submit"

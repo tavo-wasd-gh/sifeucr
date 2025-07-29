@@ -1,0 +1,17 @@
+[Unit]
+Description=SIFEUCR v2
+After=syslog.target
+After=network.target
+
+[Service]
+RestartSec=2s
+Type=simple
+User=sifeucr
+Group=sifeucr
+WorkingDirectory=/var/lib/sifeucr/
+ExecStart=/usr/local/bin/sifeucr
+Restart=always
+EnvironmentFile=/etc/sifeucr/config.env
+
+[Install]
+WantedBy=multi-user.target

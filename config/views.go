@@ -149,6 +149,17 @@ var ViewMap = map[string][]string{
 }
 
 var ViewFormatters = map[string]any{
+	"summary": func(s string, max int) string {
+		if max >= len(s) {
+			return s
+		}
+		cut := s[:max]
+		lastSpace := strings.LastIndex(cut, " ")
+		if lastSpace == -1 {
+			return cut + "..."
+		}
+		return s[:lastSpace] + "..."
+	},
 	"uppercase": func(s string) string { return strings.ToUpper(s) },
 	"firstWord": func(s string) string {
 		words := strings.Fields(s)

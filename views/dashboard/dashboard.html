@@ -4,7 +4,7 @@
     <strong>{{ .Account.AccountName }}</strong><br>
     <small>{{ .User.UserName }}</small>
   </div>
-  <div class="carousel">
+  <nav>
     {{ if .ReadAdvanced }}
     <a href="/panel">
       <button class="contrast">Panel</button>
@@ -13,7 +13,7 @@
     <a href="/cerrar">
       <button class="outline">Salir</button>
     </a>
-  </div>
+  </nav>
 </nav>
 <br>
 {{ if .ReadAdvanced }}
