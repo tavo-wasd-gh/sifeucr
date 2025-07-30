@@ -2,8 +2,9 @@
 <tr>
   <td>{{ .CatalogGrouping }}</td>
   <td tags="{{ .SupplierID }} {{ formatID .SupplierID }}">{{ .SupplierName }}</td>
+  <td>{{ .CatalogSummary }}</td>
 </tr>
 <div style="display:none;">
-  <option data-oob="#panel-items-select-catalog" swap="beforeend" value="{{ .CatalogID }}">{{ .CatalogGrouping }}</option>
+  <option data-oob="#panel-items-select-catalog" swap="beforeend" value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .SupplierName }}</option>
 </div>
 {{ end }}

@@ -107,7 +107,8 @@ CREATE TABLE IF NOT EXISTS "suppliers" (
 CREATE TABLE IF NOT EXISTS "catalogs" (
     "catalog_id"          INTEGER PRIMARY KEY NOT NULL,
     "catalog_supplier"    INTEGER NOT NULL REFERENCES "suppliers"("supplier_id"),
-    "catalog_grouping"    INTEGER NOT NULL UNIQUE
+    "catalog_grouping"    INTEGER NOT NULL UNIQUE,
+    "catalog_summary"     TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "items" (
@@ -580,9 +581,10 @@ WHERE supplier_id = ? RETURNING *;
 -- name: AddCatalog :one
 INSERT INTO catalogs (
     catalog_supplier,
-    catalog_grouping
+    catalog_grouping,
+    catalog_summary
 ) VALUES (
-    ?, ?
+    ?, ?, ?
 ) RETURNING *;
 
 -- name: AddItem :one

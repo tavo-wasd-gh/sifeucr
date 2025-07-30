@@ -6,6 +6,7 @@
         <tr>
           <th><input type="number" placeholder="Agrupación" onkeyup="filterTable(this)"></th>
           <th><input type="text"   placeholder="Proveedor"  onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Resumen"    onkeyup="filterTable(this)"></th>
         </tr>
       </thead>
       <tbody id="catalog-rows">
@@ -29,6 +30,7 @@
     <option value="{{ .SupplierID }}">[{{ formatID .SupplierID }}] {{ .SupplierName }}</option>
     {{ end }}
   </select>
+  <input type="text" name="summary" placeholder="Resumen" aria-label="Resumen" required>
   <button
     type="submit"
     onclick="fetchAndSwap(event)"
