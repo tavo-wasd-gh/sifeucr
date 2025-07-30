@@ -29,7 +29,7 @@
   <select id="panel-items-select-catalog" name="catalog">
     <option value="" selected disabled>Agrupación</option>
     {{ range .Catalogs }}
-    <option value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .SupplierName }}</option>
+    <option value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .CatalogSummary }} ({{ .SupplierName }})</option>
     {{ end }}
   </select>
   <input type="number" step="1"    name="number"  placeholder="Artículo"    aria-label="Artículo"    required>

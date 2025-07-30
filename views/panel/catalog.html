@@ -5,6 +5,6 @@
   <td>{{ .CatalogSummary }}</td>
 </tr>
 <div style="display:none;">
-  <option data-oob="#panel-items-select-catalog" swap="beforeend" value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .SupplierName }}</option>
+  <option data-oob="#panel-items-select-catalog" swap="beforeend" value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .CatalogSummary }} ({{ .SupplierName }})</option>
 </div>
 {{ end }}
