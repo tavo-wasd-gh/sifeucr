@@ -33,7 +33,7 @@
     loading-state
   >Agregar Usuario</button>
 </form>
-<div id="modals-users">
+<div id="panel-modals-users">
   {{ range .Users }}
   {{ template "user-modal" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "UserActive" .UserActive "Permissions" $.Permissions "PermissionTypes" $.PermissionTypes "Users" $.Users "Accounts" $.Accounts) }}
   {{ end }}

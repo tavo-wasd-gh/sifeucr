@@ -73,6 +73,7 @@ var ViewMap = map[string][]string{
 		"views/panel/catalog.html",
 		"views/panel/items.html",
 		"views/panel/item.html",
+		"views/panel/item-modal.html",
 		"views/panel/item-update-form.html",
 	),
 	"budget": {
@@ -115,6 +116,7 @@ var ViewMap = map[string][]string{
 	},
 	"item": {
 		"views/panel/item.html",
+		"views/panel/item-modal.html",
 		"views/panel/item-update-form.html",
 	},
 	"item-update-form": {

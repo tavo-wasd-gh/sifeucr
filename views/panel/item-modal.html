@@ -1,0 +1,11 @@
+{{ define "item-modal" }}
+<dialog data-oob="panel-modals-items" swap="beforeend" id="modal-item-{{ .ItemID }}">
+  <article>
+    <header>
+      <button rel="prev" type="button" onclick="toggleModal('modal-item-{{ .ItemID }}')"></button>
+      <h3>Artículo #{{ .ItemID }}</h3>
+    </header>
+    {{ template "item-update-form" . }}
+  </article>
+</dialog>
+{{ end }}

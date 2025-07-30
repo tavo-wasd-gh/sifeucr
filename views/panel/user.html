@@ -18,8 +18,8 @@
       </form>
     </div>
   </td>
+  {{ if .AddUserForm }}
+  {{ template "user-modal" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "Permissions" .Permissions "PermissionTypes" .PermissionTypes "Accounts" .Accounts) }}
+  {{ end }}
 </tr>
-{{ if .AddUserForm }}
-{{ template "user-modal" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "Permissions" .Permissions "PermissionTypes" .PermissionTypes "Accounts" .Accounts) }}
-{{ end }}
 {{ end }}

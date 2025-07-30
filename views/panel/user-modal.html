@@ -1,5 +1,5 @@
 {{ define "user-modal" }}
-<dialog id="modal-user-{{ .UserID }}">
+<dialog data-oob="panel-modals-users" swap="beforeend" id="modal-user-{{ .UserID }}">
   <article>
     <header>
       <button rel="prev" type="button" onclick="toggleModal('modal-user-{{ .UserID }}')"></button>

@@ -44,4 +44,9 @@
     loading-state
   >Agregar Artículo</button>
 </form>
+<div id="panel-modals-items">
+  {{ range .Items }}
+  {{ template "item-modal" . }}
+  {{ end }}
+</div>
 {{ end }}
