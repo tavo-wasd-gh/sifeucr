@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"sifeucr/config"
 	"sifeucr/internal/db"
@@ -97,9 +96,9 @@ func (h *Handler) authenticate(
 	}
 
 	// DEBUG: Check loading-state indicators
-	if !h.Production() {
-		time.Sleep(400 * time.Millisecond)
-	}
+	// if !h.Production() {
+	// 	time.Sleep(400 * time.Millisecond)
+	// }
 
 	return session.UserID, session.AccountID, newst, newct, nil
 }

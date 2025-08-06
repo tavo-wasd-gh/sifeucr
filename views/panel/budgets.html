@@ -28,12 +28,14 @@
   <input type="number" step="1"   name="code"   placeholder="Código" aria-label="Código" required>
   <input type="text"              name="object" placeholder="Objeto" aria-label="Objeto" required>
   <input type="number" step=".01" name="amount" placeholder="Monto"  aria-label="Monto"  required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#budget-rows"
-    swap="beforeend"
-    loading-state
-  >Agregar Partida</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#budget-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Partida</button>
+  </div>
 </form>
 {{ end }}

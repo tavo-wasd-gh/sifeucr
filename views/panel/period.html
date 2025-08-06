@@ -1,8 +1,6 @@
 {{ define "period" }}
-<tr>
-  <td onclick="toggleModal('modal-period-{{ .PeriodID }}')">
-    <a>{{ .PeriodName }}</a>
-  </td>
+<tr class="clickable" onclick="toggleModal('modal-period-{{ .PeriodID }}')">
+  <td>{{ .PeriodName }}</td>
   <td>{{ unixDateToStr .PeriodStart }}</td>
   <td>{{ unixDateToStr .PeriodEnd }}</td>
   <td style="text-align:right;">

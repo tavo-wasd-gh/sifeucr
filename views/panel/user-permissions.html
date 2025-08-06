@@ -21,12 +21,14 @@
     {{ end }}
   </select>
   <input type="number" name="integer" placeholder="Permiso (3=regular)" aria-label="Permiso" required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#user-{{ .UserID }}-perms"
-    swap="beforeend"
-    loading-state
-  >Agregar Permiso</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#user-{{ .UserID }}-perms"
+      swap="beforeend"
+      loading-state
+    >Agregar Permiso</button>
+  </div>
 </form>
 {{ end }}

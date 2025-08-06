@@ -1,9 +1,7 @@
 {{ define "item" }}
-<tr>
+<tr class="clickable" onclick="toggleModal('modal-item-{{ .ItemID }}')">
   <td>{{ .CatalogGrouping }}</td>
-  <td onclick="toggleModal('modal-item-{{ .ItemID }}')">
-    <a>{{ .ItemNumber }}</a>
-  </td>
+  <td>{{ .ItemNumber }}</td>
   <td tags="{{ .SupplierID }} {{ formatID .SupplierID }}">{{ .SupplierName }}</td>
   <td>{{ summary .ItemSummary 30 }}</td>
   <td>{{ summary .ItemDescription 30 }}</td>

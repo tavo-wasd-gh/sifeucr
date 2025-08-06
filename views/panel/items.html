@@ -36,13 +36,15 @@
   <input type="text"               name="summary" placeholder="Resumen"     aria-label="Resumen"     required>
   <textarea                        name="desc"    placeholder="Descripción" aria-label="Descripción" required></textarea>
   <input type="number" step="0.01" name="amount"  placeholder="Monto"       aria-label="Monto"       required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#item-rows"
-    swap="beforeend"
-    loading-state
-  >Agregar Artículo</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#item-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Artículo</button>
+  </div>
 </form>
 <div id="panel-modals-items">
   {{ range .Items }}

@@ -5,12 +5,14 @@
   action="/panel/dist/update/{{ .DistID }}"
 >
   <input type="number" step=".01"  value="{{ .DistAmount }}" name="amount" placeholder="Monto" aria-label="Monto" required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#form-dist-{{ .DistID }}"
-    swap="outerHTML"
-    loading-state
-  >Actualizar Distribución</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#form-dist-{{ .DistID }}"
+      swap="outerHTML"
+      loading-state
+    >Actualizar Distribución</button>
+  </div>
 </form>
 {{ end }}

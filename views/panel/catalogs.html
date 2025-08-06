@@ -31,12 +31,14 @@
     {{ end }}
   </select>
   <input type="text" name="summary" placeholder="Resumen" aria-label="Resumen" required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#catalog-rows"
-    swap="beforeend"
-    loading-state
-  >Agregar Catálogo</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#catalog-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Catálogo</button>
+  </div>
 </form>
 {{ end }}

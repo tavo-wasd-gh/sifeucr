@@ -45,12 +45,14 @@
     {{ end }}
   </select>
   <input type="number" name="amount"  placeholder="Monto"   aria-label="Monto"   required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#distribution-rows"
-    swap="beforeend"
-    loading-state
-  >Agregar Distribución</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#distribution-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Distribución</button>
+  </div>
 </form>
 {{ end }}

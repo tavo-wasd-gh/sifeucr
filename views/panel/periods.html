@@ -27,12 +27,14 @@
   <input type="name" name="name"  placeholder="Identificador" aria-label="Identificador" required>
   <input type="date" name="start" placeholder="Inicio"        aria-label="Inicio" required>
   <input type="date" name="end"   placeholder="Fin"           aria-label="Fin"  required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#period-rows"
-    swap="beforeend"
-    loading-state
-  >Agregar Período</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#period-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Período</button>
+  </div>
 </form>
 {{ end }}

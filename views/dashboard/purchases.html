@@ -1,31 +1,27 @@
 {{ define "purchases" }}
 <details>
   <summary>
-    <a href="/compra">
-      [Nueva]
-    </a>
     <big><strong>
       Compras
     </strong></big>
   </summary>
+  <div style="display:flex;justify-content:center">
+    <a href="/compra">
+      <button class="outline">Nueva Compra</button>
+    </a>
+  </div>
   <div class="body-width">
     <div class="overflow-auto">
       <table class="striped">
         <thead>
           <tr>
             <th><input type="number" step="1"        placeholder="Solicitud"     onkeyup="filterTable(this)"></th>
-            <th><input type="date"   filter="after"  placeholder="Emitido"       onkeyup="filterTable(this)"></th>
             <th><input type="date"   filter="before" placeholder="Requerido"     onkeyup="filterTable(this)"></th>
             <th><input type="text"                   placeholder="Detalle"       onkeyup="filterTable(this)"></th>
             <th><input type="text"                   placeholder="Justificación" onkeyup="filterTable(this)"></th>
-            <th><input type="text"                   placeholder="Cuenta"        onkeyup="filterTable(this)"></th>
             <th><input type="text"                   placeholder="Período"       onkeyup="filterTable(this)"></th>
-            <th><input type="text"                   placeholder="Usuario"       onkeyup="filterTable(this)"></th>
             <th><input type="number" step="any"      placeholder="Monto Bruto"   onkeyup="filterTable(this)"></th>
             <th><input type="text"                   placeholder="Partida"       onkeyup="filterTable(this)"></th>
-            <th><input type="text"                   placeholder="Proveedor"     onkeyup="filterTable(this)"></th>
-            <th><input type="text"                   placeholder="Solicitud"     onkeyup="filterTable(this)"></th>
-            <th><input type="text"                   placeholder="Orden"         onkeyup="filterTable(this)"></th>
             <th></th>
           </tr>
         </thead>

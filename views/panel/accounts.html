@@ -25,12 +25,14 @@
 >
   <input type="text" name="abbr" placeholder="Siglas" aria-label="Siglas" required>
   <input type="text" name="name" placeholder="Nombre" aria-label="Nombre" required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#account-rows"
-    swap="beforeend"
-    loading-state
-  >Agregar Cuenta</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#account-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Cuenta</button>
+  </div>
 </form>
 {{ end }}

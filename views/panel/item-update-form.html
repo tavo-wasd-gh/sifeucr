@@ -8,12 +8,14 @@
   <input type="text"   value="{{ .ItemSummary }}"     name="summary" placeholder="Resumen"     aria-label="Resumen"     required>
   <textarea            value="{{ .ItemDescription }}" name="desc"    placeholder="Descripción" aria-label="Descripción" required>{{ .ItemDescription }}</textarea>
   <input type="number" value="{{ .ItemAmount }}"      name="amount"  placeholder="Monto"       aria-label="Monto"       required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#form-item-{{ .ItemID }}"
-    swap="outerHTML"
-    loading-state
-  >Actualizar Artículo</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#form-item-{{ .ItemID }}"
+      swap="outerHTML"
+      loading-state
+    >Actualizar Artículo</button>
+  </div>
 </form>
 {{ end }}

@@ -33,12 +33,14 @@
   </select>
   <input type="number" step="1" name="phone"    placeholder="Teléfono"  aria-label="Teléfono"  required>
   <input type="text"            name="location" placeholder="Ubicación" aria-label="Ubicación" required>
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="#supplier-rows"
-    swap="beforeend"
-    loading-state
-  >Agregar Proveedor</button>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#supplier-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Proveedor</button>
+  </div>
 </form>
 {{ end }}

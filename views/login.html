@@ -42,13 +42,15 @@
     {{ end }}
   </select>
   {{ end }}
-  <button
-    type="submit"
-    onclick="fetchAndSwap(event)"
-    target="main"
-    loading-state
-  >
-    Iniciar
-  </button>
+  <div style="display:flex;justify-content:flex-end;">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="main"
+      loading-state
+    >
+      Iniciar
+    </button>
+  </div>
 </form>
 {{ end }}
