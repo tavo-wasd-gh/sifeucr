@@ -7,6 +7,7 @@ import (
 	"sifeucr/internal/db"
 
 	"git.tavo.one/tavo/axiom/forms"
+	"git.tavo.one/tavo/axiom/views"
 )
 
 func (h *Handler) AddPurchase() {
@@ -54,5 +55,36 @@ func (h *Handler) PurchaseMiddleware() func(http.Handler) http.Handler {
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
+	}
+}
+
+func (h *Handler) PurchaseFormPage(w http.ResponseWriter, r *http.Request) {
+	queries := db.New(h.DB())
+	ctx := r.Context()
+
+	type Suppliers struct {
+		Suppliers []db.Supplier
+		CSRFToken string
+	}
+
+	suppliers, err := queries.AllSuppliers(ctx)
+	if err != nil {
+		h.Log().Error("error querying all suppliers: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	csrfToken := getCSRFTokenFromContext(ctx)
+
+	data := Suppliers{
+		Suppliers: suppliers,
+		CSRFToken: csrfToken,
+	}
+
+	err = views.RenderHTML(w, r, "forms-purchase-form-page", data)
+	if err != nil {
+		h.Log().Error("error rendering view: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
 	}
 }

@@ -21,6 +21,9 @@
 <div class="carousel">
   <select name="purchase_supplier" required>
     <option value="" selected disabled>Proveedor</option>
+    {{ range .Suppliers }}
+    <option value="{{ .SupplierID }}">[{{ formatID .SupplierID }}] {{ .SupplierName }}</option>
+    {{ end }}
   </select>
   <button class="outline">Inscribir Nuevo</button>
 </div>

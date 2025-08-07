@@ -1,6 +1,9 @@
 {{ define "purchase-form" }}
 <h1>Solicitud de Compra</h1>
-<form id="addpurchase">
+<form id="addpurchase"
+      method="POST"
+      action="/request/purchase"
+>
   <select id="fields-purchase-type" required>
     <option value="" selected disabled>Tipo</option>
     <option value="catering">Alimentación</option>
@@ -48,7 +51,12 @@
    });
   </script>
   <div style="display:flex;justify-content:right">
-      <button type="sumbit">Solicitar Compra</button>
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#addpurchase"
+      loading-state
+    >Solicitar Compra</button>
   </div>
 </form>
 {{ end }}
