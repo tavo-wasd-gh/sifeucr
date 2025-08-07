@@ -23,7 +23,7 @@ func (h *Handler) PurchaseMiddleware() func(http.Handler) http.Handler {
 
 			queries := db.New(h.DB())
 			perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
-				UserID: userID,
+				UserID:    userID,
 				AccountID: accountID,
 			})
 			if err != nil {

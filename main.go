@@ -2,7 +2,9 @@ package main
 
 import (
 	"compress/gzip"
+	"crypto/rand"
 	"embed"
+	"encoding/hex"
 	"io"
 	"io/fs"
 	"log"
@@ -77,6 +79,10 @@ func main() {
 	// Production
 	isProduction := os.Getenv("SF_PROD") == "1"
 
+	// Sending Emails
+	smtpUser := os.Getenv("SF_SMTP_USER")
+	smtpPass := os.Getenv("SF_SMTP_PASS")
+
 	// Sessions
 	sessionStore := sessions.NewStore[config.Session](config.TokenLength, config.MaxSessions)
 
@@ -84,6 +90,9 @@ func main() {
 	handlerConfig := handlers.Config{
 		IsFirstTimeSetup: isFirstTimeSetup,
 		Production:       isProduction,
+		SmtpUser:         smtpUser,
+		SmtpPass:         smtpPass,
+		ServerSecret:     generateSecretKey(),
 		Logger: &handlers.Logger{
 			Enabled: os.Getenv("SF_DEBUG") == "1",
 		},
@@ -152,4 +161,13 @@ type gzipResponseWriter struct {
 
 func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
+}
+
+func generateSecretKey() string {
+	bytes := make([]byte, 32)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(bytes)
 }

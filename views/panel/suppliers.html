@@ -28,10 +28,12 @@
   <input type="number" step="1" name="id"    placeholder="Cédula" aria-label="Cédula" required>
   <input type="text"            name="name"  placeholder="Nombre" aria-label="Nombre" required>
   <input type="text"            name="email" placeholder="Correo" aria-label="Correo" required>
-  <select name="country">
-    <option value="506" selected>+506</option>
-  </select>
-  <input type="number" step="1" name="phone"    placeholder="Teléfono"  aria-label="Teléfono"  required>
+  <div class="grid">
+    <select name="country">
+      <option value="506" selected>+506</option>
+    </select>
+    <input type="number" step="1" name="phone"    placeholder="Teléfono"  aria-label="Teléfono"  required>
+  </div>
   <input type="text"            name="location" placeholder="Ubicación" aria-label="Ubicación" required>
   <div style="display:flex;justify-content:right">
     <button

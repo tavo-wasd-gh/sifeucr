@@ -26,6 +26,9 @@ type Logger struct {
 type Config struct {
 	IsFirstTimeSetup bool
 	Production       bool
+	SmtpUser         string
+	SmtpPass         string
+	ServerSecret     string
 	Logger           *Logger
 	Views            map[string]*template.Template
 	DB               *sql.DB
@@ -45,6 +48,18 @@ func (h *Handler) IsFirstTimeSetup() bool {
 
 func (h *Handler) Production() bool {
 	return h.cfg.Production
+}
+
+func (h *Handler) SmtpUser() string {
+	return h.cfg.SmtpUser
+}
+
+func (h *Handler) SmtpPass() string {
+	return h.cfg.SmtpPass
+}
+
+func (h *Handler) ServerSecret() string {
+	return h.cfg.ServerSecret
 }
 
 func (h *Handler) Views() map[string]*template.Template {

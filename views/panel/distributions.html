@@ -55,4 +55,7 @@
     >Agregar Distribución</button>
   </div>
 </form>
+{{ range .Distributions }}
+{{ template "dist-modal" . }}
+{{ end }}
 {{ end }}

@@ -322,6 +322,9 @@ WHERE dist_id = ?;
 #+begin_src sql
 -- name: AllSuppliers :many
 SELECT * FROM suppliers;
+
+-- name: SupplierEmails :many
+SELECT supplier_email FROM suppliers;
 #+end_src
 
 ** Catálogos

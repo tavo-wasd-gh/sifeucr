@@ -37,4 +37,7 @@
     >Agregar Período</button>
   </div>
 </form>
+{{ range .Periods }}
+{{ template "period-modal" . }}
+{{ end }}
 {{ end }}

@@ -12,9 +12,13 @@ import (
 func routes(handler *handlers.Handler) *http.ServeMux {
 	router := http.NewServeMux()
 
+	// --- NAVBAR ---
+
 	router.HandleFunc("GET /", handler.Static("index-page"))
+
 	router.HandleFunc("GET /proveedores", handler.Static("suppliers-page"))
 	router.HandleFunc("GET /fse", handler.Static("fse-page"))
+
 	router.HandleFunc("POST /cuenta", handler.LoginForm)
 	router.Handle("GET /cuenta",
 		middleware.With(middleware.Stack(handler.DashboardMiddleware),
@@ -22,8 +26,11 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	)
 	router.HandleFunc("GET /cerrar", handler.Logout)
 
-	router.HandleFunc("GET /panel/setup", handler.FirstTimeSetupPage)
-	router.HandleFunc("POST /panel/setup", handler.FirstTimeSetup)
+	// --- SUPPLIERS ---
+	router.HandleFunc("POST /proveedores", handler.SendSupplierSummaryToken)
+	router.HandleFunc("GET /proveedores/{id}/{token}", handler.LoadSupplierSummary)
+
+	// --- PANEL ---
 
 	// Panel read middleware
 	router.Handle(
@@ -72,7 +79,9 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /panel/item/add", middleware.With(panelMod, handler.AddItem))
 	router.Handle("PUT /panel/item/update/{id}", middleware.With(panelMod, handler.UpdateItem))
 
-	// Vista de formularios
+	// --- FORMS ---
+
+	// Protección de formularios
 	formStack := middleware.Stack(
 		handler.AuthenticationMiddleware(
 			false,        // Do not enforce CSRF protection
@@ -94,6 +103,11 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 			handler.PurchaseMiddleware(),
 		), handler.Static("404")),
 	)
+
+	// SETUP
+
+	router.HandleFunc("GET /panel/setup", handler.FirstTimeSetupPage)
+	router.HandleFunc("POST /panel/setup", handler.FirstTimeSetup)
 
 	return router
 }

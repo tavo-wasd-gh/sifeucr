@@ -9,10 +9,9 @@ import (
 )
 
 const (
-	url = "https://git.tavo.one/tavo/axiom/raw/branch/main/res/css/axiom.min.css"
+	url     = "https://git.tavo.one/tavo/axiom/raw/branch/main/res/css/axiom.min.css"
 	destDir = "static/css"
 )
-
 
 func main() {
 	// Extract the filename from the URL

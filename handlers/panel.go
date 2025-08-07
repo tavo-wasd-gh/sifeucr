@@ -24,6 +24,7 @@ type panel struct {
 	Items           []db.FullCatalogItem
 	CSRFToken       string
 	AddUserForm     bool
+	AddItemForm     bool
 }
 
 func (h *Handler) Panel(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +54,7 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all users: %v", err)
 	}
+	panel.AddUserForm = false
 
 	panel.BudgetEntries, err = queries.GetAllBudgetEntries(ctx)
 	if err != nil {
@@ -94,8 +96,7 @@ func (h *Handler) loadPanel(ctx context.Context) (*panel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all items: %v", err)
 	}
-
-	panel.AddUserForm = false
+	panel.AddItemForm = false
 
 	csrfToken := getCSRFTokenFromContext(ctx)
 	panel.CSRFToken = csrfToken

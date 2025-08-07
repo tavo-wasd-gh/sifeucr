@@ -69,17 +69,17 @@ func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
 
 	type UserView struct {
 		db.User
-		Permissions []db.AllPermissionsRow
+		Permissions     []db.AllPermissionsRow
 		PermissionTypes []config.PermissionType
-		Accounts []db.Account
-		AddUserForm bool
+		Accounts        []db.Account
+		AddUserForm     bool
 	}
 
 	userView := UserView{
-		User: insertedUser,
-		Accounts: allAccounts,
+		User:            insertedUser,
+		Accounts:        allAccounts,
 		PermissionTypes: config.PermissionTypes,
-		AddUserForm: true,
+		AddUserForm:     true,
 	}
 
 	if err = views.RenderHTML(w, r, "user", userView); err != nil {

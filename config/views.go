@@ -62,9 +62,11 @@ var ViewMap = map[string][]string{
 		"views/panel/permission.html",
 		"views/panel/periods.html",
 		"views/panel/period.html",
+		"views/panel/period-modal.html",
 		"views/panel/period-update-form.html",
 		"views/panel/distributions.html",
 		"views/panel/distribution.html",
+		"views/panel/dist-modal.html",
 		"views/panel/dist-update-form.html",
 		"views/panel/suppliers.html",
 		"views/panel/supplier.html",
@@ -94,6 +96,7 @@ var ViewMap = map[string][]string{
 	"period": {
 		"views/panel/period.html",
 		"views/panel/period-update-form.html",
+		"views/panel/period-modal.html",
 	},
 	"period-update-form": {
 		"views/panel/period-update-form.html",
@@ -101,6 +104,7 @@ var ViewMap = map[string][]string{
 	"distribution": {
 		"views/panel/distribution.html",
 		"views/panel/dist-update-form.html",
+		"views/panel/dist-modal.html",
 	},
 	"dist-update-form": {
 		"views/panel/dist-update-form.html",

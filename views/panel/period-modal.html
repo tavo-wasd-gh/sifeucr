@@ -1,0 +1,11 @@
+{{ define "period-modal" }}
+<dialog id="modal-period-{{ .PeriodID }}">
+  <article>
+    <header>
+      <button rel="prev" type="button" onclick="toggleModal('modal-period-{{ .PeriodID }}')"></button>
+      <h3>Editar Período #{{ .PeriodID }}</h3>
+    </header>
+    {{ template "period-update-form" . }}
+  </article>
+</dialog>
+{{ end }}
