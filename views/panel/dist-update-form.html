@@ -4,7 +4,7 @@
   method="PUT"
   action="/panel/dist/update/{{ .DistID }}"
 >
-  <input type="number" step=".01"  value="{{ .DistAmount }}" name="amount" placeholder="Monto" aria-label="Monto" required>
+  <input type="number" step=".01" value="{{ printf "%.2f" .DistAmount}}" name="amount" placeholder="Monto" aria-label="Monto" required>
   <div style="display:flex;justify-content:right">
     <button
       type="submit"

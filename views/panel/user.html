@@ -1,7 +1,7 @@
 {{ define "user" }}
-<tr class="clickable" onclick="toggleModal('modal-user-{{ .UserID }}')">
-  <td>{{ .UserEmail }}</td>
-  <td >{{ .UserName }}</td>
+<tr>
+  <td class="clickable" onclick="toggleModal('modal-user-{{ .UserID }}')">{{ .UserEmail }}</td>
+  <td>{{ .UserName }}</td>
   <td style="text-align:right;">
     <div style="display:flex;justify-content:flex-end;">
       <form method="POST" action="/panel/user/toggle/{{ .UserID }}">
