@@ -6,8 +6,10 @@
 >
   <select id="fields-purchase-type" required>
     <option value="" selected disabled>Tipo</option>
-    <option value="catering">Alimentación</option>
-    <option value="generic">Otro</option>
+    <option value="catering" disabled>Alimentación</option>
+    <option value="generic">Servicios</option>
+    <option value="supplies" disabled>Suministros</option>
+    <option value="goods" disabled>Bienes</option>
   </select>
   <div class="form-section" id="field-generic" style="display:none;">
     {{ template "purchase-form-generic" . }}
