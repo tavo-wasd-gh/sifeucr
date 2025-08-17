@@ -200,13 +200,13 @@ CREATE TABLE IF NOT EXISTS "purchase_subscriptions" (
     "subscription_signed"       BOOLEAN NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS "purchases_docs" (
+CREATE TABLE IF NOT EXISTS "purchase_docs" (
     "doc_id"       INTEGER PRIMARY KEY NOT NULL,
     "doc_purchase" INTEGER NOT NULL REFERENCES "purchases"("purchase_id"),
     "doc_url"      TEXT    NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS "purchases_breakdown" (
+CREATE TABLE IF NOT EXISTS "purchase_breakdowns" (
     "breakdown_id"       INTEGER PRIMARY KEY NOT NULL,
     "breakdown_purchase" INTEGER NOT NULL REFERENCES "purchases"("purchase_id"),
     "breakdown_item"     INTEGER NOT NULL REFERENCES "items"("item_id"),
@@ -270,7 +270,7 @@ JOIN full_catalogs c ON i.item_catalog = c.catalog_id;
 *** Compras
 
 #+begin_src sql
-CREATE VIEW full_purchases AS
+CREATE VIEW IF NOT EXISTS full_purchases AS
 SELECT
   p.*,
   r.*,
@@ -309,6 +309,15 @@ JOIN periods AS per
     ON d.dist_period = per.period_id
 JOIN suppliers AS s
     ON p.purchase_supplier = s.supplier_id;
+
+CREATE VIEW IF NOT EXISTS full_purchase_breakdowns AS
+SELECT
+    pb.*,
+    p.*,
+    i.*
+FROM purchase_breakdowns pb
+JOIN purchases p ON p.purchase_id = pb.breakdown_purchase
+JOIN items i     ON i.item_id     = pb.breakdown_item;
 #+end_src
 
 * DQL: Consultas
@@ -388,6 +397,15 @@ SELECT * FROM suppliers;
 
 -- name: SupplierEmails :many
 SELECT supplier_email FROM suppliers;
+
+-- name: SupplierByCatalogGrouping :one
+SELECT
+  s.*
+FROM catalogs AS c
+JOIN suppliers AS s
+  ON s.supplier_id = c.catalog_supplier
+WHERE c.catalog_grouping = ?
+LIMIT 1;
 #+end_src
 
 ** Catálogos
@@ -406,6 +424,14 @@ SELECT * FROM full_catalog_items;
 -- name: CatalogItemByID :one
 SELECT * FROM full_catalog_items
 WHERE item_id = ?;
+
+-- name: ItemAmountByID :one
+SELECT item_amount FROM items
+WHERE item_id = ?;
+
+-- name: BreakdownsByPurchaseID :many
+SELECT * FROM full_purchase_breakdowns
+WHERE breakdown_purchase = ?;
 #+end_src
 
 ** Permisos
@@ -761,5 +787,13 @@ SET subscription_signed = ?,
     subscription_signature = ?,
     subscription_gross_amount = ?
 WHERE subscription_id = ?;
-#+end_src
 
+-- name: AddPurchaseBreakdown :one
+INSERT INTO purchase_breakdowns (
+    "breakdown_purchase",
+    "breakdown_item",
+    "breakdown_quantity"
+) VALUES (
+    ?, ?, ?
+) RETURNING *;
+#+end_src

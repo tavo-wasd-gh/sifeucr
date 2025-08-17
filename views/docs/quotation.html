@@ -175,12 +175,23 @@
         </tr>
       </thead>
       <tbody>
+        {{ if .HasBreakdown }}
+          {{ range .Breakdowns }}
+          <tr>
+            <td style="text-align:right;">{{ .BreakdownQuantity }}</td>
+            <td>{{ .ItemDescription }}</td>
+            <td style="text-align:right;">{{ currency .ItemAmount }}</td>
+            <td style="text-align:right;">{{ currency (opMult .ItemAmount .BreakdownQuantity)}}</td>
+          </tr>
+          {{ end }}
+        {{ else }}
         <tr>
-          <td>1</td>
-          <td>{{ .ReqDescr }}</td>
-          <td>{{ currency .PurchaseGrossAmount }}</td>
-          <td>{{ currency .PurchaseGrossAmount }}</td>
+          <td style="text-align:right;">1</td>
+          <td style="text-align:left;">{{ .ReqDescr }}</td>
+          <td style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
+          <td style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
         </tr>
+        {{ end }}
       </tbody>
     </table>
     <div class="two-column">
@@ -191,7 +202,7 @@
           </p>
         </div>
         <div>
-          <p>IMPUESTO ({{ .PurchaseTaxRate }}): {{ currency (opMult .PurchaseTaxRate .PurchaseGrossAmount) }}
+          <p>IMPUESTO ({{ opMult .PurchaseTaxRate 100 }}%): {{ currency (opMult .PurchaseTaxRate .PurchaseGrossAmount) }}
           </p>
         </div>
         <div>

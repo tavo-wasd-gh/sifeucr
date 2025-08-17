@@ -51,8 +51,10 @@ type QuotationData struct {
 	ReqDescr string
 	PurchaseGrossAmount float64
 	PurchaseTaxRate float64
+	Breakdowns []db.FullPurchaseBreakdown
 	// Calculated
 	AccountNames string
+	HasBreakdown bool
 }
 
 func (h *Handler) renderQuotation(w http.ResponseWriter, r *http.Request, docReq int64) error {
@@ -62,6 +64,16 @@ func (h *Handler) renderQuotation(w http.ResponseWriter, r *http.Request, docReq
 	purchase, err := queries.FullPurchaseByReqID(ctx, docReq)
 	if err != nil {
 		return fmt.Errorf("error printing request: %v", err)
+	}
+
+	breakdowns, err := queries.BreakdownsByPurchaseID(ctx, purchase.PurchaseID)
+	if err != nil {
+		return fmt.Errorf("error printing request: %v", err)
+	}
+
+	hasBreakdown := false
+	if len(breakdowns) != 0 {
+		hasBreakdown = true
 	}
 
 	subs, err := queries.PurchaseSubscriptionsByRequestID(ctx, docReq)
@@ -87,6 +99,8 @@ func (h *Handler) renderQuotation(w http.ResponseWriter, r *http.Request, docReq
 		PurchaseGrossAmount: purchase.PurchaseGrossAmount,
 		PurchaseTaxRate: purchase.PurchaseTaxRate,
 		AccountNames: accountNames,
+		Breakdowns: breakdowns,
+		HasBreakdown: hasBreakdown,
 	}
 
 	err = views.RenderHTML(w, r, "doc-quotation", data)
