@@ -174,20 +174,30 @@ Ejecuciones de presupuesto gravadas. Deben rebajarse de una distribución presup
 CREATE TABLE IF NOT EXISTS "purchases" (
     "purchase_id"              INTEGER PRIMARY KEY NOT NULL,
     "purchase_request"         INTEGER NOT NULL REFERENCES "requests"("req_id"),
-    "purchase_dist"            INTEGER NOT NULL REFERENCES "distributions"("dist_id"),
     "purchase_required"        INTEGER NOT NULL,
     "purchase_supplier"        INTEGER NOT NULL REFERENCES "suppliers"("supplier_id"),
     "purchase_justif_approved" BOOLEAN NOT NULL,
-    "purchase_currency"        TEXT    DEFAULT 'CRC', -- https://en.wikipedia.org/wiki/ISO_4217
-    "purchase_ex_rate_colones" REAL    DEFAULT '1.00',
+    "purchase_currency"        TEXT    NOT NULL DEFAULT 'CRC', -- https://en.wikipedia.org/wiki/ISO_4217
+    "purchase_ex_rate_colones" REAL    NOT NULL DEFAULT '1.00',
     "purchase_gross_amount"    REAL    NOT NULL,
-    "purchase_discount"        REAL    DEFAULT '0.00',
-    "purchase_tax_rate"        REAL    DEFAULT '0.02',
-    "purchase_geco_sol"        TEXT    NOT NULL UNIQUE DEFAULT '',
-    "purchase_geco_ord"        TEXT    NOT NULL UNIQUE DEFAULT '',
+    "purchase_discount"        REAL    NOT NULL DEFAULT '0.00',
+    "purchase_tax_rate"        REAL    NOT NULL DEFAULT '0.02',
+    "purchase_geco_sol"        TEXT    NOT NULL DEFAULT '',
+    "purchase_geco_ord"        TEXT    NOT NULL DEFAULT '',
     "purchase_bill"            TEXT    NOT NULL DEFAULT '',
     "purchase_transfer"        TEXT    NOT NULL DEFAULT '',
     "purchase_status"          TEXT    NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS "purchase_subscriptions" (
+    "subscription_id"           INTEGER PRIMARY KEY NOT NULL,
+    "subscription_purchase"     INTEGER NOT NULL REFERENCES "purchases"("purchase_id"),
+    "subscription_user"         INTEGER NOT NULL REFERENCES "users"("user_id"),
+    "subscription_dist"         INTEGER NOT NULL REFERENCES "distributions"("dist_id"),
+    "subscription_issued"       INTEGER NOT NULL,
+    "subscription_gross_amount" REAL    NOT NULL,
+    "subscription_signature"    TEXT    NOT NULL,
+    "subscription_signed"       BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "purchases_docs" (
@@ -254,7 +264,51 @@ JOIN suppliers s ON c.catalog_supplier = s.supplier_id;
 CREATE VIEW IF NOT EXISTS full_catalog_items AS
 SELECT i.*, c.*
 FROM items         i
-JOIN full_catalogs c ON i.item_catalog = c.catalog_id
+JOIN full_catalogs c ON i.item_catalog = c.catalog_id;
+#+end_src
+
+*** Compras
+
+#+begin_src sql
+CREATE VIEW full_purchases AS
+SELECT
+  p.*,
+  r.*,
+  u.*,
+  s.*
+FROM purchases AS p
+JOIN requests  AS r ON p.purchase_request = r.req_id
+JOIN users     AS u ON r.req_user        = u.user_id
+JOIN suppliers AS s ON p.purchase_supplier = s.supplier_id;
+
+CREATE VIEW IF NOT EXISTS full_purchase_subscriptions AS
+SELECT
+    ps.*,
+    p.*,
+    u.*,
+    d.*,
+    r.*,
+    be.*,
+    a.*,
+    per.*,
+    s.*
+FROM purchase_subscriptions AS ps
+JOIN purchases AS p
+    ON ps.subscription_purchase = p.purchase_id
+JOIN users AS u
+    ON ps.subscription_user = u.user_id
+JOIN distributions AS d
+    ON ps.subscription_dist = d.dist_id
+JOIN requests AS r
+    ON p.purchase_request = r.req_id
+JOIN budget_entries AS be
+    ON d.dist_entry_code = be.entry_id
+JOIN accounts AS a
+    ON d.dist_account = a.account_id
+JOIN periods AS per
+    ON d.dist_period = per.period_id
+JOIN suppliers AS s
+    ON p.purchase_supplier = s.supplier_id;
 #+end_src
 
 * DQL: Consultas
@@ -311,6 +365,15 @@ SELECT * FROM periods;
 #+begin_src sql
 -- name: AllDistributions :many
 SELECT * FROM full_distributions;
+
+-- name: AllActiveDistributions :many
+SELECT * FROM full_distributions WHERE dist_active = 1;
+
+-- name: AccountDistributions :many
+SELECT * FROM full_distributions WHERE dist_account = ?;
+
+-- name: AccountActiveDistributions :many
+SELECT * FROM full_distributions WHERE dist_account = ? AND dist_active = 1;
 
 -- name: DistributionByID :one
 SELECT * FROM full_distributions
@@ -393,6 +456,33 @@ WHERE u.user_id = ? AND a.account_id = ?;
 -- name: RequestsByAccountID :many
 SELECT * FROM requests
 WHERE req_account = ?;
+
+-- name: RequestByID :one
+SELECT * FROM requests
+WHERE req_id = ?;
+#+end_src
+
+** Compras
+
+#+begin_src sql
+-- name: AllPurchases :many
+SELECT * FROM full_purchases;
+
+-- name: FullPurchaseByReqID :one
+SELECT * FROM full_purchases
+WHERE req_id = ?;
+
+-- name: AllPurchaseSubscriptions :many
+SELECT * FROM full_purchase_subscriptions;
+
+-- name: FullPurchaseSubscriptionsByDistID :many
+SELECT * FROM full_purchase_subscriptions
+WHERE subscription_dist = ?;
+
+-- name: PurchaseSubscriptionsByRequestID :many
+SELECT DISTINCT *
+FROM full_purchase_subscriptions
+WHERE req_id = ?;
 #+end_src
 
 * DML: Gestión
@@ -625,7 +715,7 @@ INSERT INTO requests (
     req_descr,
     req_justif
 ) VALUES (
-    ?, ?, strftime('%s','now'), ?, ?
+    ?, ?, ?, ?, ?
 ) RETURNING *;
 #+end_src
 
@@ -635,7 +725,6 @@ INSERT INTO requests (
 -- name: AddPurchase :one
 INSERT INTO purchases (
     purchase_request,
-    purchase_dist,
     purchase_required,
     purchase_supplier,
     purchase_justif_approved,
@@ -650,6 +739,27 @@ INSERT INTO purchases (
     purchase_transfer,
     purchase_status
 ) VALUES (
-    ?, ?, ?, ?, 0, 'CRC', 1.00, ?, 0.00, 0.02, ?, ?, ?, ?, 'Solicitado'
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 ) RETURNING *;
+
+-- name: AddPurchaseSubscription :one
+INSERT INTO purchase_subscriptions (
+    "subscription_purchase",
+    "subscription_user",
+    "subscription_dist",
+    "subscription_issued",
+    "subscription_gross_amount",
+    "subscription_signature",
+    "subscription_signed"
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?
+) RETURNING *;
+
+-- name: UpdatePurchaseSubscription :exec
+UPDATE purchase_subscriptions
+SET subscription_signed = ?,
+    subscription_signature = ?,
+    subscription_gross_amount = ?
+WHERE subscription_id = ?;
 #+end_src
+

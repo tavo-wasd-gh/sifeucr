@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"html/template"
 	"time"
+	"encoding/json"
 
 	"sifeucr/internal/db"
 )
@@ -126,6 +128,15 @@ var ViewMap = map[string][]string{
 	"item-update-form": {
 		"views/panel/item-update-form.html",
 	},
+	"forms-purchase-registered": {
+		"views/forms/purchase-registered.html",
+	},
+	"doc-justification": {
+		"views/docs/justification.html",
+	},
+	"doc-quotation": {
+		"views/docs/quotation.html",
+	},
 
 	"forms-purchase-form-page": append(
 		base,
@@ -155,6 +166,23 @@ var ViewMap = map[string][]string{
 }
 
 var ViewFormatters = map[string]any{
+	"opMult": func(a, b float64) float64 {
+		return a * b
+	},
+	"opSum": func(nums ...float64) float64 {
+		var total float64
+		for _, n := range nums {
+			total += n
+		}
+		return total
+	},
+	"pathToSVG": func(s string) template.HTML {
+		sig, err := SignatureJSONToSVGText(s, 400, 300, 2, "#000")
+		if err != nil {
+			return ""
+		}
+		return template.HTML(sig)
+	},
 	"summary": func(s string, max int) string {
 		if max >= len(s) {
 			return s
@@ -174,8 +202,9 @@ var ViewFormatters = map[string]any{
 		}
 		return ""
 	},
-	"currency":      formatAsCurrency,
+	"currency":      FormatAsCurrency,
 	"unixDateToStr": unixDateToStr,
+	"unixDateLong": unixDateLong,
 	"eq": func(a, b any) bool {
 		switch va := a.(type) {
 		case int:
@@ -239,7 +268,7 @@ var ViewFormatters = map[string]any{
 	"formatID": formatID,
 }
 
-func formatAsCurrency(amount float64) string {
+func FormatAsCurrency(amount float64) string {
 	sign := ""
 	if amount < 0 {
 		sign = "-"
@@ -270,6 +299,36 @@ func unixDateToStr(timestamp int64) string {
 	return t.Format("2006-01-02")
 }
 
+func unixDateLong(timestamp int64) string {
+	loc, _ := time.LoadLocation("America/Costa_Rica")
+	t := time.Unix(timestamp, 0).In(loc)
+
+	// Spanish names
+	days := []string{"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"}
+	months := []string{
+		"enero", "febrero", "marzo", "abril", "mayo", "junio",
+		"julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+	}
+
+	dayName := days[t.Weekday()]
+	monthName := months[t.Month()-1]
+
+	// Hour in 12h format
+	hour := t.Hour()
+	ampm := "AM"
+	if hour >= 12 {
+		ampm = "PM"
+	}
+	hour12 := hour % 12
+	if hour12 == 0 {
+		hour12 = 12
+	}
+
+	return fmt.Sprintf("%d:%02d%s %s %d de %s, %d",
+		hour12, t.Minute(), ampm,
+		dayName, t.Day(), monthName, t.Year())
+}
+
 // Format as Costa Rican ID
 func formatID(id int64) string {
 	idStr := strconv.FormatInt(id, 10)
@@ -285,4 +344,44 @@ func formatID(id int64) string {
 		// Any other: return raw number
 		return idStr
 	}
+}
+
+// SignatureJSONToSVGText converts the JSON-encoded normalized paths into a plain SVG string.
+func SignatureJSONToSVGText(jsonStr string, width, height int, stroke float64, color string) (string, error) {
+	var paths [][][]float64
+	if err := json.Unmarshal([]byte(jsonStr), &paths); err != nil {
+		return "", fmt.Errorf("parse signature json: %w", err)
+	}
+	return pathsToSVG(paths, width, height, stroke, color), nil
+}
+
+func pathsToSVG(paths [][][]float64, width, height int, stroke float64, color string) string {
+	if color == "" {
+		color = "black"
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d">`, width, height, width, height)
+	for _, path := range paths {
+		if len(path) == 0 {
+			continue
+		}
+		b.WriteString(`<path fill="none"`)
+		fmt.Fprintf(&b, ` stroke="%s" stroke-width="%g" stroke-linecap="round" stroke-linejoin="round"`, color, stroke)
+		b.WriteString(` vector-effect="non-scaling-stroke" d="`)
+		for i, pt := range path {
+			if len(pt) != 2 {
+				continue
+			}
+			x := pt[0] * float64(width)
+			y := pt[1] * float64(height)
+			if i == 0 {
+				fmt.Fprintf(&b, "M%.3f %.3f", x, y)
+			} else {
+				fmt.Fprintf(&b, " L%.3f %.3f", x, y)
+			}
+		}
+		b.WriteString(`"/>`)
+	}
+	b.WriteString(`</svg>`)
+	return b.String()
 }

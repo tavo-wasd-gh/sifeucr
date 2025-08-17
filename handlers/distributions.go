@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
+	"time"
 	"strconv"
 
 	"git.tavo.one/tavo/axiom/forms"
@@ -109,4 +112,23 @@ func (h *Handler) UpdateDistribution(w http.ResponseWriter, r *http.Request) {
 	if err = views.RenderHTML(w, r, "dist-update-form", insertedDistribution); err != nil {
 		h.Log().Error("failed to render updated distribution: %v", err)
 	}
+}
+
+func (h *Handler) getCurrentActiveDist(ctx context.Context, accountID int64) (db.FullDistribution, error) {
+	queries := db.New(h.DB())
+
+	dd, err := queries.AccountActiveDistributions(ctx, accountID)
+	if err != nil {
+		return db.FullDistribution{}, fmt.Errorf("failed to query account active dists: %v", err)
+	}
+
+	now := time.Now().Unix()
+
+    for i := range dd {
+        if now >= dd[i].PeriodStart && now <= dd[i].PeriodEnd {
+            return dd[i], nil
+        }
+    }
+
+	return db.FullDistribution{}, fmt.Errorf("could not find current active dist")
 }

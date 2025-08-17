@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"sifeucr/config"
 	"sifeucr/internal/db"
@@ -101,4 +102,56 @@ func (h *Handler) authenticate(
 	// }
 
 	return session.UserID, session.AccountID, newst, newct, nil
+}
+
+func (h *Handler) ProtectedDocsMiddleware() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			reqStr := r.PathValue("req")
+			req, err := strconv.ParseInt(reqStr, 10, 64)
+			if err != nil {
+				h.Log().Error("error authenticating for protected docs: %v", err)
+				return
+			}
+
+			queries := db.New(h.DB())
+
+			userID := getUserIDFromContext(ctx)
+			accountID := getAccountIDFromContext(ctx)
+			perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
+				UserID: userID,
+				AccountID: accountID,
+			})
+			if err != nil {
+				h.Log().Error("error authenticating for protected docs: %v", err)
+				return
+			}
+
+			subs, err := queries.PurchaseSubscriptionsByRequestID(ctx, req)
+			if err != nil {
+				h.Log().Error("error authenticating for protected docs: %v", err)
+				return
+			}
+			allowed := false
+
+			for _, sub := range subs {
+				if config.HasPermission(perm.PermissionInteger, config.ReadAdvanced) ||
+					sub.AccountID == accountID {
+					allowed = true
+					break
+				}
+			}
+
+			if allowed == false {
+				h.Log().Error("error authenticating for protected docs: %v", err)
+				return
+			}
+
+			ctx = context.WithValue(ctx, "req", req)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

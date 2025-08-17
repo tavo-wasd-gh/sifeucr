@@ -15,9 +15,9 @@ type dashboard struct {
 	User      db.User
 	Account   db.Account
 	CSRFToken string
-	Purchases []db.Purchase
+	Purchases []db.FullPurchaseSubscription
 	// Advanced
-	// AllRequests  []db.AllRequestsRow
+	AllPurchases  []db.FullPurchaseSubscription
 	ReadAdvanced bool
 }
 
@@ -64,6 +64,28 @@ func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
 	dashboard.Account, err = queries.AccountByID(ctx, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query account by ID: %v", err)
+	}
+
+	distributions, err := queries.AccountDistributions(ctx, dashboard.Account.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query distributions by account ID: %v", err)
+	}
+
+	for _, d := range distributions {
+		periodPurchases, err := queries.FullPurchaseSubscriptionsByDistID(ctx, d.DistID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query purchases by account: %v", err)
+		}
+
+		dashboard.Purchases = append(dashboard.Purchases, periodPurchases...)
+	}
+
+	if dashboard.ReadAdvanced {
+		dashboard.AllPurchases, err = queries.AllPurchaseSubscriptions(ctx)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to query all purchases subscriptions: %v", err)
+		}
 	}
 
 	csrfToken := getCSRFTokenFromContext(ctx)
