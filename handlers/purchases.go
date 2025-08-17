@@ -79,7 +79,6 @@ func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseP
 		PurchaseTransfer: "",
 		PurchaseStatus:   "",
 		// Typical defaults
-		PurchaseJustifApproved: false,
 		PurchaseCurrency:       "CRC",
 		PurchaseExRateColones:  1.00,
 		PurchaseDiscount:       0.00,

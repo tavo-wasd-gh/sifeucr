@@ -176,7 +176,6 @@ CREATE TABLE IF NOT EXISTS "purchases" (
     "purchase_request"         INTEGER NOT NULL REFERENCES "requests"("req_id"),
     "purchase_required"        INTEGER NOT NULL,
     "purchase_supplier"        INTEGER NOT NULL REFERENCES "suppliers"("supplier_id"),
-    "purchase_justif_approved" BOOLEAN NOT NULL,
     "purchase_currency"        TEXT    NOT NULL DEFAULT 'CRC', -- https://en.wikipedia.org/wiki/ISO_4217
     "purchase_ex_rate_colones" REAL    NOT NULL DEFAULT '1.00',
     "purchase_gross_amount"    REAL    NOT NULL,
@@ -197,7 +196,8 @@ CREATE TABLE IF NOT EXISTS "purchase_subscriptions" (
     "subscription_issued"       INTEGER NOT NULL,
     "subscription_gross_amount" REAL    NOT NULL,
     "subscription_signature"    TEXT    NOT NULL,
-    "subscription_signed"       BOOLEAN NOT NULL
+    "subscription_signed"       BOOLEAN NOT NULL,
+    "subscription_active"       BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "purchase_docs" (
@@ -753,7 +753,6 @@ INSERT INTO purchases (
     purchase_request,
     purchase_required,
     purchase_supplier,
-    purchase_justif_approved,
     purchase_currency,
     purchase_ex_rate_colones,
     purchase_gross_amount,
@@ -765,7 +764,7 @@ INSERT INTO purchases (
     purchase_transfer,
     purchase_status
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 ) RETURNING *;
 
 -- name: AddPurchaseSubscription :one
@@ -776,17 +775,20 @@ INSERT INTO purchase_subscriptions (
     "subscription_issued",
     "subscription_gross_amount",
     "subscription_signature",
-    "subscription_signed"
+    "subscription_signed",
+    "subscription_active"
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?
 ) RETURNING *;
 
--- name: UpdatePurchaseSubscription :exec
+-- name: UpdatePurchaseSubscription :one
 UPDATE purchase_subscriptions
-SET subscription_signed = ?,
+SET subscription_gross_amount = ?,
+    subscription_signed = ?,
     subscription_signature = ?,
-    subscription_gross_amount = ?
-WHERE subscription_id = ?;
+    subscription_active = ?
+WHERE subscription_id = ?
+RETURNING *;
 
 -- name: AddPurchaseBreakdown :one
 INSERT INTO purchase_breakdowns (
@@ -796,4 +798,35 @@ INSERT INTO purchase_breakdowns (
 ) VALUES (
     ?, ?, ?
 ) RETURNING *;
+#+end_src
+
+** Actualizar Solicitudes
+
+#+begin_src sql
+-- name: PatchRequestCommon :one
+UPDATE requests SET
+    req_descr = ?,
+    req_justif = ?
+WHERE req_id = ?
+RETURNING *;
+#+end_src
+
+** Actualizar Compras
+
+#+begin_src sql
+-- name: PatchPurchaseCommon :one
+UPDATE purchases SET
+    purchase_required = ?,
+    purchase_supplier = ?,
+    purchase_gross_amount = ?
+WHERE purchase_id = ?
+RETURNING *;
+
+-- name: PatchPurchaseSub :one
+UPDATE purchase_subscriptions SET
+    subscription_gross_amount = ?,
+    subscription_signature    = ?,
+    subscription_signed       = ?
+WHERE subscription_id = ?
+RETURNING *;
 #+end_src
