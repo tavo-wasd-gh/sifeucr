@@ -1,12 +1,4 @@
 {{ define "purchase-form-catering" }}
-<label for="#purchase-form-catering-date">Fecha y hora para la que se requiere:</label>
-<input
-  id="purchase-form-catering-date"
-  type="datetime-local"
-  name="purchase_required"
-  placeholder="Requerido"
-  required
->
 <input
   type="text"
   name="purchase_desc"
@@ -20,9 +12,9 @@
 ></textarea>
 <select id="purchase-form-catering-catalog" required>
   <option value="" selected disabled>Agrupación</option>
-  <!-- TODO: range catalogs -->
-  <option value="1460">1460 (Nombre del Proveedor)</option>
-  <!-- end -->
+  {{ range .Catalogs }}
+  <option value="{{ .CatalogGrouping }}">[{{ .CatalogGrouping }}] {{ .CatalogSummary }} ({{ .SupplierName }})</option>
+  {{ end }}
 </select>
 <p id="purchase-form-catering-item-summary"></p>
 <p id="purchase-form-catering-item-desc"></p>
@@ -30,17 +22,17 @@
   <span>
     <select id="purchase-form-catering-items" name="purchase_items[]">
       <option value="" data-catalog="" data-summary="" data-desc="" data-amount="0" selected disabled>Artículo</option>
-      <!-- TODO: range items -->
+      {{ range .Items }}
       <option
           hidden
-          value="1"
-          data-catalog="1460"
-          data-summary="Almuerzos tal tal tal"
-          data-desc="Descripción del artículo de este catálogo."
-          data-amount="1000">
-          [1] Ejemplo
+          value="{{ .ItemID }}"
+          data-catalog="{{ .CatalogGrouping }}"
+          data-summary="{{ .ItemSummary }}"
+          data-desc="{{ .ItemDescription }}"
+          data-amount="{{ .ItemAmount }}">
+          [{{ .ItemNumber }}] {{ .ItemSummary }}
       </option>
-      <!-- end -->
+      {{ end }}
     </select>
     <script>
      // Remove the hidden attr in the ones that match

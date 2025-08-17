@@ -20,9 +20,12 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.HandleFunc("GET /fse", handler.Static("fse-page"))
 
 	router.HandleFunc("POST /cuenta", handler.LoginForm)
-	router.Handle("GET /cuenta",
-		middleware.With(middleware.Stack(handler.DashboardMiddleware),
-			handler.Dashboard),
+	router.Handle(
+		"GET /cuenta",
+		middleware.With(
+			middleware.Stack(handler.DashboardMiddleware),
+			handler.Dashboard,
+		),
 	)
 	router.HandleFunc("GET /cerrar", handler.Logout)
 
@@ -82,7 +85,7 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	// --- FORMS ---
 
 	// Protección de formularios
-	formStack := middleware.Stack(
+	getFormStack := middleware.Stack(
 		handler.AuthenticationMiddleware(
 			false,        // Do not enforce CSRF protection
 			config.Write, // Requires Write Permission
@@ -90,22 +93,40 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 		),
 		handler.PurchaseMiddleware(),
 	)
+	postFormStack := middleware.Stack(
+		handler.AuthenticationMiddleware(
+			true,         // Enforce CSRF protection
+			config.Write, // Requires Write Permission
+			"/cuenta",    // Redirect on error
+		),
+		handler.PurchaseMiddleware(),
+	)
 
 	router.Handle("GET /compra", middleware.With(
-		formStack,
+		getFormStack,
 		handler.PurchaseFormPage,
 	))
 
 	router.Handle("POST /request/purchase", middleware.With(
-		middleware.Stack(
-			handler.AuthenticationMiddleware(
-				true,         // Enforce CSRF protection
-				config.Write, // Requires Write Permission
-				"",           // Do not redirect on error
-			),
-			handler.PurchaseMiddleware(),
-		), handler.Static("404")),
+		postFormStack,
+		handler.NewPurchase,
+	))
+
+	// PROTECTED DOCUMENTS
+
+	protectedPrintStack := middleware.Stack(
+		handler.AuthenticationMiddleware(
+			false,       // Do not enforce CSRF protection
+			config.Read, // Requires Read Permission
+			"/cuenta",   // Redirect on error
+		),
+		handler.ProtectedDocsMiddleware(),
 	)
+
+	router.Handle("GET /doc/{type}/{req}", middleware.With(
+		protectedPrintStack,
+		handler.PrintRequestHandler,
+	))
 
 	// SETUP
 

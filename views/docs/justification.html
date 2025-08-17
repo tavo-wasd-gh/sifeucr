@@ -1,0 +1,101 @@
+{{ define "justification" }}
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justificación</title>
+    <style>
+      body {
+        margin: 1in auto;
+        width: 50rem;
+        max-width: 90vw;
+        font-family: Times, serif;
+        font-size: 14pt;
+        line-height: 1.5;
+      }
+      .right {
+        text-align: right;
+      }
+      .underline {
+        text-decoration: underline;
+      }
+      .letter {
+        text-align: justify;
+      }
+      .firma {
+        --sig-factor: 5.4em;
+        width: calc(var(--sig-factor) * 4);
+        height: calc(var(--sig-factor) * 3);
+      }
+      .firma img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .ruler {
+        width: 18em;
+        border-bottom: 1px solid black;
+      }
+      .firmas {
+        padding: 1in 0;
+      }
+      .firma span {
+        margin: 0;
+        padding: 0;
+      }
+      @media print {
+        body {
+          margin: 0;
+          width: 100%;
+          max-width: 100%;
+        }
+        .firmas {
+          page-break-before: always;
+        }
+        .firma {
+          page-break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="right">
+      <p>Fecha: {{ unixDateToStr .ReqIssued }}</p>
+    </div>
+    <b> Contraloría Estudiantil <br> Secretaría de Finanzas <br> Federación de Estudiantes de la Universidad de Costa Rica <br>
+    </b>
+    <p>Estimadas representaciones estudiantiles</p>
+    <div class="letter">
+      <p>
+        Por parte de
+        <b>{{ .AccountNames }}</b>,
+        se solicita la contratación de un servicio por concepto de: {{ .ReqDescr }}
+        por llevarse a cabo: {{ unixDateLong .PurchaseRequired }}.
+        Se contrata a la entidad proveedora <b>{{ .SupplierName }}</b>,
+        con cédula física/jurídica <b>{{ formatID .SupplierID }}</b>.
+      </p>
+      <p>El costo del servicio es de
+        <span class="underline">{{ currency .PurchaseGrossAmount }}</span>
+        + IVA ({{ .PurchaseTaxRate }}) para un total de
+        <span class="underline">{{ currency .TotalAmount }}</span>
+        colones, y será distribuido de la siguiente manera: </p>
+      <p>{{ .Distribution }}</p>
+      <p>La contratación de este servicio tiene por motivo: {{ .ReqJustif }}.</p>
+      <p>La contratación será realizada bajo la normativa nacional e institucional de la Universidad de Costa Rica, velando por el correcto cumplimiento de los deberes y derechos de ambas partes involucradas. </p>
+    </div>
+    <div class="firmas">
+      <b>Firmas presidencia/tesorería</b><br><br>
+      {{ range .Subscriptions }}
+      <div class="firma">
+        {{ pathToSVG .SubscriptionSignature }}
+      </div>
+      <div class="ruler"></div>
+      <span>{{ .UserName }}</span><br>
+      <span>{{ .AccountName }} ({{ .PeriodName }})</span><br><br>
+      {{ end }}
+    </div>
+  </body>
+</html>
+{{ end }}

@@ -1,0 +1,13 @@
+.canvas-wrap {
+  width: 100%;
+  max-width: 40em;
+  margin: calc(var(--axiom-padding) * 0.5) auto;
+}
+
+.canvas-signature {
+  width: 100%;
+  border: 1px solid var(--axiom-color-border);
+  border-radius: var(--axiom-border-radius);
+  touch-action: none;
+  display: block;
+}
