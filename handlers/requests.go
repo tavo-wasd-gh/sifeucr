@@ -8,14 +8,15 @@ import (
 
 	"git.tavo.one/tavo/axiom/forms"
 
+	"sifeucr/config"
 	"sifeucr/internal/db"
 )
 
 // Patch common request parameters, Description and Justification.
 func (h *Handler) PatchRequestCommon(w http.ResponseWriter, r *http.Request) {
 	type RequestMeta struct {
-		Descr  string `form:"req_patch_geco_sol"`
-		Justif string `form:"req_patch_geco_ord"`
+		Descr  string `form:"req_patch_descr"`
+		Justif string `form:"req_patch_justif"`
 	}
 
 	requestIDStr := r.PathValue("req")
@@ -34,6 +35,12 @@ func (h *Handler) PatchRequestCommon(w http.ResponseWriter, r *http.Request) {
 	form, err := forms.FormToStruct[RequestMeta](r)
 	if err != nil {
 		h.Log().Error("error patching common request params: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	if form.Descr == "" && form.Justif == "" {
+		h.Log().Error("error patching common request params: empty request")
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -73,14 +80,20 @@ func (h *Handler) PatchRequestCommon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, "✅")
+	if form.Descr != "" && form.Justif == "" {
+		fmt.Fprintln(w, config.Summary(request.ReqDescr, 40))
+	} else if form.Descr == "" && form.Justif != "" {
+		fmt.Fprintln(w, config.Summary(request.ReqJustif, 40))
+	} else if form.Descr != "" && form.Justif != "" {
+		fmt.Fprintln(w, "✅")
+	}
 }
 
 // Patch common purchase parameters, like Required (date)
 func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 	type PurchaseCommon struct {
-		Required    int64   `form:"purchase_patch_required"`
-		Supplier    int64   `form:"purchase_patch_supplier"`
+		Required int64 `form:"purchase_patch_required"`
+		Supplier int64 `form:"purchase_patch_supplier"`
 	}
 
 	requestIDStr := r.PathValue("req")
@@ -121,14 +134,13 @@ func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	min := purchase.PurchaseRequired - 60*60*12
-	if form.Required < min {
-		h.Log().Error("error patching common purchase params: cannot modify date more than 12 hours sooner than previous")
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
-
 	if form.Required != 0 {
+		min := purchase.PurchaseRequired - 60*60*12
+		if form.Required < min {
+			h.Log().Error("error patching common purchase params: cannot modify date more than 12 hours sooner than previous, minimum: %s, requested: %v", config.UnixDateLong(min), config.UnixDateLong(form.Required))
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
 		purchase.PurchaseRequired = form.Required
 	}
 	if form.Supplier != 0 {
@@ -154,6 +166,14 @@ func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
+
+	if form.Required != 0 && form.Supplier == 0 {
+		fmt.Fprintln(w, config.UnixDateLong(purchase.PurchaseRequired))
+	} else if form.Required == 0 && form.Supplier != 0 {
+		fmt.Fprintln(w, config.Summary(purchase.SupplierName, 40))
+	} else if form.Required != 0 && form.Supplier != 0 {
+		fmt.Fprintln(w, "✅")
+	}
 }
 
 // Patch Purchase Subscriptions. For a patch to be made:
@@ -161,8 +181,10 @@ func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 // 2. If an requested involved account is not currently subscribing:
 //   - Due to deactivated subscription: it will be reactivated.
 //   - Due to not listed subscription: it will be added to the table.
+//
 // 3. If a currently involved account is not requested, its subscription will be deactivated.
 // 4. Only the "owner" of the request can patch it (the account from which it was made)
+// 5. The "owner" of the request must be subscribed to it
 func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Request) {
 	type PurchaseSubs struct {
 		GrossAmount                float64   `form:"purchase_patch_gross_amount"`
@@ -260,6 +282,13 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 	// 4. Only the "owner" of the request can patch it (the account from which it was made)
 	if purchase.ReqAccount != requestingAccountID {
 		h.Log().Error("error patching purchase subs: only request owner can manage subscriptions")
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	// 5. The "owner" of the request must be subscribed to it
+	if _, ok := requestedSubs[purchase.ReqAccount]; !ok {
+		h.Log().Error("error patching purchase subs: the owner of the request must be subscribed to it")
 		http.Error(w, "", http.StatusUnauthorized)
 		return
 	}
@@ -374,11 +403,11 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 // Patch advanced meta information of the purchase, requires WriteAdvanced permission
 func (h *Handler) PatchPurchaseMeta(w http.ResponseWriter, r *http.Request) {
 	type PurchaseMeta struct {
-		GecoSol        string `form:"purchase_patch_geco_sol" fmt:"trim"`
-		GecoOrd        string `form:"purchase_patch_geco_ord" fmt:"trim"`
-		Bill           string `form:"purchase_patch_bill"     fmt:"trim"`
-		Transfer       string `form:"purchase_patch_transfer" fmt:"trim"`
-		Status         string `form:"purchase_patch_status"   fmt:"trim"`
+		GecoSol  string `form:"purchase_patch_geco_sol" fmt:"trim"`
+		GecoOrd  string `form:"purchase_patch_geco_ord" fmt:"trim"`
+		Bill     string `form:"purchase_patch_bill"     fmt:"trim"`
+		Transfer string `form:"purchase_patch_transfer" fmt:"trim"`
+		Status   string `form:"purchase_patch_status"   fmt:"trim"`
 	}
 
 	reqIDStr := r.PathValue("id")

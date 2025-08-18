@@ -28,11 +28,11 @@
               <a style="margin:0 0.3rem" href="/doc/p/{{ .ReqID }}" target="_blank">Proforma</a>
               <a style="margin:0 0.3rem" href="/doc/j/{{ .ReqID }}" target="_blank">Justificación</a>
             </td>
-            <td class="clickable">{{ unixDateLong .PurchaseRequired }}</td>
-            <td class="clickable">{{ summary .ReqDescr 40 }}</td>
-            <td class="clickable">{{ summary .ReqJustif 40 }}</td>
-            <td class="clickable" style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
-            <td class="clickable">{{ summary .SupplierName 40 }}</td>
+            <td id="purchase-required-{{ .ReqID }}" class="clickable" onclick="toggleModal('modal-purchase-date-{{ .ReqID }}')">{{ unixDateLong .PurchaseRequired }}</td>
+            <td id="purchase-descr-{{ .ReqID }}" class="clickable" onclick="toggleModal('modal-purchase-descr-{{ .ReqID }}')">{{ summary .ReqDescr 40 }}</td>
+            <td id="purchase-justif-{{ .ReqID }}" class="clickable" onclick="toggleModal('modal-purchase-justif-{{ .ReqID }}')">{{ summary .ReqJustif 40 }}</td>
+            <td class="clickable" onclick="toggleModal('modal-purchase-subs-{{ .ReqID }}')" style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
+            <td class="clickable" onclick="toggleModal('modal-purchase-supplier-{{ .ReqID }}')">{{ summary .SupplierName 40 }}</td>
             <td>{{ .PeriodName }}</td>
             <td>{{ .EntryObject }}</td>
           </tr>
@@ -49,7 +49,104 @@
 </details>
 <div id="dashboard-modals-purchases">
   {{ range .Purchases }}
-  <!-- Modals for each modifiable param -->
+  <dialog id="modal-purchase-date-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-date-{{ .ReqID }}')"></button>
+        <h3>Fecha de ejecución para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <form
+        id="modal-form-purchase-date-{{ .ReqID }}"
+        method="PATCH"
+        action="/common/purchase/{{ .ReqID }}"
+      >
+        <input type="datetime-local" value="{{ unixDateToDatetime .PurchaseRequired }}" name="purchase_patch_required" placeholder="Ejecución" aria-label="Ejecución" required>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-required-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar Ejecución</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-descr-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-descr-{{ .ReqID }}')"></button>
+        <h3>Detalle para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <form
+        id="modal-form-purchase-descr-{{ .ReqID }}"
+        method="PATCH"
+        action="/common/request/{{ .ReqID }}"
+      >
+        <input
+          name="req_patch_descr"
+          placeholder="Detalle"
+          required
+          value="{{ .ReqDescr }}"
+        >
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-descr-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar Detalle</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-justif-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-justif-{{ .ReqID }}')"></button>
+        <h3>Justificación para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <form
+        id="modal-form-purchase-justif-{{ .ReqID }}"
+        method="PATCH"
+        action="/common/request/{{ .ReqID }}"
+      >
+        <textarea
+          style="height:100%;"
+          name="req_patch_justif"
+          placeholder="Justificación"
+          required
+        >{{ .ReqJustif }}</textarea>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-justif-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar Justificación</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-subs-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-subs-{{ .ReqID }}')"></button>
+        <h3>Subscripciones para la solicitud #{{ .ReqID }}</h3>
+      </header>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-supplier-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-supplier-{{ .ReqID }}')"></button>
+        <h3>Proveedor para la solicitud #{{ .ReqID }}</h3>
+      </header>
+    </article>
+  </dialog>
   {{ end }}
 </div>
 {{ end }}

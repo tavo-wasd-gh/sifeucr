@@ -82,9 +82,6 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /panel/item/add", middleware.With(panelMod, handler.AddItem))
 	router.Handle("PUT /panel/item/update/{id}", middleware.With(panelMod, handler.UpdateItem))
 
-	// Actualizaciones de solicitudes
-	router.Handle("PATCH /panel/request/common/{id}", middleware.With(panelMod, handler.PatchRequestCommon))
-
 	// --- FORMS ---
 
 	// Protección de formularios
@@ -130,6 +127,19 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 		protectedPrintStack,
 		handler.PrintRequestHandler,
 	))
+
+	updateRequestStack := middleware.Stack(
+		handler.AuthenticationMiddleware(
+			true,         // Do not enforce CSRF protection
+			config.Write, // Requires Read Permission
+			"/cuenta",    // Redirect on error
+		),
+		handler.ProtectedDocsMiddleware(),
+	)
+
+	// Actualizaciones de solicitudes
+	router.Handle("PATCH /common/purchase/{req}", middleware.With(updateRequestStack, handler.PatchPurchaseCommon))
+	router.Handle("PATCH /common/request/{req}", middleware.With(updateRequestStack, handler.PatchRequestCommon))
 
 	// SETUP
 

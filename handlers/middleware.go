@@ -145,7 +145,7 @@ func (h *Handler) ProtectedDocsMiddleware() func(http.Handler) http.Handler {
 			}
 
 			if allowed == false {
-				h.Log().Error("error authenticating for protected docs: %v", err)
+				h.Log().Error("error authenticating for protected docs: this is not a subscribed account")
 				return
 			}
 
