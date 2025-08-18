@@ -15,3 +15,7 @@ html {
   touch-action: none;
   display: block;
 }
+
+body {
+  width: 100%;
+}

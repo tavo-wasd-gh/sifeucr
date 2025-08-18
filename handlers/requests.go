@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"git.tavo.one/tavo/axiom/forms"
 
@@ -47,6 +48,12 @@ func (h *Handler) PatchRequestCommon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if request.ReqAccount != getAccountIDFromContext(ctx) {
+		h.Log().Error("error patching common request params: account must be the owner of the request")
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
 	if form.Descr != "" {
 		request.ReqDescr = form.Descr
 	}
@@ -69,11 +76,11 @@ func (h *Handler) PatchRequestCommon(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "✅")
 }
 
-// Patch common purchase parameters, Required date and SupplierID
+// Patch common purchase parameters, like Required (date)
 func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 	type PurchaseCommon struct {
-		Required int64 `form:"req_patch_id"`
-		Supplier int64 `form:"req_patch_id"`
+		Required    int64   `form:"purchase_patch_required"`
+		Supplier    int64   `form:"purchase_patch_supplier"`
 	}
 
 	requestIDStr := r.PathValue("req")
@@ -131,9 +138,10 @@ func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 	qtx := queries.WithTx(tx)
 
 	_, err = qtx.PatchPurchaseCommon(ctx, db.PatchPurchaseCommonParams{
-		PurchaseID:       purchase.PurchaseID,
-		PurchaseRequired: purchase.PurchaseRequired,
-		PurchaseSupplier: purchase.PurchaseSupplier,
+		PurchaseID:          purchase.PurchaseID,
+		PurchaseRequired:    purchase.PurchaseRequired,
+		PurchaseSupplier:    purchase.PurchaseSupplier,
+		PurchaseGrossAmount: purchase.PurchaseGrossAmount,
 	})
 	if err != nil {
 		h.Log().Error("error patching common purchase params: %v", err)
@@ -148,13 +156,13 @@ func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Patch Purchase Subscriptions.
-// Total Gross Ampunt must match the sum of gross contributions to the purchase.
-// If an requested involved account is not currently subscribing:
+// Patch Purchase Subscriptions. For a patch to be made:
+// 1. Total Gross Amount must match the sum of gross contributions to the purchase.
+// 2. If an requested involved account is not currently subscribing:
 //   - Due to deactivated subscription: it will be reactivated.
 //   - Due to not listed subscription: it will be added to the table.
-//
-// If a currently involved account is not requested, its subscription will be deactivated.
+// 3. If a currently involved account is not requested, its subscription will be deactivated.
+// 4. Only the "owner" of the request can patch it (the account from which it was made)
 func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Request) {
 	type PurchaseSubs struct {
 		GrossAmount                float64   `form:"purchase_patch_gross_amount"`
@@ -194,30 +202,73 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	tx, err := h.DB().Begin()
+	ctx := r.Context()
+	queries := db.New(h.DB())
+
+	requestingUserID := getUserIDFromContext(ctx)
+	if requestingUserID == 0 {
+		h.Log().Error("error patching purchase subs: needs a requqesting user")
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	purchase, err := queries.FullPurchaseByReqID(ctx, requestID)
 	if err != nil {
 		h.Log().Error("error patching purchase subs: %v", err)
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	defer tx.Rollback()
 
-	ctx := r.Context()
-	queries := db.New(h.DB())
+	requestingAccountID := getAccountIDFromContext(ctx)
 
-	purchase, err := queries.FullPurchaseByReqID(ctx, requestID)
+	currentSubsSlice, err := queries.PurchaseSubscriptionsByRequestID(ctx, requestID)
 	if err != nil {
 		h.Log().Error("error patching purchase subs: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
+	currentSubs := make(map[int64]db.FullPurchaseSubscription)
+	for i := range currentSubsSlice {
+		accountID := currentSubsSlice[i].AccountID
+		currentSubs[accountID] = currentSubsSlice[i]
+	}
+
+	requestedSubs := make(map[int64]db.PurchaseSubscription)
+	for i := range il {
+		accountID := form.InvolvedAccounts[i]
+		currentActiveDist, err := h.getCurrentActiveDist(ctx, accountID)
+		if err != nil {
+			h.Log().Error("error patching purchase subs: %v", err)
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		// These will be the defaults used when patching or adding subscriptions.
+		requestedSubs[accountID] = db.PurchaseSubscription{
+			// SubscriptionID - Can't yet know, defined in step 2.
+			SubscriptionPurchase:    purchase.PurchaseID,
+			SubscriptionUser:        requestingUserID, // Can't yet know who will sign for now use the requesting userID since it can't be null.
+			SubscriptionDist:        currentActiveDist.DistID,
+			SubscriptionIssued:      time.Now().Unix(),
+			SubscriptionGrossAmount: form.InvolvedAccountsAmounts[i],
+			SubscriptionSignature:   "",    // Remove requested signatures
+			SubscriptionSigned:      false, // ... by default.
+			SubscriptionActive:      true,  // Reactivate requested subs by default.
+		}
+	}
+
+	// 4. Only the "owner" of the request can patch it (the account from which it was made)
+	if purchase.ReqAccount != requestingAccountID {
+		h.Log().Error("error patching purchase subs: only request owner can manage subscriptions")
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	// 1. Total Gross Amount must match the sum of gross contributions to the purchase.
 
 	if form.GrossAmount > 0 {
 		purchase.PurchaseGrossAmount = form.GrossAmount
 	}
-
-	// Check total sum of involved accounts' gross amounts
-	// is equal to purchase gross amount.
 	var totalSubSum float64 = 0
 	for _, a := range form.InvolvedAccountsAmounts {
 		totalSubSum += a
@@ -228,25 +279,90 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// 2. If an requested involved account is not currently subscribing:
+
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error patching purchase subs: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+	defer tx.Rollback()
 	qtx := queries.WithTx(tx)
 
-	// --- for each involved account: ---
+	for reqAcc, reqSub := range requestedSubs {
+		currSub, ok := currentSubs[reqAcc]
+		var reqSubID int64 = 0
 
-	_, err = qtx.PatchPurchaseSub(ctx, db.PatchPurchaseSubParams{
-		// SubscriptionID          int64
-		// SubscriptionGrossAmount float64
-		// SubscriptionSignature   string
-		// SubscriptionSigned      bool
+		if !ok {
+			// 2.1. Due to not listed subscription: it will be added to the table.
+			newSub, err := qtx.AddPurchaseSubscription(ctx, db.AddPurchaseSubscriptionParams{
+				SubscriptionPurchase:    reqSub.SubscriptionPurchase,
+				SubscriptionUser:        reqSub.SubscriptionUser,
+				SubscriptionDist:        reqSub.SubscriptionDist,
+				SubscriptionIssued:      reqSub.SubscriptionIssued,
+				SubscriptionGrossAmount: reqSub.SubscriptionGrossAmount,
+				SubscriptionSignature:   reqSub.SubscriptionSignature,
+				SubscriptionSigned:      reqSub.SubscriptionSigned,
+				SubscriptionActive:      reqSub.SubscriptionActive,
+			})
+			if err != nil {
+				h.Log().Error("error patching purchase subs: %v", err)
+				http.Error(w, "", http.StatusBadRequest)
+				return
+			}
+
+			reqSubID = newSub.SubscriptionID
+		} else {
+			// 2.2. Due to deactivated subscription: it will be reactivated.
+			// ... Already the default when defining requestedSubs
+
+			reqSubID = currSub.SubscriptionID
+		}
+
+		reqSub.SubscriptionID = reqSubID
+
+		_, err := qtx.PatchPurchaseSub(ctx, db.PatchPurchaseSubParams{
+			SubscriptionID:          reqSub.SubscriptionID,
+			SubscriptionPurchase:    reqSub.SubscriptionPurchase,
+			SubscriptionUser:        reqSub.SubscriptionUser,
+			SubscriptionDist:        reqSub.SubscriptionDist,
+			SubscriptionIssued:      reqSub.SubscriptionIssued,
+			SubscriptionGrossAmount: reqSub.SubscriptionGrossAmount,
+			SubscriptionSignature:   reqSub.SubscriptionSignature,
+			SubscriptionSigned:      reqSub.SubscriptionSigned,
+			SubscriptionActive:      reqSub.SubscriptionActive,
+		})
+		if err != nil {
+			h.Log().Error("error patching purchase subs: %v", err)
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+	}
+
+	for currAcc, currSub := range currentSubs {
+		if _, ok := requestedSubs[currAcc]; !ok && currSub.SubscriptionActive {
+			// 3. If a currently subscribed account is not requested, its subscription will be deactivated.
+			err = qtx.ToggleSubscriptionActiveByID(ctx, currSub.SubscriptionID)
+			if err != nil {
+				h.Log().Error("error patching purchase sub: %v", err)
+				http.Error(w, "", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
+	_, err = qtx.PatchPurchaseCommon(ctx, db.PatchPurchaseCommonParams{
+		PurchaseID:          purchase.PurchaseID,
+		PurchaseRequired:    purchase.PurchaseRequired,
+		PurchaseSupplier:    purchase.PurchaseSupplier,
+		PurchaseGrossAmount: purchase.PurchaseGrossAmount,
 	})
 	if err != nil {
-		h.Log().Error("error patching purchase sub: %v", err)
+		h.Log().Error("error patching purchase subs: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-
-	// --- end ---
-
-	// TODO: Also update Purchase Gross Amount
 
 	if err := tx.Commit(); err != nil {
 		h.Log().Error("error patching purchase subs: %v", err)
@@ -255,15 +371,68 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// Patch advanced meta information of the purchase, requires WriteAdvanced permission
 func (h *Handler) PatchPurchaseMeta(w http.ResponseWriter, r *http.Request) {
 	type PurchaseMeta struct {
-		JustifApproved bool   `form:"purchase_patch_justif_approved"`
-		GecoSol        string `form:"purchase_patch_geco_sol"`
-		GecoOrd        string `form:"purchase_patch_geco_ord"`
-		Bill           string `form:"purchase_patch_bill"`
-		Transfer       string `form:"purchase_patch_transfer"`
-		Status         string `form:"purchase_patch_status"`
+		GecoSol        string `form:"purchase_patch_geco_sol" fmt:"trim"`
+		GecoOrd        string `form:"purchase_patch_geco_ord" fmt:"trim"`
+		Bill           string `form:"purchase_patch_bill"     fmt:"trim"`
+		Transfer       string `form:"purchase_patch_transfer" fmt:"trim"`
+		Status         string `form:"purchase_patch_status"   fmt:"trim"`
 	}
 
-	// purchaseID := r.PathValue("id")
+	reqIDStr := r.PathValue("id")
+	reqID, err := strconv.ParseInt(reqIDStr, 10, 64)
+	if err != nil {
+		h.Log().Error("error patching purchase meta: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	form, err := forms.FormToStruct[PurchaseMeta](r)
+	if err != nil {
+		h.Log().Error("error patching purchase meta: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	queries := db.New(h.DB())
+	ctx := r.Context()
+
+	purchase, err := queries.FullPurchaseByReqID(ctx, reqID)
+	if err != nil {
+		h.Log().Error("error patching purchase meta: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	if form.GecoSol != "" {
+		purchase.PurchaseGecoSol = form.GecoSol
+	}
+	if form.GecoOrd != "" {
+		purchase.PurchaseGecoOrd = form.GecoOrd
+	}
+	if form.Bill != "" {
+		purchase.PurchaseBill = form.Bill
+	}
+	if form.Transfer != "" {
+		purchase.PurchaseTransfer = form.Transfer
+	}
+	if form.Status != "" {
+		purchase.PurchaseStatus = form.Status
+	}
+
+	_, err = queries.PatchPurchaseMeta(ctx, db.PatchPurchaseMetaParams{
+		PurchaseID:       purchase.PurchaseID,
+		PurchaseGecoSol:  purchase.PurchaseGecoSol,
+		PurchaseGecoOrd:  purchase.PurchaseGecoOrd,
+		PurchaseBill:     purchase.PurchaseBill,
+		PurchaseTransfer: purchase.PurchaseTransfer,
+		PurchaseStatus:   purchase.PurchaseStatus,
+	})
+	if err != nil {
+		h.Log().Error("error patching purchase meta: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 }

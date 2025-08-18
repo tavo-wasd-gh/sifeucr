@@ -509,6 +509,12 @@ WHERE subscription_dist = ?;
 SELECT DISTINCT *
 FROM full_purchase_subscriptions
 WHERE req_id = ?;
+
+-- name: PurchaseSubscriptionByRequestIDAndAccountID :one
+SELECT DISTINCT *
+FROM full_purchase_subscriptions
+WHERE req_id = ?
+AND account_id = ?;
 #+end_src
 
 * DML: Gestión
@@ -822,11 +828,45 @@ UPDATE purchases SET
 WHERE purchase_id = ?
 RETURNING *;
 
+-- name: PatchPurchaseMeta :one
+UPDATE purchases SET
+    purchase_geco_sol = ?,
+    purchase_geco_ord = ?,
+    purchase_bill = ?,
+    purchase_transfer = ?,
+    purchase_status = ?
+WHERE purchase_id = ?
+RETURNING *;
+
+-- name: AddPurchaseSub :one
+INSERT INTO purchase_subscriptions (
+    subscription_gross_amount,
+    subscription_signature,
+    subscription_signed,
+    subscription_active
+) VALUES (
+    ?, ?, ?, ?
+) RETURNING *;
+
 -- name: PatchPurchaseSub :one
 UPDATE purchase_subscriptions SET
+    subscription_purchase     = ?,
+    subscription_user         = ?,
+    subscription_dist         = ?,
+    subscription_issued       = ?,
     subscription_gross_amount = ?,
     subscription_signature    = ?,
-    subscription_signed       = ?
+    subscription_signed       = ?,
+    subscription_active       = ?
 WHERE subscription_id = ?
 RETURNING *;
+#+end_src
+
+** Cambiar estado de subscripción
+
+#+begin_src sql
+-- name: ToggleSubscriptionActiveByID :exec
+UPDATE purchase_subscriptions
+SET subscription_active = NOT subscription_active
+WHERE subscription_id = ?;
 #+end_src

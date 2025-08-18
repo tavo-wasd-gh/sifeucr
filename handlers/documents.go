@@ -41,6 +41,7 @@ func (h *Handler) PrintRequestHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type QuotationData struct {
+	ReqID               int64
 	ReqIssued           int64
 	SupplierName        string
 	SupplierEmail       string
@@ -88,6 +89,7 @@ func (h *Handler) renderQuotation(w http.ResponseWriter, r *http.Request, docReq
 	accountNames = strings.TrimSuffix(accountNames, ", ")
 
 	data := QuotationData{
+		ReqID:               purchase.ReqID,
 		ReqIssued:           purchase.ReqIssued,
 		SupplierName:        purchase.SupplierName,
 		SupplierEmail:       purchase.SupplierEmail,
@@ -112,6 +114,7 @@ func (h *Handler) renderQuotation(w http.ResponseWriter, r *http.Request, docReq
 }
 
 type JustifData struct {
+	ReqID               int64
 	ReqIssued           int64
 	UserName            string
 	ReqDescr            string
@@ -159,6 +162,7 @@ func (h *Handler) renderJustification(w http.ResponseWriter, r *http.Request, do
 	accountNames = strings.TrimSuffix(accountNames, ", ")
 
 	data := JustifData{
+		ReqID:               purchase.ReqID,
 		AccountNames:        accountNames,
 		ReqIssued:           purchase.ReqIssued,
 		UserName:            purchase.UserName,

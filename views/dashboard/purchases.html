@@ -14,9 +14,9 @@
             <th><input type="text"              placeholder="Requerido"     onkeyup="filterTable(this)"></th>
             <th><input type="text"              placeholder="Detalle"       onkeyup="filterTable(this)"></th>
             <th><input type="text"              placeholder="Justificación" onkeyup="filterTable(this)"></th>
-            <th><input type="text"              placeholder="Período"       onkeyup="filterTable(this)"></th>
             <th><input type="number" step="any" placeholder="Monto Bruto"   onkeyup="filterTable(this)"></th>
             <th><input type="text"              placeholder="Proveedor"     onkeyup="filterTable(this)"></th>
+            <th><input type="text"              placeholder="Período"       onkeyup="filterTable(this)"></th>
             <th><input type="text"              placeholder="Partida"       onkeyup="filterTable(this)"></th>
           </tr>
         </thead>
@@ -28,12 +28,12 @@
               <a style="margin:0 0.3rem" href="/doc/p/{{ .ReqID }}" target="_blank">Proforma</a>
               <a style="margin:0 0.3rem" href="/doc/j/{{ .ReqID }}" target="_blank">Justificación</a>
             </td>
-            <td>{{ unixDateLong .PurchaseRequired }}</td>
-            <td>{{ summary .ReqDescr 40 }}</td>
-            <td>{{ summary .ReqJustif 40 }}</td>
+            <td class="clickable">{{ unixDateLong .PurchaseRequired }}</td>
+            <td class="clickable">{{ summary .ReqDescr 40 }}</td>
+            <td class="clickable">{{ summary .ReqJustif 40 }}</td>
+            <td class="clickable" style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
+            <td class="clickable">{{ summary .SupplierName 40 }}</td>
             <td>{{ .PeriodName }}</td>
-            <td style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
-            <td>{{ summary .SupplierName 40 }}</td>
             <td>{{ .EntryObject }}</td>
           </tr>
           {{ end }}
@@ -47,4 +47,9 @@
     </a>
   </div>
 </details>
+<div id="dashboard-modals-purchases">
+  {{ range .Purchases }}
+  <!-- Modals for each modifiable param -->
+  {{ end }}
+</div>
 {{ end }}
