@@ -258,7 +258,6 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 	requestedSubs := make(map[int64]db.PurchaseSubscription)
 	for i := range il {
 		accountID := form.InvolvedAccounts[i]
-		currentActiveDist, err := h.getCurrentActiveDist(ctx, accountID)
 		if err != nil {
 			h.Log().Error("error patching purchase subs: %v", err)
 			http.Error(w, "", http.StatusBadRequest)
@@ -270,7 +269,7 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 			// SubscriptionID - Can't yet know, defined in step 2.
 			SubscriptionPurchase:    purchase.PurchaseID,
 			SubscriptionUser:        requestingUserID, // Can't yet know who will sign for now use the requesting userID since it can't be null.
-			SubscriptionDist:        currentActiveDist.DistID,
+			SubscriptionDist:        requestedSubs[int64(i)].SubscriptionDist,
 			SubscriptionIssued:      time.Now().Unix(),
 			SubscriptionGrossAmount: form.InvolvedAccountsAmounts[i],
 			SubscriptionSignature:   "",    // Remove requested signatures
@@ -435,20 +434,27 @@ func (h *Handler) PatchPurchaseMeta(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var updatedFields []string
+
 	if form.GecoSol != "" {
 		purchase.PurchaseGecoSol = form.GecoSol
+		updatedFields = append(updatedFields, purchase.PurchaseGecoSol)
 	}
 	if form.GecoOrd != "" {
 		purchase.PurchaseGecoOrd = form.GecoOrd
+		updatedFields = append(updatedFields, purchase.PurchaseGecoOrd)
 	}
 	if form.Bill != "" {
 		purchase.PurchaseBill = form.Bill
+		updatedFields = append(updatedFields, purchase.PurchaseBill)
 	}
 	if form.Transfer != "" {
 		purchase.PurchaseTransfer = form.Transfer
+		updatedFields = append(updatedFields, purchase.PurchaseTransfer)
 	}
 	if form.Status != "" {
 		purchase.PurchaseStatus = form.Status
+		updatedFields = append(updatedFields, purchase.PurchaseStatus)
 	}
 
 	_, err = queries.PatchPurchaseMeta(ctx, db.PatchPurchaseMetaParams{
@@ -465,5 +471,14 @@ func (h *Handler) PatchPurchaseMeta(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Print value if only one reqeuested, if multiple, print check emoji
+	switch len(updatedFields) {
+	case 0:
+		h.Log().Error("error patching purchase meta: no fields updated")
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	case 1:
+		fmt.Fprintln(w, updatedFields[0])
+	default:
+		fmt.Fprintln(w, "✅")
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"git.tavo.one/tavo/axiom/forms"
@@ -114,21 +115,79 @@ func (h *Handler) UpdateDistribution(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) getCurrentActiveDist(ctx context.Context, accountID int64) (db.FullDistribution, error) {
+func (h *Handler) budgetEntryByObject(ctx context.Context, obj string) (db.BudgetEntry, error) {
 	queries := db.New(h.DB())
-
-	dd, err := queries.AccountActiveDistributions(ctx, accountID)
+	allEntries, err := queries.GetAllBudgetEntries(ctx)
 	if err != nil {
-		return db.FullDistribution{}, fmt.Errorf("failed to query account active dists: %v", err)
+		return db.BudgetEntry{}, fmt.Errorf("error looking for budget entry by object: %v", err)
 	}
 
-	now := time.Now().Unix()
+	entry := db.BudgetEntry{}
 
-	for i := range dd {
-		if now >= dd[i].PeriodStart && now <= dd[i].PeriodEnd {
-			return dd[i], nil
+	found := false
+	ob := strings.ToLower(obj)
+	for _, e := range allEntries {
+		if strings.ToLower(e.EntryObject) == ob {
+			entry = e
+			found = true
 		}
 	}
 
-	return db.FullDistribution{}, fmt.Errorf("could not find current active dist")
+	if !found {
+		return db.BudgetEntry{}, fmt.Errorf("error looking for budget entry by object: %v", err)
+	}
+
+	return entry, nil
+}
+
+func (h *Handler) validDistributionsByAccountID(ctx context.Context, accountID int64) ([]db.FullDistribution, error) {
+	queries := db.New(h.DB())
+
+	dd, err := queries.ActiveDistributionsByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query account active dists: %v", err)
+	}
+
+	now := time.Now().Unix()
+	validDists := []db.FullDistribution{}
+
+	for i := range dd {
+		if now >= dd[i].PeriodStart && now <= dd[i].PeriodEnd {
+			validDists = append(validDists, dd[i])
+		}
+	}
+
+	if len(validDists) == 0 {
+		return nil, fmt.Errorf("could not find current active dist")
+	}
+
+	return validDists, nil
+}
+
+func (h *Handler) validDistributionByAccountIDAndEntryObject(ctx context.Context, accountID int64, entryObject string) (db.FullDistribution, error) {
+	dd, err := h.validDistributionsByAccountID(ctx, accountID)
+	if err != nil {
+		return db.FullDistribution{}, fmt.Errorf("failed to find dist by accountID and EntryObject: %v", err)
+	}
+
+	dist := db.FullDistribution{}
+
+	obj := strings.ToLower(entryObject)
+	found := false
+	for _, d := range dd {
+		if obj == strings.ToLower(d.EntryObject) {
+			dist = d
+			found = true
+		}
+	}
+
+	if !found {
+		return db.FullDistribution{}, fmt.Errorf("failed to find dist by accountID and EntryObject: not found")
+	}
+
+	return dist, nil
+}
+
+func (h *Handler) currentServicesDistByAccountID(ctx context.Context, accountID int64) (db.FullDistribution, error) {
+	return h.validDistributionByAccountIDAndEntryObject(ctx, accountID, "servicios")
 }

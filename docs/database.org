@@ -384,7 +384,7 @@ SELECT * FROM full_distributions WHERE dist_active = 1;
 -- name: AccountDistributions :many
 SELECT * FROM full_distributions WHERE dist_account = ?;
 
--- name: AccountActiveDistributions :many
+-- name: ActiveDistributionsByAccountID :many
 SELECT * FROM full_distributions WHERE dist_account = ? AND dist_active = 1;
 
 -- name: DistributionByID :one

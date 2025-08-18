@@ -14,6 +14,7 @@ import (
 )
 
 type registerPurchaseParams struct {
+	EntryObject        string // Careful, defined here
 	UserID             int64
 	AccountID          int64
 	Desc               string
@@ -30,6 +31,12 @@ type itemIDAndQuantity struct {
 	Quantity float64
 }
 
+var (
+	ServicesEntryObject = "servicios"
+	SuppliesEntryObject = "suministros"
+	GoodsEntryObject    = "bienes"
+)
+
 func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseParams) (int64, error) {
 	if len(params.Desc) < 30 || len(params.Justif) < 150 {
 		return 0, fmt.Errorf("description or justification length too small")
@@ -40,7 +47,7 @@ func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseP
 		return 0, fmt.Errorf("minimum allowed date: %s, asked for: %s", config.UnixDateLong(min), config.UnixDateLong(params.Required))
 	}
 
-	dist, err := h.getCurrentActiveDist(ctx, params.AccountID)
+	dist, err := h.validDistributionByAccountIDAndEntryObject(ctx, params.AccountID, params.EntryObject)
 	if err != nil {
 		return 0, fmt.Errorf("failed to register new generic purchase: %v", err)
 	}
@@ -178,6 +185,7 @@ func (h *Handler) newSuppliesPurchase(r *http.Request) error {
 	accountID := getAccountIDFromContext(ctx)
 
 	params := registerPurchaseParams{
+		EntryObject:        SuppliesEntryObject,
 		UserID:             userID,
 		AccountID:          accountID,
 		Desc:               form.Desc,
@@ -261,6 +269,7 @@ func (h *Handler) newCateringPurchase(r *http.Request) error {
 	accountID := getAccountIDFromContext(ctx)
 
 	params := registerPurchaseParams{
+		EntryObject:        ServicesEntryObject,
 		UserID:             userID,
 		AccountID:          accountID,
 		Desc:               form.Desc,
@@ -299,6 +308,7 @@ func (h *Handler) newGenericPurchase(r *http.Request) error {
 	accountID := getAccountIDFromContext(ctx)
 
 	params := registerPurchaseParams{
+		EntryObject: ServicesEntryObject,
 		UserID:      userID,
 		AccountID:   accountID,
 		Desc:        form.Desc,
