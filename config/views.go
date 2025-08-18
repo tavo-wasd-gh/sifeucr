@@ -1,12 +1,12 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"html/template"
 	"strconv"
 	"strings"
-	"html/template"
 	"time"
-	"encoding/json"
 
 	"sifeucr/internal/db"
 )
@@ -204,7 +204,7 @@ var ViewFormatters = map[string]any{
 	},
 	"currency":      FormatAsCurrency,
 	"unixDateToStr": unixDateToStr,
-	"unixDateLong": unixDateLong,
+	"unixDateLong":  UnixDateLong,
 	"eq": func(a, b any) bool {
 		switch va := a.(type) {
 		case int:
@@ -299,7 +299,7 @@ func unixDateToStr(timestamp int64) string {
 	return t.Format("2006-01-02")
 }
 
-func unixDateLong(timestamp int64) string {
+func UnixDateLong(timestamp int64) string {
 	loc, _ := time.LoadLocation("America/Costa_Rica")
 	t := time.Unix(timestamp, 0).In(loc)
 

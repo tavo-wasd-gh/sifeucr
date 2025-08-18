@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
-	"context"
 
 	"sifeucr/config"
 	"sifeucr/internal/db"
@@ -14,19 +14,19 @@ import (
 )
 
 type registerPurchaseParams struct {
-	UserID      int64
-	AccountID   int64
-	Desc        string
-	Justif      string
-	Required    int64
-	SupplierID  int64
-	GrossAmount float64
-	Signature   string
+	UserID             int64
+	AccountID          int64
+	Desc               string
+	Justif             string
+	Required           int64
+	SupplierID         int64
+	GrossAmount        float64
+	Signature          string
 	ItemsIDAndQuantity []itemIDAndQuantity
 }
 
 type itemIDAndQuantity struct {
-	ID int64
+	ID       int64
 	Quantity float64
 }
 
@@ -35,9 +35,9 @@ func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseP
 		return 0, fmt.Errorf("description or justification length too small")
 	}
 
-	min := time.Now().Add(24*time.Hour*7).Unix()
+	min := time.Now().Add(24 * time.Hour * 6).Unix()
 	if params.Required < min {
-		return 0, fmt.Errorf("minimum allowed date: %d, asked for: %d", min, params.Required)
+		return 0, fmt.Errorf("minimum allowed date: %s, asked for: %s", config.UnixDateLong(min), config.UnixDateLong(params.Required))
 	}
 
 	dist, err := h.getCurrentActiveDist(ctx, params.AccountID)
@@ -56,11 +56,11 @@ func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseP
 
 	// Step 1: Register request
 	request, err := qtx.AddRequest(ctx, db.AddRequestParams{
-		ReqUser: params.UserID,
+		ReqUser:    params.UserID,
 		ReqAccount: params.AccountID,
-		ReqIssued: time.Now().Unix(),
-		ReqDescr: params.Desc,
-		ReqJustif: params.Justif,
+		ReqIssued:  time.Now().Unix(),
+		ReqDescr:   params.Desc,
+		ReqJustif:  params.Justif,
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to add request: %v", err)
@@ -79,10 +79,10 @@ func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseP
 		PurchaseTransfer: "",
 		PurchaseStatus:   "",
 		// Typical defaults
-		PurchaseCurrency:       "CRC",
-		PurchaseExRateColones:  1.00,
-		PurchaseDiscount:       0.00,
-		PurchaseTaxRate:        0.02,
+		PurchaseCurrency:      "CRC",
+		PurchaseExRateColones: 1.00,
+		PurchaseDiscount:      0.00,
+		PurchaseTaxRate:       0.02,
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to add purchase: %v", err)
@@ -116,13 +116,13 @@ func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseP
 
 func (h *Handler) newCateringPurchase(r *http.Request) error {
 	type cateringPurchaseForm struct {
-		Required    int64     `form:"purchase_required"         req:"1"`
-		Desc        string    `form:"purchase_desc"             req:"1" fmt:"trim"`
-		Justif      string    `form:"purchase_justif"           req:"1" fmt:"trim"`
-		Catalogs    []int64   `form:"purchase_items_catalog[]"  req:"1"`
-		Articles    []int64   `form:"purchase_items_article[]"  req:"1"`
-		Quantities  []float64 `form:"purchase_items_quantity[]" req:"1"`
-		Signature   string    `form:"purchase_signature"        req:"1"`
+		Required   int64     `form:"purchase_required"         req:"1"`
+		Desc       string    `form:"purchase_desc"             req:"1" fmt:"trim"`
+		Justif     string    `form:"purchase_justif"           req:"1" fmt:"trim"`
+		Catalogs   []int64   `form:"purchase_items_catalog[]"  req:"1"`
+		Articles   []int64   `form:"purchase_items_article[]"  req:"1"`
+		Quantities []float64 `form:"purchase_items_quantity[]" req:"1"`
+		Signature  string    `form:"purchase_signature"        req:"1"`
 	}
 
 	form, err := forms.FormToStruct[cateringPurchaseForm](r)
@@ -178,14 +178,14 @@ func (h *Handler) newCateringPurchase(r *http.Request) error {
 	accountID := getAccountIDFromContext(ctx)
 
 	params := registerPurchaseParams{
-		UserID: userID,
-		AccountID: accountID,
-		Desc: form.Desc,
-		Justif: form.Justif,
-		Required: form.Required,
-		SupplierID: supplier.SupplierID,
-		GrossAmount: totalAmount,
-		Signature: form.Signature,
+		UserID:             userID,
+		AccountID:          accountID,
+		Desc:               form.Desc,
+		Justif:             form.Justif,
+		Required:           form.Required,
+		SupplierID:         supplier.SupplierID,
+		GrossAmount:        totalAmount,
+		Signature:          form.Signature,
 		ItemsIDAndQuantity: items,
 	}
 
@@ -216,14 +216,14 @@ func (h *Handler) newGenericPurchase(r *http.Request) error {
 	accountID := getAccountIDFromContext(ctx)
 
 	params := registerPurchaseParams{
-		UserID: userID,
-		AccountID: accountID,
-		Desc: form.Desc,
-		Justif: form.Justif,
-		Required: form.Required,
-		SupplierID: form.SupplierID,
+		UserID:      userID,
+		AccountID:   accountID,
+		Desc:        form.Desc,
+		Justif:      form.Justif,
+		Required:    form.Required,
+		SupplierID:  form.SupplierID,
 		GrossAmount: form.GrossAmount,
-		Signature: form.Signature,
+		Signature:   form.Signature,
 	}
 
 	_, err = h.registerPurchase(ctx, params)

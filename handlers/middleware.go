@@ -121,7 +121,7 @@ func (h *Handler) ProtectedDocsMiddleware() func(http.Handler) http.Handler {
 			userID := getUserIDFromContext(ctx)
 			accountID := getAccountIDFromContext(ctx)
 			perm, err := queries.PermissionByUserIDAndAccountID(ctx, db.PermissionByUserIDAndAccountIDParams{
-				UserID: userID,
+				UserID:    userID,
 				AccountID: accountID,
 			})
 			if err != nil {

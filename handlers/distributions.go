@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 	"strconv"
+	"time"
 
 	"git.tavo.one/tavo/axiom/forms"
 	"git.tavo.one/tavo/axiom/views"
@@ -124,11 +124,11 @@ func (h *Handler) getCurrentActiveDist(ctx context.Context, accountID int64) (db
 
 	now := time.Now().Unix()
 
-    for i := range dd {
-        if now >= dd[i].PeriodStart && now <= dd[i].PeriodEnd {
-            return dd[i], nil
-        }
-    }
+	for i := range dd {
+		if now >= dd[i].PeriodStart && now <= dd[i].PeriodEnd {
+			return dd[i], nil
+		}
+	}
 
 	return db.FullDistribution{}, fmt.Errorf("could not find current active dist")
 }

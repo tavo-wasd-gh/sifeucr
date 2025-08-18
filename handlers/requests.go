@@ -72,8 +72,8 @@ func (h *Handler) PatchRequestCommon(w http.ResponseWriter, r *http.Request) {
 // Patch common purchase parameters, Required date and SupplierID
 func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 	type PurchaseCommon struct {
-		Required int64      `form:"req_patch_id"`
-		Supplier int64      `form:"req_patch_id"`
+		Required int64 `form:"req_patch_id"`
+		Supplier int64 `form:"req_patch_id"`
 	}
 
 	requestIDStr := r.PathValue("req")
@@ -131,7 +131,7 @@ func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 	qtx := queries.WithTx(tx)
 
 	_, err = qtx.PatchPurchaseCommon(ctx, db.PatchPurchaseCommonParams{
-		PurchaseID: purchase.PurchaseID,
+		PurchaseID:       purchase.PurchaseID,
 		PurchaseRequired: purchase.PurchaseRequired,
 		PurchaseSupplier: purchase.PurchaseSupplier,
 	})
@@ -151,8 +151,9 @@ func (h *Handler) PatchPurchaseCommon(w http.ResponseWriter, r *http.Request) {
 // Patch Purchase Subscriptions.
 // Total Gross Ampunt must match the sum of gross contributions to the purchase.
 // If an requested involved account is not currently subscribing:
-//     - Due to deactivated subscription: it will be reactivated.
-//     - Due to not listed subscription: it will be added to the table.
+//   - Due to deactivated subscription: it will be reactivated.
+//   - Due to not listed subscription: it will be added to the table.
+//
 // If a currently involved account is not requested, its subscription will be deactivated.
 func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Request) {
 	type PurchaseSubs struct {
@@ -232,10 +233,10 @@ func (h *Handler) PatchPurchaseSubscriptions(w http.ResponseWriter, r *http.Requ
 	// --- for each involved account: ---
 
 	_, err = qtx.PatchPurchaseSub(ctx, db.PatchPurchaseSubParams{
-	// SubscriptionID          int64
-	// SubscriptionGrossAmount float64
-	// SubscriptionSignature   string
-	// SubscriptionSigned      bool
+		// SubscriptionID          int64
+		// SubscriptionGrossAmount float64
+		// SubscriptionSignature   string
+		// SubscriptionSigned      bool
 	})
 	if err != nil {
 		h.Log().Error("error patching purchase sub: %v", err)

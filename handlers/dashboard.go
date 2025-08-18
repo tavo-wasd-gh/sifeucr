@@ -17,7 +17,7 @@ type dashboard struct {
 	CSRFToken string
 	Purchases []db.FullPurchaseSubscription
 	// Advanced
-	AllPurchases  []db.FullPurchaseSubscription
+	AllPurchases []db.FullPurchaseSubscription
 	ReadAdvanced bool
 }
 
