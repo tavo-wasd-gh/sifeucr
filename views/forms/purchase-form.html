@@ -12,11 +12,22 @@
     placeholder="Requerido"
     required
   >
+  <input
+    type="text"
+    name="purchase_desc"
+    placeholder="Detalle"
+    required
+  >
+  <textarea
+    name="purchase_justif"
+    placeholder="Justificación"
+    required
+  ></textarea>
   <select name="purchase_type" id="fields-purchase-type" required>
     <option value="" selected disabled>Tipo</option>
     <option value="catering">Alimentación</option>
     <option value="generic">Servicios</option>
-    <option value="supplies" disabled>Suministros</option>
+    <option value="supplies">Suministros</option>
     <option value="goods" disabled>Bienes</option>
   </select>
   <div class="form-section" id="field-generic" style="display:none;">
@@ -24,6 +35,9 @@
   </div>
   <div class="form-section" id="field-catering" style="display:none;">
     {{ template "purchase-form-catering" . }}
+  </div>
+  <div class="form-section" id="field-supplies" style="display:none;">
+    {{ template "purchase-form-supplies" . }}
   </div>
   <script>
    // Show form fields depending on selected form type

@@ -264,3 +264,43 @@ function toggleModal(id) {
         modal.setAttribute('open', '');
     }
 }
+
+/**
+ * Filters options in a <select> element based on desired and undesired tags.
+ *
+ * @param {HTMLSelectElement|string} selectElement - A select element or its ID
+ * @param {string} tagAttribute - The name of the data-* attribute containing tags (e.g., "catalogTags")
+ * @param {string[]} desiredTags - Tags to include (case-insensitive)
+ * @param {string[]} undesiredTags - Tags to exclude (case-insensitive)
+ */
+function filterSelectByTags(selectElement, tagAttribute, desiredTags = [], undesiredTags = []) {
+    const select = typeof selectElement === 'string'
+          ? document.getElementById(selectElement)
+          : selectElement;
+
+    if (!select || !select.options) {
+        console.warn('Invalid select element provided:', selectElement);
+        return;
+    }
+
+    Array.from(select.options).forEach(option => {
+        const tagString = option.dataset[tagAttribute] || '';
+        const tags = tagString
+              .split(/[\s,]+/)
+              .map(tag => tag.trim().toLowerCase())
+              .filter(Boolean);
+
+        const hasDesired = desiredTags.length === 0 || desiredTags.some(tag => tags.includes(tag.toLowerCase()));
+        const hasUndesired = undesiredTags.some(tag => tags.includes(tag.toLowerCase()));
+
+        // Always show the placeholder (empty value)
+        if (option.value === '') {
+            option.style.display = 'block';
+        } else {
+            option.style.display = (hasDesired && !hasUndesired) ? 'block' : 'none';
+        }
+    });
+}
+
+// Example usage
+// filterSelectByTags('select-id', 'supplierTags', ['urgent'], ['outdated']);

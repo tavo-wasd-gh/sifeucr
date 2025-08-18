@@ -144,6 +144,7 @@ var ViewMap = map[string][]string{
 		"views/forms/purchase-form-page.html",
 		"views/forms/purchase-form-generic.html",
 		"views/forms/purchase-form-catering.html",
+		"views/forms/purchase-form-supplies.html",
 	),
 
 	"index-page": append(

@@ -78,7 +78,7 @@
       </p>
       <p>El costo del servicio es de
         <span class="underline">{{ currency .PurchaseGrossAmount }}</span>
-        + IVA ({{ .PurchaseTaxRate }}) para un total de
+        + IVA ({{ opMult .PurchaseTaxRate 100 }}%) para un total de
         <span class="underline">{{ currency .TotalAmount }}</span>
         colones, y será distribuido de la siguiente manera: </p>
       <p>{{ .Distribution }}</p>

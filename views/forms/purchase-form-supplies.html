@@ -1,20 +1,20 @@
-{{ define "purchase-form-catering" }}
-<select id="purchase-form-catering-catalog" required>
-  <option data-catalog-tags="Alimentación" value="" selected disabled>Agrupación</option>
+{{ define "purchase-form-supplies" }}
+<select id="purchase-form-supplies-catalog" required>
+  <option data-catalog-tags="suministros" value="" selected disabled>Agrupación</option>
   {{ range .Catalogs }}
   <option data-catalog-tags="{{ .CatalogTags }}" value="{{ .CatalogGrouping }}">[{{ .CatalogGrouping }}] {{ .CatalogSummary }} ({{ .SupplierName }})</option>
   {{ end }}
 </select>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    filterSelectByTags('purchase-form-catering-catalog', 'catalogTags', ['alimentación'], ['']);
+    filterSelectByTags('purchase-form-supplies-catalog', 'catalogTags', ['suministros'], ['']);
   });
 </script>
-<p id="purchase-form-catering-item-summary"></p>
-<p id="purchase-form-catering-item-desc"></p>
+<p id="purchase-form-supplies-item-summary"></p>
+<p id="purchase-form-supplies-item-desc"></p>
 <div class="grid">
   <span>
-    <select id="purchase-form-catering-items" name="purchase_items[]">
+    <select id="purchase-form-supplies-items" name="purchase_items[]">
       <option value="" data-catalog="" data-summary="" data-desc="" data-amount="0" selected disabled>Artículo</option>
       {{ range .Items }}
       <option
@@ -31,8 +31,8 @@
     <script>
      // Remove the hidden attr in the ones that match
      (function () {
-         const catalogSelect = document.getElementById("purchase-form-catering-catalog");
-         const itemSelect = document.getElementById("purchase-form-catering-items");
+         const catalogSelect = document.getElementById("purchase-form-supplies-catalog");
+         const itemSelect = document.getElementById("purchase-form-supplies-items");
          catalogSelect.addEventListener("change", () => {
              const selectedCatalog = catalogSelect.value;
              // Loop through item options
@@ -57,34 +57,34 @@
     </script>
     <br>
     <input
-      id="purchase-form-catering-item-quantity"
+      id="purchase-form-supplies-item-quantity"
       type="number" step="any"
       placeholder="Cantidad"
     >
   </span>
   <p style="text-align:right;white-space:nowrap;">
-    <small>Unidad: <span id="purchase-form-catering-item-amount">{{ currency 0 }}</span></small>
+    <small>Unidad: <span id="purchase-form-supplies-item-amount">{{ currency 0 }}</span></small>
     <br>
-    <small>Subtotal (<span id="purchase-form-catering-item-count">1</span>): <span id="purchase-form-catering-item-sum">{{ currency 4500 }}</span></small>
+    <small>Subtotal (<span id="purchase-form-supplies-item-count">1</span>): <span id="purchase-form-supplies-item-sum">{{ currency 4500 }}</span></small>
     <br>
-    <small>IVA (2%): <span id="purchase-form-catering-item-tax" data-tax="0.02">{{ currency 0 }}</span></small>
+    <small>IVA (2%): <span id="purchase-form-supplies-item-tax" data-tax="0.02">{{ currency 0 }}</span></small>
     <br>
-    <big>Línea: <span id="purchase-form-catering-item-line">{{ currency 0 }}</span></big>
+    <big>Línea: <span id="purchase-form-supplies-item-line">{{ currency 0 }}</span></big>
     <br>
   </p>
 </div>
 <script>
 (function () {
-  const itemSelect = document.getElementById("purchase-form-catering-items");
-  const quantityInput = document.getElementById("purchase-form-catering-item-quantity");
+  const itemSelect = document.getElementById("purchase-form-supplies-items");
+  const quantityInput = document.getElementById("purchase-form-supplies-item-quantity");
 
-  const amountSpan = document.getElementById("purchase-form-catering-item-amount");
-  const sumSpan = document.getElementById("purchase-form-catering-item-sum");
-  const countSpan = document.getElementById("purchase-form-catering-item-count");
-  const taxSpan = document.getElementById("purchase-form-catering-item-tax");
-  const lineSpan = document.getElementById("purchase-form-catering-item-line");
-  const summaryPara = document.getElementById("purchase-form-catering-item-summary");
-  const descPara = document.getElementById("purchase-form-catering-item-desc");
+  const amountSpan = document.getElementById("purchase-form-supplies-item-amount");
+  const sumSpan = document.getElementById("purchase-form-supplies-item-sum");
+  const countSpan = document.getElementById("purchase-form-supplies-item-count");
+  const taxSpan = document.getElementById("purchase-form-supplies-item-tax");
+  const lineSpan = document.getElementById("purchase-form-supplies-item-line");
+  const summaryPara = document.getElementById("purchase-form-supplies-item-summary");
+  const descPara = document.getElementById("purchase-form-supplies-item-desc");
 
   const taxRate = parseFloat(taxSpan.dataset.tax);
 
@@ -127,7 +127,7 @@
 <div style="display:flex;justify-content:center">
   <button type="button"
           class="outline"
-          id="purchase-form-catering-add-line">Agregar Línea</button>
+          id="purchase-form-supplies-add-line">Agregar Línea</button>
 </div>
 <div class="overflow-auto">
   <table class="striped">
@@ -144,35 +144,35 @@
         <th>Eliminar</th>
       </tr>
     </thead>
-    <tbody id="purchase-form-catering-item-rows">
+    <tbody id="purchase-form-supplies-item-rows">
     </tbody>
   </table>
 </div>
 <p style="text-align:right;">
-  <small>Subtotal: <span id="purchase-form-catering-sum"></span></small>
+  <small>Subtotal: <span id="purchase-form-supplies-sum"></span></small>
   <br>
-  <small>IVA (2%): <span id="purchase-form-catering-tax" data-tax="0.02"></span></small>
+  <small>IVA (2%): <span id="purchase-form-supplies-tax" data-tax="0.02"></span></small>
   <br>
-  <big>Total: <span id="purchase-form-catering-total"></span></big>
+  <big>Total: <span id="purchase-form-supplies-total"></span></big>
 </p>
-<!-- <canvas id="purchase-form-catering-signature"></canvas> -->
+<!-- <canvas id="purchase-form-supplies-signature"></canvas> -->
 <!-- <script> -->
 <!-- // TODO: canvas -->
 <!-- </script> -->
 <script>
 (function () {
-  const summary = document.getElementById("purchase-form-catering-catalog");
-  const catalogSelect = document.getElementById("purchase-form-catering-catalog");
-  const itemSelect = document.getElementById("purchase-form-catering-items");
-  const quantityInput = document.getElementById("purchase-form-catering-item-quantity");
-  const addButton = document.getElementById("purchase-form-catering-add-line");
-  const rowsContainer = document.getElementById("purchase-form-catering-item-rows");
+  const summary = document.getElementById("purchase-form-supplies-catalog");
+  const catalogSelect = document.getElementById("purchase-form-supplies-catalog");
+  const itemSelect = document.getElementById("purchase-form-supplies-items");
+  const quantityInput = document.getElementById("purchase-form-supplies-item-quantity");
+  const addButton = document.getElementById("purchase-form-supplies-add-line");
+  const rowsContainer = document.getElementById("purchase-form-supplies-item-rows");
 
-  const taxRate = parseFloat(document.getElementById("purchase-form-catering-item-tax").dataset.tax);
+  const taxRate = parseFloat(document.getElementById("purchase-form-supplies-item-tax").dataset.tax);
 
-  const sumTotalSpan = document.getElementById("purchase-form-catering-sum");
-  const taxTotalSpan = document.getElementById("purchase-form-catering-tax");
-  const overallTotalSpan = document.getElementById("purchase-form-catering-total");
+  const sumTotalSpan = document.getElementById("purchase-form-supplies-sum");
+  const taxTotalSpan = document.getElementById("purchase-form-supplies-tax");
+  const overallTotalSpan = document.getElementById("purchase-form-supplies-total");
 
   const formatCurrency = (amount) =>
     amount.toLocaleString("es-CR", {
@@ -187,16 +187,16 @@
      let totalTax = 0;
      let totalAmount = 0;
 
-     rowsContainer.querySelectorAll('td[data-catering-sum]').forEach(td => {
-       totalSum += parseFloat(td.dataset.cateringSum) || 0;
+     rowsContainer.querySelectorAll('td[data-supplies-sum]').forEach(td => {
+       totalSum += parseFloat(td.dataset.suppliesSum) || 0;
      });
 
-     rowsContainer.querySelectorAll('td[data-catering-tax]').forEach(td => {
-       totalTax += parseFloat(td.dataset.cateringTax) || 0;
+     rowsContainer.querySelectorAll('td[data-supplies-tax]').forEach(td => {
+       totalTax += parseFloat(td.dataset.suppliesTax) || 0;
      });
 
-     rowsContainer.querySelectorAll('td[data-catering-total]').forEach(td => {
-       totalAmount += parseFloat(td.dataset.cateringTotal) || 0;
+     rowsContainer.querySelectorAll('td[data-supplies-total]').forEach(td => {
+       totalAmount += parseFloat(td.dataset.suppliesTotal) || 0;
      });
 
      sumTotalSpan.textContent = formatCurrency(totalSum);
@@ -231,9 +231,9 @@
       <td>${itemSummary}</td>
       <td style="text-align:right;">${formatCurrency(itemAmount)}</td>
       <td><input type="hidden" name="purchase_items_quantity[]" value="${quantity}">${quantity}</td>
-      <td style="text-align:right;" data-catering-sum="${sum}">${formatCurrency(sum)}</td>
-      <td style="text-align:right;" data-catering-tax="${tax}">${formatCurrency(tax)}</td>
-      <td style="text-align:right;" data-catering-total="${total}">${formatCurrency(total)}</td>
+      <td style="text-align:right;" data-supplies-sum="${sum}">${formatCurrency(sum)}</td>
+      <td style="text-align:right;" data-supplies-tax="${tax}">${formatCurrency(tax)}</td>
+      <td style="text-align:right;" data-supplies-total="${total}">${formatCurrency(total)}</td>
       <td style="text-align:right;"><a href="#" class="remove-line">Quitar</a></td>
     `;
 
@@ -242,13 +242,13 @@
     // Reset fields
     quantityInput.value = "";
     itemSelect.selectedIndex = 0;
-    document.getElementById("purchase-form-catering-item-summary").textContent = "";
-    document.getElementById("purchase-form-catering-item-desc").textContent = "";
-    document.getElementById("purchase-form-catering-item-amount").textContent = formatCurrency(0);
-    document.getElementById("purchase-form-catering-item-sum").textContent = formatCurrency(0);
-    document.getElementById("purchase-form-catering-item-count").textContent = "0";
-    document.getElementById("purchase-form-catering-item-tax").textContent = formatCurrency(0);
-    document.getElementById("purchase-form-catering-item-line").textContent = formatCurrency(0);
+    document.getElementById("purchase-form-supplies-item-summary").textContent = "";
+    document.getElementById("purchase-form-supplies-item-desc").textContent = "";
+    document.getElementById("purchase-form-supplies-item-amount").textContent = formatCurrency(0);
+    document.getElementById("purchase-form-supplies-item-sum").textContent = formatCurrency(0);
+    document.getElementById("purchase-form-supplies-item-count").textContent = "0";
+    document.getElementById("purchase-form-supplies-item-tax").textContent = formatCurrency(0);
+    document.getElementById("purchase-form-supplies-item-line").textContent = formatCurrency(0);
 
     updateOverallTotals();
   });

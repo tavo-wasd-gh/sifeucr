@@ -15,6 +15,7 @@ func (h *Handler) AddCatalog(w http.ResponseWriter, r *http.Request) {
 		Supplier int64  `form:"supplier" validate:"nonzero"`
 		Grouping int64  `form:"grouping" validate:"nonzero"`
 		Summary  string `form:"summary" fmt:"trim"`
+		Tags     string `form:"tags"    fmt:"trim"`
 	}
 
 	form, err := forms.FormToStruct[addCatalogForm](r)
@@ -31,6 +32,7 @@ func (h *Handler) AddCatalog(w http.ResponseWriter, r *http.Request) {
 		CatalogSupplier: form.Supplier,
 		CatalogGrouping: form.Grouping,
 		CatalogSummary:  form.Summary,
+		CatalogTags:     form.Tags,
 	})
 	if err != nil {
 		h.Log().Error("error adding catalog: %v", err)

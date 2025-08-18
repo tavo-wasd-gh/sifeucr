@@ -114,6 +114,89 @@ func (h *Handler) registerPurchase(ctx context.Context, params registerPurchaseP
 	return request.ReqID, tx.Commit()
 }
 
+// TODO: This is almost the same as Catering purchase, optimize later.
+func (h *Handler) newSuppliesPurchase(r *http.Request) error {
+	type suppliesPurchaseForm struct {
+		Required   int64     `form:"purchase_required"         req:"1"`
+		Desc       string    `form:"purchase_desc"             req:"1" fmt:"trim"`
+		Justif     string    `form:"purchase_justif"           req:"1" fmt:"trim"`
+		Catalogs   []int64   `form:"purchase_items_catalog[]"  req:"1"`
+		Articles   []int64   `form:"purchase_items_article[]"  req:"1"`
+		Quantities []float64 `form:"purchase_items_quantity[]" req:"1"`
+		Signature  string    `form:"purchase_signature"        req:"1"`
+	}
+
+	form, err := forms.FormToStruct[suppliesPurchaseForm](r)
+	if err != nil {
+		return fmt.Errorf("failed to cast form to struct: %v", err)
+	}
+
+	il := len(form.Catalogs)
+	if il == 0 ||
+		il != len(form.Articles) ||
+		il != len(form.Quantities) {
+		return fmt.Errorf("failed to register supplies purchase: slices different sizes or empty")
+	}
+
+	items := make([]itemIDAndQuantity, il)
+	for i := range il {
+		items[i] = itemIDAndQuantity{
+			ID:       form.Articles[i],
+			Quantity: form.Quantities[i],
+		}
+	}
+
+	ctx := r.Context()
+	queries := db.New(h.DB())
+
+	supplier, err := queries.SupplierByName(ctx, "OSUM")
+	if err != nil {
+		return fmt.Errorf("failed to query supplier by Name: %v", err)
+	}
+
+	// iterate over catalogs, articles and quantities.
+	// 1. Sums total purchase amount from items prices.
+	var totalAmount float64 = 0
+	for i, c := range form.Catalogs {
+		requestedSupplier, err := queries.SupplierByCatalogGrouping(ctx, c)
+		if err != nil {
+			return fmt.Errorf("failed to query supplier by CatalogGrouping: %v", err)
+		}
+		if requestedSupplier.SupplierID != supplier.SupplierID {
+			return fmt.Errorf("failed to register catering purchase: supplies purchases can only have catalogs corresponding to 'OSUM' account of ID: %d", supplier.SupplierID)
+		}
+
+		itemAmount, err := queries.ItemAmountByID(ctx, form.Articles[i])
+		if err != nil {
+			return fmt.Errorf("failed to query item price: %v", err)
+		}
+
+		totalAmount += itemAmount * form.Quantities[i]
+	}
+
+	userID := getUserIDFromContext(ctx)
+	accountID := getAccountIDFromContext(ctx)
+
+	params := registerPurchaseParams{
+		UserID:             userID,
+		AccountID:          accountID,
+		Desc:               form.Desc,
+		Justif:             form.Justif,
+		Required:           form.Required,
+		SupplierID:         supplier.SupplierID,
+		GrossAmount:        totalAmount,
+		Signature:          form.Signature,
+		ItemsIDAndQuantity: items,
+	}
+
+	_, err = h.registerPurchase(ctx, params)
+	if err != nil {
+		return fmt.Errorf("failed to register supplies purchase: %v", err)
+	}
+
+	return nil
+}
+
 func (h *Handler) newCateringPurchase(r *http.Request) error {
 	type cateringPurchaseForm struct {
 		Required   int64     `form:"purchase_required"         req:"1"`
@@ -243,6 +326,8 @@ func (h *Handler) NewPurchase(w http.ResponseWriter, r *http.Request) {
 		err = h.newCateringPurchase(r)
 	case "generic":
 		err = h.newGenericPurchase(r)
+	case "supplies":
+		err = h.newSuppliesPurchase(r)
 	default:
 		// handle anything else
 	}

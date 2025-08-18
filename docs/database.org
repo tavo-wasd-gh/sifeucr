@@ -108,7 +108,8 @@ CREATE TABLE IF NOT EXISTS "catalogs" (
     "catalog_id"          INTEGER PRIMARY KEY NOT NULL,
     "catalog_supplier"    INTEGER NOT NULL REFERENCES "suppliers"("supplier_id"),
     "catalog_grouping"    INTEGER NOT NULL UNIQUE,
-    "catalog_summary"     TEXT    NOT NULL
+    "catalog_summary"     TEXT    NOT NULL,
+    "catalog_tags"        TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "items" (
@@ -314,10 +315,12 @@ CREATE VIEW IF NOT EXISTS full_purchase_breakdowns AS
 SELECT
     pb.*,
     p.*,
-    i.*
+    i.*,
+    c.*
 FROM purchase_breakdowns pb
-JOIN purchases p ON p.purchase_id = pb.breakdown_purchase
-JOIN items i     ON i.item_id     = pb.breakdown_item;
+JOIN purchases p ON p.purchase_id  = pb.breakdown_purchase
+JOIN items i     ON i.item_id      = pb.breakdown_item
+JOIN catalogs c  ON i.item_catalog = c.catalog_id;
 #+end_src
 
 * DQL: Consultas
@@ -397,6 +400,11 @@ SELECT * FROM suppliers;
 
 -- name: SupplierEmails :many
 SELECT supplier_email FROM suppliers;
+
+-- name: SupplierByName :one
+SELECT * FROM suppliers
+WHERE supplier_name = ?
+LIMIT 1;
 
 -- name: SupplierByCatalogGrouping :one
 SELECT
@@ -707,9 +715,10 @@ WHERE supplier_id = ? RETURNING *;
 INSERT INTO catalogs (
     catalog_supplier,
     catalog_grouping,
-    catalog_summary
+    catalog_summary,
+    catalog_tags
 ) VALUES (
-    ?, ?, ?
+    ?, ?, ?, ?
 ) RETURNING *;
 
 -- name: AddItem :one

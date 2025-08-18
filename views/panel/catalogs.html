@@ -7,6 +7,7 @@
           <th><input type="number" placeholder="Agrupación" onkeyup="filterTable(this)"></th>
           <th><input type="text"   placeholder="Proveedor"  onkeyup="filterTable(this)"></th>
           <th><input type="text"   placeholder="Resumen"    onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Tags"       onkeyup="filterTable(this)"></th>
         </tr>
       </thead>
       <tbody id="catalog-rows">
@@ -31,6 +32,7 @@
     {{ end }}
   </select>
   <input type="text" name="summary" placeholder="Resumen" aria-label="Resumen" required>
+  <input type="text" name="tags"    placeholder="Tags"    aria-label="Tags"    required>
   <div style="display:flex;justify-content:right">
     <button
       type="submit"
