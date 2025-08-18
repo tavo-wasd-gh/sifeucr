@@ -410,7 +410,7 @@ func (h *Handler) PatchPurchaseMeta(w http.ResponseWriter, r *http.Request) {
 		Status   string `form:"purchase_patch_status"   fmt:"trim"`
 	}
 
-	reqIDStr := r.PathValue("id")
+	reqIDStr := r.PathValue("req")
 	reqID, err := strconv.ParseInt(reqIDStr, 10, 64)
 	if err != nil {
 		h.Log().Error("error patching purchase meta: %v", err)
@@ -464,4 +464,6 @@ func (h *Handler) PatchPurchaseMeta(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
+
+	// TODO: Print value if only one reqeuested, if multiple, print check emoji
 }

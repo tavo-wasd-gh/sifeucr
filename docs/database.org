@@ -134,6 +134,12 @@ CREATE TABLE IF NOT EXISTS "requests" (
     "req_descr"   TEXT    NOT NULL,
     "req_justif"  TEXT    NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS "request_docs" (
+    "doc_id"       INTEGER PRIMARY KEY NOT NULL,
+    "doc_purchase" INTEGER NOT NULL REFERENCES "requests"("req_id"),
+    "doc_url"      TEXT    NOT NULL
+);
 #+end_src
 
 *** Modificaciones Globales
@@ -199,12 +205,6 @@ CREATE TABLE IF NOT EXISTS "purchase_subscriptions" (
     "subscription_signature"    TEXT    NOT NULL,
     "subscription_signed"       BOOLEAN NOT NULL,
     "subscription_active"       BOOLEAN NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS "purchase_docs" (
-    "doc_id"       INTEGER PRIMARY KEY NOT NULL,
-    "doc_purchase" INTEGER NOT NULL REFERENCES "purchases"("purchase_id"),
-    "doc_url"      TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "purchase_breakdowns" (

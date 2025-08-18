@@ -42,7 +42,11 @@
             <td style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
             <td>{{ .EntryObject }}</td>
             <td>{{ summary .SupplierName 40 }}</td>
-            <td>{{ .PurchaseGecoSol }}</td>
+            <td class="clickable"
+                onclick="toggleModal('modal-purchase-geco-sol-{{ .ReqID }}')"
+                id="purchase-geco-sol-{{ .ReqID }}">
+              {{ .PurchaseGecoSol }}
+            </td>
             <td>{{ .PurchaseGecoOrd }}</td>
             <td>{{ .PurchaseBill }}</td>
             <td>{{ .PurchaseTransfer }}</td>
@@ -54,4 +58,31 @@
     </div>
   </div>
 </details>
+<div id="main-report-modals-purchases">
+  {{ range .Purchases }}
+  <dialog id="modal-purchase-geco-sol-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-geco-sol-{{ .ReqID }}')"></button>
+        <h3>Solicitud en GECO para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <form
+        method="PATCH"
+        action="/meta/purchase/{{ .ReqID }}"
+      >
+        <input type="text" value="{{ .PurchaseGecoSol }}" name="purchase_patch_geco_sol" placeholder="Solicitud en GECO" aria-label="Solicitud en GECO" required>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-geco-sol-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar no. Solicitud</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  {{ end }}
+</div>
 {{ end }}

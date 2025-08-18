@@ -82,6 +82,9 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 	router.Handle("POST /panel/item/add", middleware.With(panelMod, handler.AddItem))
 	router.Handle("PUT /panel/item/update/{id}", middleware.With(panelMod, handler.UpdateItem))
 
+	// Tracking de solicitudes
+	router.Handle("PATCH /meta/purchase/{req}", middleware.With(panelMod, handler.PatchPurchaseMeta))
+
 	// --- FORMS ---
 
 	// Protección de formularios
