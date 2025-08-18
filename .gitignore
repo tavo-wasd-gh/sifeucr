@@ -5,8 +5,5 @@ db.db-shm
 db.db-wal
 sifeucr
 .env
-internal/db/
-docs/schema.sql
-docs/queries.sql
 .air.toml
 local/
