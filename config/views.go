@@ -183,17 +183,7 @@ var ViewFormatters = map[string]any{
 		}
 		return template.HTML(sig)
 	},
-	"summary": func(s string, max int) string {
-		if max >= len(s) {
-			return s
-		}
-		cut := s[:max]
-		lastSpace := strings.LastIndex(cut, " ")
-		if lastSpace == -1 {
-			return cut + "..."
-		}
-		return s[:lastSpace] + "..."
-	},
+	"summary":   Summary,
 	"uppercase": func(s string) string { return strings.ToUpper(s) },
 	"firstWord": func(s string) string {
 		words := strings.Fields(s)
@@ -202,9 +192,10 @@ var ViewFormatters = map[string]any{
 		}
 		return ""
 	},
-	"currency":      FormatAsCurrency,
-	"unixDateToStr": unixDateToStr,
-	"unixDateLong":  UnixDateLong,
+	"currency":           FormatAsCurrency,
+	"unixDateToStr":      unixDateToStr,
+	"unixDateToDatetime": UnixDateToDatetime,
+	"unixDateLong":       UnixDateLong,
 	"eq": func(a, b any) bool {
 		switch va := a.(type) {
 		case int:
@@ -384,4 +375,22 @@ func pathsToSVG(paths [][][]float64, width, height int, stroke float64, color st
 	}
 	b.WriteString(`</svg>`)
 	return b.String()
+}
+
+func Summary(s string, max int) string {
+	if max >= len(s) {
+		return s
+	}
+	cut := s[:max]
+	lastSpace := strings.LastIndex(cut, " ")
+	if lastSpace == -1 {
+		return cut + "..."
+	}
+	return s[:lastSpace] + "..."
+}
+
+func UnixDateToDatetime(ts int64) string {
+	loc, _ := time.LoadLocation("America/Costa_Rica")
+	t := time.Unix(ts, 0).In(loc)
+	return t.Format("2006-01-02T15:04") // HTML datetime-local format
 }

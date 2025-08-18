@@ -186,6 +186,8 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   config.CookieMaxAge,
 	})
 
+	w.Header().Set("X-CSRF-Token", ct)
+
 	if err = views.RenderHTML(w, r, "dashboard", dashboard); err != nil {
 		h.Log().Error("failed to render dashboard: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)

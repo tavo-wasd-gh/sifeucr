@@ -120,6 +120,5 @@ func (h *Handler) DashboardMiddleware(next http.Handler) http.Handler {
 
 		w.Header().Set("X-CSRF-Token", newct)
 		next.ServeHTTP(w, r.WithContext(ctx))
-
 	})
 }
