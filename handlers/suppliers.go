@@ -153,7 +153,7 @@ func (h *Handler) SendSupplierSummaryToken(w http.ResponseWriter, r *http.Reques
 	}
 
 	if lastRequest, ok := SuppliersLastRequest[form.Email]; ok {
-		timeoutEnd := lastRequest + 60*5
+		timeoutEnd := lastRequest + 60*60*1
 		if time.Now().Unix() < timeoutEnd {
 			h.Log().Error("error generating supplier token: timeout has not been reached")
 			http.Error(w, "", http.StatusInternalServerError)
