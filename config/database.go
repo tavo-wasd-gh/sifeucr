@@ -3,11 +3,11 @@ package config
 import (
 	"database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 const (
-	DEFAULT_DRIVER = "sqlite3"
+	DEFAULT_DRIVER = "sqlite"
 )
 
 func InitDB(dbFile string) (*sql.DB, bool, error) {
