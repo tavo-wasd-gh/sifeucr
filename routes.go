@@ -31,7 +31,7 @@ func routes(handler *handlers.Handler) *http.ServeMux {
 
 	// --- SUPPLIERS ---
 	router.HandleFunc("POST /proveedores", handler.SendSupplierSummaryToken)
-	router.HandleFunc("GET /proveedores/{id}/{token}", handler.LoadSupplierSummary)
+	router.HandleFunc("GET /proveedores/{email}/{token}", handler.LoadSupplierSummary)
 
 	// --- PANEL ---
 

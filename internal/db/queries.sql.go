@@ -1187,6 +1187,65 @@ func (q *Queries) AllPurchases(ctx context.Context) ([]FullPurchase, error) {
 	return items, nil
 }
 
+const allPurchasesBySupplierEmail = `-- name: AllPurchasesBySupplierEmail :many
+SELECT purchase_id, purchase_request, purchase_required, purchase_supplier, purchase_currency, purchase_ex_rate_colones, purchase_gross_amount, purchase_discount, purchase_tax_rate, purchase_geco_sol, purchase_geco_ord, purchase_bill, purchase_transfer, purchase_status, req_id, req_user, req_account, req_issued, req_descr, req_justif, user_id, user_email, user_name, user_active, supplier_id, supplier_name, supplier_email, supplier_phone_country_code, supplier_phone, supplier_location FROM full_purchases
+WHERE supplier_email = ?
+`
+
+func (q *Queries) AllPurchasesBySupplierEmail(ctx context.Context, supplierEmail string) ([]FullPurchase, error) {
+	rows, err := q.db.QueryContext(ctx, allPurchasesBySupplierEmail, supplierEmail)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FullPurchase
+	for rows.Next() {
+		var i FullPurchase
+		if err := rows.Scan(
+			&i.PurchaseID,
+			&i.PurchaseRequest,
+			&i.PurchaseRequired,
+			&i.PurchaseSupplier,
+			&i.PurchaseCurrency,
+			&i.PurchaseExRateColones,
+			&i.PurchaseGrossAmount,
+			&i.PurchaseDiscount,
+			&i.PurchaseTaxRate,
+			&i.PurchaseGecoSol,
+			&i.PurchaseGecoOrd,
+			&i.PurchaseBill,
+			&i.PurchaseTransfer,
+			&i.PurchaseStatus,
+			&i.ReqID,
+			&i.ReqUser,
+			&i.ReqAccount,
+			&i.ReqIssued,
+			&i.ReqDescr,
+			&i.ReqJustif,
+			&i.UserID,
+			&i.UserEmail,
+			&i.UserName,
+			&i.UserActive,
+			&i.SupplierID,
+			&i.SupplierName,
+			&i.SupplierEmail,
+			&i.SupplierPhoneCountryCode,
+			&i.SupplierPhone,
+			&i.SupplierLocation,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const allSuppliers = `-- name: AllSuppliers :many
 SELECT supplier_id, supplier_name, supplier_email, supplier_phone_country_code, supplier_phone, supplier_location FROM suppliers
 `

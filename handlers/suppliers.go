@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"slices"
 	"strconv"
+	"time"
 
 	"git.tavo.one/tavo/axiom/forms"
 	"git.tavo.one/tavo/axiom/mail"
@@ -20,6 +21,8 @@ import (
 const (
 	tokenResponse = `<p>Para ver los trámites pendientes, ingrese <a href="https://si.feucr.org/proveedores/%s/%s">aquí</a></p>`
 )
+
+var SuppliersLastRequest = map[string]int64{}
 
 func (h *Handler) AddSupplier(w http.ResponseWriter, r *http.Request) {
 	type addSupplierForm struct {
@@ -106,7 +109,7 @@ func (h *Handler) UpdateSupplier(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func supplierToken(key, input string) (string, error) {
+func SupplierToken(key, input string) (string, error) {
 	keyBytes := []byte(key)
 	message := []byte(input)
 
@@ -149,7 +152,18 @@ func (h *Handler) SendSupplierSummaryToken(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	token, err := supplierToken(h.ServerSecret(), form.Email)
+	if lastRequest, ok := SuppliersLastRequest[form.Email]; ok {
+		timeoutEnd := lastRequest + 60*5
+		if time.Now().Unix() < timeoutEnd {
+			h.Log().Error("error generating supplier token: timeout has not been reached")
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		SuppliersLastRequest[form.Email] = time.Now().Unix()
+	}
+
+	token, err := SupplierToken(h.ServerSecret(), form.Email)
 	if err != nil {
 		h.Log().Error("error generating supplier token: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
@@ -171,14 +185,14 @@ func (h *Handler) SendSupplierSummaryToken(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// views.RenderHTML(w, r, "supplier-summary-check-email", nil)
+	fmt.Fprintln(w, "Listo! Enviamos el link para visualizar los trámites a su correo.")
 }
 
 func (h *Handler) LoadSupplierSummary(w http.ResponseWriter, r *http.Request) {
 	email := r.PathValue("email")
 	claimedToken := r.PathValue("token")
 
-	token, err := supplierToken(h.ServerSecret(), email)
+	token, err := SupplierToken(h.ServerSecret(), email)
 	if err != nil {
 		h.Log().Error("error generating supplier token: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
@@ -191,7 +205,48 @@ func (h *Handler) LoadSupplierSummary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Load info
+	ctx := r.Context()
+	queries := db.New(h.DB())
+	allPurchasesBySupplierEmail, err := queries.AllPurchasesBySupplierEmail(ctx, email)
+	if err != nil {
+		h.Log().Error("error loading supplier summary: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 
-	// views.RenderHTML(w, r, "supplier-summary", summary)
+	type supplierPurchase struct {
+		ReqID               int64
+		ReqDescr            string
+		PurchaseRequired    int64
+		PurchaseTaxRate     float64
+		PurchaseGrossAmount float64
+	}
+
+	type supplierSummary struct {
+		Purchases     []supplierPurchase
+		CSRFToken     string
+		SupplierToken string
+	}
+
+	summary := supplierSummary{
+		Purchases:     make([]supplierPurchase, len(allPurchasesBySupplierEmail)),
+		SupplierToken: token,
+	}
+
+	for i, p := range allPurchasesBySupplierEmail {
+		summary.Purchases[i] = supplierPurchase{
+			ReqID:               p.ReqID,
+			ReqDescr:            p.ReqDescr,
+			PurchaseRequired:    p.PurchaseRequired,
+			PurchaseTaxRate:     p.PurchaseTaxRate,
+			PurchaseGrossAmount: p.PurchaseGrossAmount,
+		}
+	}
+
+	err = views.RenderHTML(w, r, "supplier-summary-page", summary)
+	if err != nil {
+		h.Log().Error("error loading supplier summary: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 }

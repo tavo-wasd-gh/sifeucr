@@ -502,6 +502,10 @@ WHERE req_id = ?;
 -- name: AllPurchases :many
 SELECT * FROM full_purchases;
 
+-- name: AllPurchasesBySupplierEmail :many
+SELECT * FROM full_purchases
+WHERE supplier_email = ?;
+
 -- name: FullPurchaseByReqID :one
 SELECT * FROM full_purchases
 WHERE req_id = ?;

@@ -35,6 +35,11 @@ var ViewMap = map[string][]string{
 	"login": {
 		"views/login.html",
 	},
+	"supplier-summary-page": append(
+		base,
+		"views/supplier-summary.html",
+		"views/supplier-summary-page.html",
+	),
 
 	"dashboard-page": append(
 		base,
