@@ -32,7 +32,7 @@ chown -R sifeucr:sifeucr /var/lib/sifeucr && chmod 750 /var/lib/sifeucr
 - [ ] Revisión de formularios
 - [ ] Verificación de la asignación del aplicante
 
-## v2.3.0 Implementar MinIO
+## v2.3.0 Subir archivos
 
 - [ ] Adjuntar pruebas prov al día en entidades públicas
 - [ ] Otros archivos
@@ -52,8 +52,8 @@ chown -R sifeucr:sifeucr /var/lib/sifeucr && chmod 750 /var/lib/sifeucr
 
 ## v2.0.0 Segunda iteración
 
-- [ ] Funcionalidad mínima
-- [ ] Revisar que las vistas funcionen sin errores
+- [X] Funcionalidad mínima
+- [X] Revisar que las vistas funcionen sin errores
 - [ ] Triggers para auditoría
 
 ### Reportes
@@ -64,14 +64,14 @@ chown -R sifeucr:sifeucr /var/lib/sifeucr && chmod 750 /var/lib/sifeucr
 
 ### Solicitudes
 
-- [ ] Compras - Servicios, Suministros, Activos
+- [X] Compras - Servicios, Suministros, ~Activos~
 - [ ] Modificaciones globales
 - [ ] Modificaciones internas
 
 ### Inserciones
 
-- [ ] Presupuesto
-- [ ] Usuario
-- [ ] Cuenta
-- [ ] Distribución
-- [ ] Proveedor
+- [X] Presupuesto
+- [X] Usuario
+- [X] Cuenta
+- [X] Distribución
+- [X] Proveedor
