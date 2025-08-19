@@ -1,0 +1,196 @@
+package handlers
+
+import (
+	"context"
+	"net/http"
+	"net/mail"
+	"strings"
+
+	"git.tavo.one/tavo/axiom/forms"
+	"git.tavo.one/tavo/axiom/mail"
+	"git.tavo.one/tavo/axiom/views"
+
+	"sifeucr/config"
+	"sifeucr/internal/db"
+)
+
+func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
+	type loginForm struct {
+		Email    string `form:"email" fmt:"trim,lower" req:"1"`
+		Password string `form:"password" req:"1"`
+		Account  int64  `form:"account"`
+	}
+
+	// Cast form, the only possible query injection is by Email or Passw.
+	login, err := forms.FormToStruct[loginForm](r)
+	if err != nil {
+		h.Log().Error("error casting form to struct: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	// Make sure it is an institution email
+	if strings.Contains(login.Email, "@") {
+		if !strings.Contains(strings.ToLower(login.Email), "@ucr.ac.cr") {
+			// Is an external provider
+			views.RenderHTML(w, r, "login", map[string]any{"ExternalEmail": true})
+			return
+		}
+	} else {
+		login.Email += "@ucr.ac.cr"
+	}
+
+	// ParseAddress parses a single RFC 5322 address.
+	_, err = mail.ParseAddress(login.Email)
+	if err != nil {
+		h.Log().Error("invalid email: %v", err)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	// Validates Password and Email against SMTP server, login.Password is not
+	// used anymore after this.
+	if h.Production() {
+		s := smtp.Client("smtp.ucr.ac.cr", "587", login.Password)
+
+		if err := s.Validate(login.Email); err != nil {
+			h.Log().Error("error validating user %s: %v", login.Email, err)
+			views.RenderHTML(w, r, "login", map[string]any{"Error": true})
+			return
+		}
+	}
+
+	// Remove domain, DB only stores user
+	dbuser := login.Email
+	pos := strings.IndexRune(dbuser, '@')
+	if pos != -1 {
+		dbuser = dbuser[:pos]
+	}
+
+	queries := db.New(h.DB())
+	ctx := r.Context()
+
+	// User is already parsed and validated, query uses parameters instead of
+	// manually assembling the SQL statement.
+	// See: https://go.dev/doc/database/sql-injection
+	userID, err := queries.ActiveUserIDByUserEmail(ctx, dbuser)
+	if err != nil {
+		h.Log().Error("error querying user_id by user_email: %v", err)
+		views.RenderHTML(w, r, "login", map[string]any{"Error": true})
+		return
+	}
+
+	// Check available accounts
+	perms, err := queries.ActivePermissionsByUserID(ctx, userID)
+	if err != nil {
+		h.Log().Error("error querying allowed_accounts by user_id: %v", err)
+		views.RenderHTML(w, r, "login", map[string]any{"Error": true})
+		return
+	}
+
+	var chosenAccountID int64 = 0
+
+	switch len(perms) {
+	case 0:
+		// No allowed accounts, render error and return
+		h.Log().Error("no allowed_accounts for user_id")
+		views.RenderHTML(w, r, "login", map[string]any{"Error": true})
+		return
+
+	case 1:
+		// One allowed account, set and continue
+		chosenAccountID = perms[0].AccountID
+
+	default:
+		// Multiple:
+		// -> With login.Account: Check if claimed account is valid.
+		// -> Else: Render login with allowed permissions.
+		if login.Account != 0 {
+			for _, perm := range perms {
+				if login.Account == perm.AccountID {
+					chosenAccountID = perm.AccountID
+					break
+				}
+			}
+		} else {
+			type multiple struct {
+				ExternalEmail    bool
+				Error            bool
+				MultipleAccounts bool
+				Permissions      []db.ActivePermissionsByUserIDRow
+			}
+
+			m := multiple{
+				ExternalEmail:    false,
+				Error:            false,
+				MultipleAccounts: true,
+				Permissions:      perms,
+			}
+
+			if err := views.RenderHTML(w, r, "login", m); err != nil {
+				h.Log().Error("error rendering multiple account login: %v", err)
+			}
+
+			return
+		}
+	}
+
+	perm, err := queries.ActivePermissionByUserIDAndAccountID(ctx, db.ActivePermissionByUserIDAndAccountIDParams{
+		UserID:    userID,
+		AccountID: chosenAccountID,
+	})
+
+	if err != nil {
+		h.Log().Error("error querying permissions: %v", err)
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	if !config.HasPermission(perm.PermissionInteger, config.Read) {
+		h.Log().Error("incorrect permissions, got:%d want:%d", perm.PermissionInteger, config.Read)
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	st, ct, err := h.Sessions().New(
+		config.SessionMaxAge,
+		config.Session{
+			UserID:    userID,
+			AccountID: chosenAccountID,
+		},
+	)
+	if err != nil {
+		h.Log().Error("failed to create session: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	ctx = context.WithValue(ctx, config.UserIDKey, userID)
+	ctx = context.WithValue(ctx, config.AccountIDKey, chosenAccountID)
+	ctx = context.WithValue(ctx, config.CSRFTokenKey, ct)
+
+	dashboard, err := h.loadDashboard(ctx)
+	if err != nil {
+		h.Log().Error("failed to load dashboard: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     config.SessionTokenKey,
+		Value:    st,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   h.Production(),
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   config.CookieMaxAge,
+	})
+
+	w.Header().Set("X-CSRF-Token", ct)
+
+	if err = views.RenderHTML(w, r, "dashboard", dashboard); err != nil {
+		h.Log().Error("failed to render dashboard: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+}

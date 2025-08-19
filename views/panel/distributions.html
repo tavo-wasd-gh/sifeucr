@@ -1,0 +1,61 @@
+{{ define "distributions" }}
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="number" placeholder="ID"      onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Periodo" onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Cuenta"  onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Partida" onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Monto"   onkeyup="filterTable(this)" filter="number" inputmode="numeric"></th>
+          <th>Activa</th>
+        </tr>
+      </thead>
+      <tbody id="distribution-rows">
+        {{ range .Distributions }}
+        {{ template "distribution" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</div>
+<label for="adddist">Agregar Distribución</label>
+<form
+  id="adddist"
+  method="POST"
+  action="/panel/dist/add"
+>
+  <select id="panel-distributions-select-period" name="period">
+    <option value="" selected disabled>Período</option>
+    {{ range .Periods }}
+    <option value="{{ .PeriodID }}">{{ .PeriodName }}</option>
+    {{ end }}
+  </select>
+  <select id="panel-distributions-select-account" name="account">
+    <option value="" selected disabled>Cuenta</option>
+    {{ range .Accounts }}
+    <option value="{{ .AccountID }}">[{{ .AccountAbbr }}] {{ .AccountName }}</option>
+    {{ end }}
+  </select>
+  <select id="panel-distributions-select-budget" name="entry">
+    <option value="" selected disabled>Partida</option>
+    {{ range .BudgetEntries }}
+    <option value="{{ .EntryID }}">[{{ .EntryYear }}] [{{ .EntryCode }}] {{ .EntryObject }}</option>
+    {{ end }}
+  </select>
+  <input type="number" name="amount"  placeholder="Monto"   aria-label="Monto"   required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#distribution-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Distribución</button>
+  </div>
+</form>
+{{ range .Distributions }}
+{{ template "dist-modal" . }}
+{{ end }}
+{{ end }}

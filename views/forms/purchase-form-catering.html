@@ -1,0 +1,261 @@
+{{ define "purchase-form-catering" }}
+<select id="purchase-form-catering-catalog" required>
+  <option data-catalog-tags="Alimentación" value="" selected disabled>Agrupación</option>
+  {{ range .Catalogs }}
+  <option data-catalog-tags="{{ .CatalogTags }}" value="{{ .CatalogGrouping }}">[{{ .CatalogGrouping }}] {{ .CatalogSummary }} ({{ .SupplierName }})</option>
+  {{ end }}
+</select>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    filterSelectByTags('purchase-form-catering-catalog', 'catalogTags', ['alimentación'], ['']);
+  });
+</script>
+<p id="purchase-form-catering-item-summary"></p>
+<p id="purchase-form-catering-item-desc"></p>
+<div class="grid">
+  <span>
+    <select id="purchase-form-catering-items" name="purchase_items[]">
+      <option value="" data-catalog="" data-summary="" data-desc="" data-amount="0" selected disabled>Artículo</option>
+      {{ range .Items }}
+      <option
+          hidden
+          value="{{ .ItemID }}"
+          data-catalog="{{ .CatalogGrouping }}"
+          data-summary="{{ .ItemSummary }}"
+          data-desc="{{ .ItemDescription }}"
+          data-amount="{{ .ItemAmount }}">
+          [{{ .ItemNumber }}] {{ .ItemSummary }}
+      </option>
+      {{ end }}
+    </select>
+    <script>
+     // Remove the hidden attr in the ones that match
+     (function () {
+         const catalogSelect = document.getElementById("purchase-form-catering-catalog");
+         const itemSelect = document.getElementById("purchase-form-catering-items");
+         catalogSelect.addEventListener("change", () => {
+             const selectedCatalog = catalogSelect.value;
+             // Loop through item options
+             Array.from(itemSelect.options).forEach((option) => {
+                 const itemCatalog = option.dataset.catalog || "";
+                 // Always allow empty catalog items
+                 if (itemCatalog === "" || itemCatalog === selectedCatalog) {
+                     option.hidden = false;
+                 } else {
+                     option.hidden = true;
+                 }
+             });
+             // Optionally reset selection if current is invalid
+             if (
+                 itemSelect.selectedIndex !== -1 &&
+                 itemSelect.options[itemSelect.selectedIndex].hidden
+             ) {
+                 itemSelect.selectedIndex = 0;
+             }
+         });
+     })();
+    </script>
+    <br>
+    <input
+      id="purchase-form-catering-item-quantity"
+      type="number" step="any"
+      placeholder="Cantidad"
+    >
+  </span>
+  <p style="text-align:right;white-space:nowrap;">
+    <small>Unidad: <span id="purchase-form-catering-item-amount">{{ currency 0 }}</span></small>
+    <br>
+    <small>Subtotal (<span id="purchase-form-catering-item-count">1</span>): <span id="purchase-form-catering-item-sum">{{ currency 4500 }}</span></small>
+    <br>
+    <small>IVA (2%): <span id="purchase-form-catering-item-tax" data-tax="0.02">{{ currency 0 }}</span></small>
+    <br>
+    <big>Línea: <span id="purchase-form-catering-item-line">{{ currency 0 }}</span></big>
+    <br>
+  </p>
+</div>
+<script>
+(function () {
+  const itemSelect = document.getElementById("purchase-form-catering-items");
+  const quantityInput = document.getElementById("purchase-form-catering-item-quantity");
+
+  const amountSpan = document.getElementById("purchase-form-catering-item-amount");
+  const sumSpan = document.getElementById("purchase-form-catering-item-sum");
+  const countSpan = document.getElementById("purchase-form-catering-item-count");
+  const taxSpan = document.getElementById("purchase-form-catering-item-tax");
+  const lineSpan = document.getElementById("purchase-form-catering-item-line");
+  const summaryPara = document.getElementById("purchase-form-catering-item-summary");
+  const descPara = document.getElementById("purchase-form-catering-item-desc");
+
+  const taxRate = parseFloat(taxSpan.dataset.tax);
+
+  const formatCurrency = (amount) => {
+    return amount.toLocaleString("es-CR", {
+      style: "currency",
+      currency: "CRC",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  function updateLineCalculation() {
+    const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+    const unitAmount = parseFloat(selectedOption.dataset.amount || 0);
+    const summary = selectedOption.dataset.summary || "";
+    const description = selectedOption.dataset.desc || "";
+    const quantity = parseInt(quantityInput.value, 10) || 0;
+
+    const sum = unitAmount * quantity;
+    const tax = sum * taxRate;
+    const total = sum + tax;
+
+    amountSpan.textContent = formatCurrency(unitAmount);
+    sumSpan.textContent = formatCurrency(sum);
+    countSpan.textContent = quantity;
+    taxSpan.textContent = formatCurrency(tax);
+    lineSpan.textContent = formatCurrency(total);
+    summaryPara.textContent = summary;
+    descPara.textContent = description;
+  }
+
+  itemSelect.addEventListener("change", updateLineCalculation);
+  quantityInput.addEventListener("input", updateLineCalculation);
+
+  // Run once at start
+  updateLineCalculation();
+})();
+</script>
+<div style="display:flex;justify-content:center">
+  <button type="button"
+          class="outline"
+          id="purchase-form-catering-add-line">Agregar Línea</button>
+</div>
+<div class="overflow-auto">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th>Agrupación</th>
+        <th>Artículo</th>
+        <th>Descripción</th>
+        <th>Unidad</th>
+        <th>Cantidad</th>
+        <th>Subtotal</th>
+        <th>IVA (2%)</th>
+        <th>Total</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody id="purchase-form-catering-item-rows">
+    </tbody>
+  </table>
+</div>
+<p style="text-align:right;">
+  <small>Subtotal: <span id="purchase-form-catering-sum"></span></small>
+  <br>
+  <small>IVA (2%): <span id="purchase-form-catering-tax" data-tax="0.02"></span></small>
+  <br>
+  <big>Total: <span id="purchase-form-catering-total"></span></big>
+</p>
+<script>
+(function () {
+  const summary = document.getElementById("purchase-form-catering-catalog");
+  const catalogSelect = document.getElementById("purchase-form-catering-catalog");
+  const itemSelect = document.getElementById("purchase-form-catering-items");
+  const quantityInput = document.getElementById("purchase-form-catering-item-quantity");
+  const addButton = document.getElementById("purchase-form-catering-add-line");
+  const rowsContainer = document.getElementById("purchase-form-catering-item-rows");
+
+  const taxRate = parseFloat(document.getElementById("purchase-form-catering-item-tax").dataset.tax);
+
+  const sumTotalSpan = document.getElementById("purchase-form-catering-sum");
+  const taxTotalSpan = document.getElementById("purchase-form-catering-tax");
+  const overallTotalSpan = document.getElementById("purchase-form-catering-total");
+
+  const formatCurrency = (amount) =>
+    amount.toLocaleString("es-CR", {
+      style: "currency",
+      currency: "CRC",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+   function updateOverallTotals() {
+     let totalSum = 0;
+     let totalTax = 0;
+     let totalAmount = 0;
+
+     rowsContainer.querySelectorAll('td[data-catering-sum]').forEach(td => {
+       totalSum += parseFloat(td.dataset.cateringSum) || 0;
+     });
+
+     rowsContainer.querySelectorAll('td[data-catering-tax]').forEach(td => {
+       totalTax += parseFloat(td.dataset.cateringTax) || 0;
+     });
+
+     rowsContainer.querySelectorAll('td[data-catering-total]').forEach(td => {
+       totalAmount += parseFloat(td.dataset.cateringTotal) || 0;
+     });
+
+     sumTotalSpan.textContent = formatCurrency(totalSum);
+     taxTotalSpan.textContent = formatCurrency(totalTax);
+     overallTotalSpan.textContent = formatCurrency(totalAmount);
+   }
+
+  addButton.addEventListener("click", () => {
+    const catalogOption = catalogSelect.options[catalogSelect.selectedIndex];
+    const catalogValue = catalogOption.value;
+
+    const itemOption = itemSelect.options[itemSelect.selectedIndex];
+    const itemId = itemOption.value;
+    const itemText = itemOption.textContent;
+    const itemAmount = parseFloat(itemOption.dataset.amount || 0);
+    const itemSummary = itemOption.dataset.summary || "";
+    const quantity = parseInt(quantityInput.value, 10) || 0;
+
+    if (!catalogValue || !itemId || quantity <= 0) {
+      alert("Debe seleccionar una agrupación, un artículo y una cantidad válida.");
+      return;
+    }
+
+    const sum = itemAmount * quantity;
+    const tax = sum * taxRate;
+    const total = sum + tax;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="hidden" name="purchase_items_catalog[]" value="${catalogValue}">${catalogValue}</td>
+      <td><input type="hidden" name="purchase_items_article[]" value="${itemId}">${itemId}</td>
+      <td>${itemSummary}</td>
+      <td style="text-align:right;">${formatCurrency(itemAmount)}</td>
+      <td><input type="hidden" name="purchase_items_quantity[]" value="${quantity}">${quantity}</td>
+      <td style="text-align:right;" data-catering-sum="${sum}">${formatCurrency(sum)}</td>
+      <td style="text-align:right;" data-catering-tax="${tax}">${formatCurrency(tax)}</td>
+      <td style="text-align:right;" data-catering-total="${total}">${formatCurrency(total)}</td>
+      <td style="text-align:right;"><a href="#" class="remove-line">Quitar</a></td>
+    `;
+
+    rowsContainer.appendChild(row);
+
+    // Reset fields
+    quantityInput.value = "";
+    itemSelect.selectedIndex = 0;
+    document.getElementById("purchase-form-catering-item-summary").textContent = "";
+    document.getElementById("purchase-form-catering-item-desc").textContent = "";
+    document.getElementById("purchase-form-catering-item-amount").textContent = formatCurrency(0);
+    document.getElementById("purchase-form-catering-item-sum").textContent = formatCurrency(0);
+    document.getElementById("purchase-form-catering-item-count").textContent = "0";
+    document.getElementById("purchase-form-catering-item-tax").textContent = formatCurrency(0);
+    document.getElementById("purchase-form-catering-item-line").textContent = formatCurrency(0);
+
+    updateOverallTotals();
+  });
+
+  rowsContainer.addEventListener("click", function (e) {
+    if (e.target.classList.contains("remove-line")) {
+      e.preventDefault();
+      e.target.closest("tr").remove();
+      updateOverallTotals();
+    }
+  });
+})();
+</script>
+{{ end }}

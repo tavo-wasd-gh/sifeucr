@@ -1,0 +1,43 @@
+{{ define "periods" }}
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="text"                 placeholder="Identificador" onkeyup="filterTable(this)"></th>
+          <th><input type="date" filter="after"  placeholder="Inicio"        onkeyup="filterTable(this)"></th>
+          <th><input type="date" filter="before" placeholder="Fin"           onkeyup="filterTable(this)"></th>
+          <th>Activo</th>
+        </tr>
+      </thead>
+      <tbody id="period-rows">
+        {{ range .Periods }}
+        {{ template "period" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</div>
+<label for="addperiod">Agregar Período</label>
+<form
+  id="addperiod"
+  method="POST"
+  action="/panel/period/add"
+>
+  <input type="name" name="name"  placeholder="Identificador" aria-label="Identificador" required>
+  <input type="date" name="start" placeholder="Inicio"        aria-label="Inicio" required>
+  <input type="date" name="end"   placeholder="Fin"           aria-label="Fin"  required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#period-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Período</button>
+  </div>
+</form>
+{{ range .Periods }}
+{{ template "period-modal" . }}
+{{ end }}
+{{ end }}

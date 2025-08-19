@@ -1,0 +1,46 @@
+{{ define "catalogs" }}
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="number" placeholder="Agrupación" onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Proveedor"  onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Resumen"    onkeyup="filterTable(this)"></th>
+          <th><input type="text"   placeholder="Tags"       onkeyup="filterTable(this)"></th>
+        </tr>
+      </thead>
+      <tbody id="catalog-rows">
+        {{ range .Catalogs }}
+        {{ template "catalog" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</div>
+<label for="addcatalog">Agregar Catálogo</label>
+<form
+  id="addcatalog"
+  method="POST"
+  action="/panel/catalog/add"
+>
+  <input type="number" step="1" name="grouping" placeholder="Agrupación"  aria-label="Agrupación"  required>
+  <select id="panel-catalog-select-supplier" name="supplier">
+    <option value="" selected disabled>Proveedor</option>
+    {{ range .Suppliers }}
+    <option value="{{ .SupplierID }}">[{{ formatID .SupplierID }}] {{ .SupplierName }}</option>
+    {{ end }}
+  </select>
+  <input type="text" name="summary" placeholder="Resumen" aria-label="Resumen" required>
+  <input type="text" name="tags"    placeholder="Tags"    aria-label="Tags"    required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#catalog-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Catálogo</button>
+  </div>
+</form>
+{{ end }}

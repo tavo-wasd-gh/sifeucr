@@ -1,0 +1,38 @@
+{{ define "accounts" }}
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="text" placeholder="Siglas" onkeyup="filterTable(this)"></th>
+          <th><input type="text" placeholder="Nombre" onkeyup="filterTable(this)"></th>
+          <th>Activa</th>
+        </tr>
+      </thead>
+      <tbody id="account-rows">
+        {{ range .Accounts }}
+        {{ template "account" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</div>
+<label for="addaccount">Agregar Cuenta</label>
+<form
+  id="addaccount"
+  method="POST"
+  action="/panel/account/add"
+>
+  <input type="text" name="abbr" placeholder="Siglas" aria-label="Siglas" required>
+  <input type="text" name="name" placeholder="Nombre" aria-label="Nombre" required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#account-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Cuenta</button>
+  </div>
+</form>
+{{ end }}

@@ -1,0 +1,23 @@
+{{ define "dashboard" }}
+<nav>
+  <div>
+    <strong>{{ .Account.AccountName }}</strong><br>
+    <small>{{ .User.UserName }}</small>
+  </div>
+  <nav>
+    {{ if .ReadAdvanced }}
+    <a href="/panel">
+      <button class="contrast">Panel</button>
+    </a>
+    {{ end }}
+    <a href="/cerrar">
+      <button class="outline">Salir</button>
+    </a>
+  </nav>
+</nav>
+<br>
+{{ if .ReadAdvanced }}
+{{ template "main-report" . }}
+{{ end }}
+{{ template "purchases" . }}
+{{ end }}

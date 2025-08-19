@@ -1,0 +1,29 @@
+:root {
+  font-family: sans-serif;
+  font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+}
+@supports (font-variation-settings: normal) {
+  :root { font-family: InterVariable, sans-serif; }
+}
+
+html {
+  font-size: 18px;
+}
+
+.canvas-wrap {
+  width: 100%;
+  max-width: 40em;
+  margin: calc(var(--axiom-padding) * 0.5) auto;
+}
+
+.canvas-signature {
+  width: 100%;
+  border: 1px solid var(--axiom-color-border);
+  border-radius: var(--axiom-border-radius);
+  touch-action: none;
+  display: block;
+}
+
+body {
+  width: 100%;
+}

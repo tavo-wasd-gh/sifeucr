@@ -1,0 +1,18 @@
+{{ define "head" }}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIFEUCR</title>
+<link rel="canonical" href="/">
+<link rel="icon" href="/s/girasol.svg" type="image/x-icon">
+<meta name="description" content="Sistema Integrado Financiero de la FEUCR">
+
+<link rel="stylesheet" href="/s/css/axiom.min.css">
+<link rel="stylesheet" href="/s/css/main.css">
+
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+<script src="/s/js/main.js" defer></script>
+
+<meta name="csrf_token" content="{{ if .CSRFToken }}{{ .CSRFToken }}{{ end }}">
+{{ end }}

@@ -1,0 +1,54 @@
+{{ define "items" }}
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="number" step="1"    placeholder="Agrupación"  onkeyup="filterTable(this)"></th>
+          <th><input type="number" step="1"    placeholder="Artículo"    onkeyup="filterTable(this)"></th>
+          <th><input type="text"               placeholder="Proveedor"   onkeyup="filterTable(this)"></th>
+          <th><input type="text"               placeholder="Resumen"     onkeyup="filterTable(this)"></th>
+          <th><input type="text"               placeholder="Descripción" onkeyup="filterTable(this)"></th>
+          <th><input type="number" step="0.01" placeholder="Monto"       onkeyup="filterTable(this)"></th>
+        </tr>
+      </thead>
+      <tbody id="item-rows">
+        {{ range .Items }}
+        {{ template "item" . }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</div>
+<label for="additem">Agregar Artículo</label>
+<form
+  id="additem"
+  method="POST"
+  action="/panel/item/add"
+>
+  <select id="panel-items-select-catalog" name="catalog">
+    <option value="" selected disabled>Agrupación</option>
+    {{ range .Catalogs }}
+    <option value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .CatalogSummary }} ({{ .SupplierName }})</option>
+    {{ end }}
+  </select>
+  <input type="number" step="1"    name="number"  placeholder="Artículo"    aria-label="Artículo"    required>
+  <input type="text"               name="summary" placeholder="Resumen"     aria-label="Resumen"     required>
+  <textarea                        name="desc"    placeholder="Descripción" aria-label="Descripción" required></textarea>
+  <input type="number" step="0.01" name="amount"  placeholder="Monto"       aria-label="Monto"       required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#item-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Artículo</button>
+  </div>
+</form>
+<div id="panel-modals-items">
+  {{ range .Items }}
+  {{ template "item-modal" . }}
+  {{ end }}
+</div>
+{{ end }}

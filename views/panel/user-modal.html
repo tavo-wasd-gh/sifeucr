@@ -1,0 +1,11 @@
+{{ define "user-modal" }}
+<dialog data-oob="panel-modals-users" swap="beforeend" id="modal-user-{{ .UserID }}">
+  <article>
+    <header>
+      <button rel="prev" type="button" onclick="toggleModal('modal-user-{{ .UserID }}')"></button>
+      <h3>Usuario #{{ .UserID }}</h3>
+    </header>
+    {{ template "user-permissions" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "Permissions" $.Permissions "PermissionTypes" $.PermissionTypes "Accounts" $.Accounts) }}
+  </article>
+</dialog>
+{{ end }}

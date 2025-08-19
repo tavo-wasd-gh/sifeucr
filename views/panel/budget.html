@@ -1,0 +1,11 @@
+{{ define "budget" }}
+<tr>
+  <td>{{ .EntryYear }}</td>
+  <td>{{ .EntryCode }}</td>
+  <td>{{ .EntryObject }}</td>
+  <td style="text-align:right;">{{ currency .EntryAmount }}</td>
+</tr>
+<div style="display:none;">
+  <option data-oob="#panel-distributions-select-budget" swap="beforeend" value="{{ .EntryID }}">[{{ .EntryYear }}] [{{ .EntryCode }}] {{ .EntryObject }}</option>
+</div>
+{{ end }}

@@ -1,0 +1,23 @@
+{{ define "distribution" }}
+<tr>
+  <td class="clickable" onclick="toggleModal('modal-dist-{{ .DistID }}')">{{ .DistID }}</td>
+  <td>{{ .PeriodName }}</td>
+  <td>{{ .AccountAbbr }}</td>
+  <td tags="{{ .EntryCode }}">[{{ .EntryYear }}] [{{ .EntryCode }}] {{ .EntryObject }}</td>
+  <td style="text-align:right;">{{ currency .DistAmount }}</td>
+  <td style="text-align:right;">
+    <div style="display:flex;justify-content:flex-end;">
+      <form method="POST" action="/panel/dist/toggle/{{ .DistID }}">
+        <input
+          type="checkbox"
+          role="switch"
+          {{ if .DistActive }}checked{{ end }}
+          onchange="fetchAndSwap(event)"
+          swap="none"
+          loading-state
+        >
+      </form>
+    </div>
+  </td>
+</tr>
+{{ end }}

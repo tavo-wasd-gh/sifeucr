@@ -1,0 +1,24 @@
+{{ define "period" }}
+<tr>
+  <td class="clickable" onclick="toggleModal('modal-period-{{ .PeriodID }}')">{{ .PeriodName }}</td>
+  <td>{{ unixDateToStr .PeriodStart }}</td>
+  <td>{{ unixDateToStr .PeriodEnd }}</td>
+  <td style="text-align:right;">
+    <div style="display:flex;justify-content:flex-end;">
+      <form method="POST" action="/panel/period/toggle/{{ .PeriodID }}">
+        <input
+          type="checkbox"
+          role="switch"
+          {{ if .PeriodActive }}checked{{ end }}
+          onchange="fetchAndSwap(event)"
+          swap="none"
+          loading-state
+        >
+      </form>
+    </div>
+  </td>
+</tr>
+<div style="display:none;">
+  <option data-oob="#panel-distributions-select-period" swap="beforeend" value="{{ .PeriodID }}">{{ .PeriodName }}</option>
+</div>
+{{ end }}

@@ -1,0 +1,18 @@
+{{ define "dist-update-form" }}
+<form
+  id="form-dist-{{ .DistID }}"
+  method="PUT"
+  action="/panel/dist/update/{{ .DistID }}"
+>
+  <input type="number" step=".01" value="{{ printf "%.2f" .DistAmount}}" name="amount" placeholder="Monto" aria-label="Monto" required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#form-dist-{{ .DistID }}"
+      swap="outerHTML"
+      loading-state
+    >Actualizar Distribución</button>
+  </div>
+</form>
+{{ end }}

@@ -1,0 +1,12 @@
+{{ define "supplier" }}
+<tr>
+  <td>{{ formatID .SupplierID }}</td>
+  <td>{{ .SupplierName }}</td>
+  <td>{{ .SupplierEmail }}</td>
+  <td>{{ phone .SupplierPhoneCountryCode .SupplierPhone }}</td>
+  <td>{{ summary .SupplierLocation 40 }}</td>
+</tr>
+<div style="display:none;">
+  <option data-oob="#panel-catalog-select-supplier" swap="beforeend" value="{{ .SupplierID }}">[{{ formatID .SupplierID }}] {{ .SupplierName }}</option>
+</div>
+{{ end }}

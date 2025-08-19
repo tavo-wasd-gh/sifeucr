@@ -1,0 +1,11 @@
+{{ define "catalog" }}
+<tr>
+  <td>{{ .CatalogGrouping }}</td>
+  <td tags="{{ .SupplierID }} {{ formatID .SupplierID }}">{{ summary .SupplierName 40 }}</td>
+  <td>{{ summary .CatalogSummary 40 }}</td>
+  <td>{{ summary .CatalogTags 40 }}</td>
+</tr>
+<div style="display:none;">
+  <option data-oob="#panel-items-select-catalog" swap="beforeend" value="{{ .CatalogID }}">[{{ .CatalogGrouping }}] {{ .CatalogSummary }} ({{ .SupplierName }})</option>
+</div>
+{{ end }}

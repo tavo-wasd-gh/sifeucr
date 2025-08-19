@@ -1,0 +1,47 @@
+{{ define "purchase-form-generic" }}
+<div class="grid">
+  <select name="purchase_supplier" required>
+    <option value="" selected disabled>Proveedor</option>
+    {{ range .Suppliers }}
+    <option value="{{ .SupplierID }}">[{{ formatID .SupplierID }}] {{ .SupplierName }}</option>
+    {{ end }}
+  </select>
+  <button class="outline">Inscribir Nuevo</button>
+</div>
+<input
+  id="purchase-gross"
+  type="number" step="0.01"
+  name="purchase_gross_amount"
+  placeholder="Monto bruto"
+  required
+>
+<p style="text-align:right;">
+  <small>IVA (2%): <span id="purchase-tax" data-tax="0.02">{{ currency 0 }}</span></small>
+  <br>
+  <big>Total: <span id="purchase-total">{{ currency 0 }}</span></big>
+</p>
+<script>
+ const grossInput = document.getElementById("purchase-gross");
+ const taxDisplay = document.getElementById("purchase-tax");
+ const totalDisplay = document.getElementById("purchase-total");
+ const taxRate = parseFloat(taxDisplay.dataset.tax);
+
+ const formatCurrency = (amount) => {
+   return amount.toLocaleString("es-CR", {
+     style: "currency",
+     currency: "CRC",
+     minimumFractionDigits: 2,
+     maximumFractionDigits: 2,
+   });
+ };
+
+ grossInput.addEventListener("input", function () {
+   const gross = parseFloat(grossInput.value) || 0;
+   const tax = gross * taxRate;
+   const total = gross + tax;
+
+   taxDisplay.textContent = formatCurrency(tax);
+   totalDisplay.textContent = formatCurrency(total);
+ });
+</script>
+{{ end }}

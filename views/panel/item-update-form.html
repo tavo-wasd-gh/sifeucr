@@ -1,0 +1,38 @@
+{{ define "item-update-form" }}
+<form
+  id="form-item-{{ .ItemID }}"
+  method="PUT"
+  action="/panel/item/update/{{ .ItemID }}"
+>
+
+  <label for="panel-item-update-catalog">Agrupación</label>
+  <input id="panel-item-update-catalog"
+         type="number"
+         value="{{ .CatalogGrouping }}"
+         placeholder="Agrupación"
+         aria-label="Agrupación"
+         disabled>
+
+  <label for="panel-item-update-number">Artículo</label>
+  <input id="panel-item-update-number"
+         type="number"
+         value="{{ .ItemNumber }}"
+         name="number"
+         placeholder="Artículo"
+         aria-label="Artículo"
+         required>
+
+  <input type="text"   value="{{ .ItemSummary }}"             name="summary" placeholder="Resumen"     aria-label="Resumen"     required>
+  <textarea            value="{{ .ItemDescription }}"         name="desc"    placeholder="Descripción" aria-label="Descripción" required>{{ .ItemDescription }}</textarea>
+  <input type="number" value="{{ printf "%.2f" .ItemAmount}}" name="amount"  placeholder="Monto"       aria-label="Monto"       required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#form-item-{{ .ItemID }}"
+      swap="outerHTML"
+      loading-state
+    >Actualizar Artículo</button>
+  </div>
+</form>
+{{ end }}

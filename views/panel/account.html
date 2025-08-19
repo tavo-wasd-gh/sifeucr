@@ -1,0 +1,28 @@
+{{ define "account" }}
+<tr>
+  <td>{{ .AccountAbbr }}</td>
+  <td>{{ .AccountName }}</td>
+  <td style="text-align:right;">
+    <div style="display:flex;justify-content:flex-end;">
+      <form method="POST" action="/panel/account/toggle/{{ .AccountID }}">
+        <input
+          type="checkbox"
+          role="switch"
+          {{ if .AccountActive }}checked{{ end }}
+          onchange="fetchAndSwap(event)"
+          swap="none"
+          loading-state
+        >
+      </form>
+  </td>
+    </div>
+</tr>
+<div style="display:none;">
+  <option
+    data-oob="#panel-distributions-select-account"
+    swap="beforeend"
+    value="{{ .AccountID }}">
+    [{{ .AccountAbbr }}] {{ .AccountName }}
+  </option>
+</div>
+{{ end }}

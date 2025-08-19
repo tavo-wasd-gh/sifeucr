@@ -1,0 +1,248 @@
+{{ define "main-report" }}
+<details>
+  <summary><big><strong>Control Madre</strong></big></summary>
+  <div class="body-width">
+    <div class="overflow-auto">
+      <table class="striped">
+        <thead>
+          <tr>
+            <th><input type="number" step="1"        placeholder="Solicitud"     onkeyup="filterTable(this)"></th>
+            <th><input type="date"   filter="after"  placeholder="Emitido"       onkeyup="filterTable(this)"></th>
+            <th><input type="date"   filter="before" placeholder="Requerido"     onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Detalle"       onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Justificación" onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Cuenta"        onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Período"       onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Usuario"       onkeyup="filterTable(this)"></th>
+            <th><input type="number" step="any"      placeholder="Monto Bruto"   onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Partida"       onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Proveedor"     onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Solicitud"     onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Orden"         onkeyup="filterTable(this)"></th>
+            <th><input type="number" step="1"        placeholder="Factura"       onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Transferencia" onkeyup="filterTable(this)"></th>
+            <th><input type="text"                   placeholder="Estado"        onkeyup="filterTable(this)"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range .AllPurchases }}
+          <tr>
+            <td style="display:flex;justify-content:right">
+              <span style="margin:0 0.3rem">{{ .ReqID }}</span>
+              <a style="margin:0 0.3rem" href="/doc/p/{{ .ReqID }}" target="_blank">Proforma</a>
+              <a style="margin:0 0.3rem" href="/doc/j/{{ .ReqID }}" target="_blank">Justificación</a>
+            </td>
+            <td>{{ unixDateToStr .ReqIssued }}</td>
+            <td>{{ unixDateToStr .PurchaseRequired }}</td>
+            <td>{{ summary .ReqDescr 40 }}</td>
+            <td>{{ summary .ReqJustif 40 }}</td>
+            <td>{{ .AccountAbbr }}</td>
+            <td>{{ .PeriodName }}</td>
+            <td>{{ .UserEmail }}</td>
+            <td style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
+            <td>{{ .EntryObject }}</td>
+            <td>{{ summary .SupplierName 40 }}</td>
+            <td class="clickable"
+                onclick="toggleModal('modal-purchase-geco-sol-{{ .ReqID }}')"
+                id="purchase-geco-sol-{{ .ReqID }}">
+              {{ .PurchaseGecoSol }}
+            </td>
+            <td class="clickable"
+                onclick="toggleModal('modal-purchase-geco-ord-{{ .ReqID }}')"
+                id="purchase-geco-ord-{{ .ReqID }}">
+              {{ .PurchaseGecoOrd }}
+            </td>
+            <td class="clickable"
+                onclick="toggleModal('modal-purchase-bill-{{ .ReqID }}')"
+                id="purchase-bill-{{ .ReqID }}">
+              {{ .PurchaseBill }}
+            </td>
+            <td class="clickable"
+                onclick="toggleModal('modal-purchase-transfer-{{ .ReqID }}')"
+                id="purchase-transfer-{{ .ReqID }}">
+              {{ .PurchaseTransfer }}
+            </td>
+            <td class="clickable"
+                onclick="toggleModal('modal-purchase-status-{{ .ReqID }}')"
+                id="purchase-status-{{ .ReqID }}">
+              {{ .PurchaseStatus }}
+            </td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</details>
+<div id="main-report-modals-purchases">
+  {{ range .AllPurchases }}
+  <dialog id="modal-purchase-geco-sol-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-geco-sol-{{ .ReqID }}')"></button>
+        <h3>Solicitud en GECO para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <div class="overflow-auto">
+        <table>
+          <tbody>
+            <tr>
+              <td>Partida</td>
+              <td>{{ .EntryObject }}</td>
+            </tr>
+            <tr>
+              <td>Detalle</td>
+              <td>{{ .ReqDescr }}</td>
+            </tr>
+            <tr>
+              <td>Fecha para recibir</td>
+              <td>{{ unixDateLong .PurchaseRequired }}</td>
+            </tr>
+            <tr>
+              <td>Justificación</td>
+              <td>{{ .ReqJustif }}</td>
+            </tr>
+            <tr>
+              <td>Monto bruto</td>
+              <td>{{ currency .PurchaseGrossAmount }}</td>
+            </tr>
+            <tr>
+              <td>IVA ({{ opMult .PurchaseTaxRate 100 }}%)</td>
+              <td>{{ currency (opMult .PurchaseTaxRate .PurchaseGrossAmount)}}</td>
+            </tr>
+            <tr>
+              <td>Monto Total</td>
+              <td>{{ currency (opSum .PurchaseGrossAmount (opMult .PurchaseTaxRate .PurchaseGrossAmount))}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <form
+        method="PATCH"
+        action="/meta/purchase/{{ .ReqID }}"
+      >
+        <input type="text" value="{{ .PurchaseGecoSol }}" name="purchase_patch_geco_sol" placeholder="Solicitud en GECO" aria-label="Solicitud en GECO" required>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-geco-sol-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar no. Solicitud</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-geco-ord-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-geco-ord-{{ .ReqID }}')"></button>
+        <h3>Orden en GECO para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <div class="overflow-auto">
+        <table>
+          <tbody>
+            <tr>
+              <td>Identificación del Proveedor</td>
+              <td>{{ .SupplierID }}</td>
+            </tr>
+            <tr>
+              <td>Nombre del Proveedor</td>
+              <td>{{ .SupplierName }}</td>
+            </tr>
+            <tr>
+              <td>Correo del Proveedor</td>
+              <td>{{ .SupplierEmail }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <form
+        method="PATCH"
+        action="/meta/purchase/{{ .ReqID }}"
+      >
+        <input type="text" value="{{ .PurchaseGecoOrd }}" name="purchase_patch_geco_ord" placeholder="Orden en GECO" aria-label="Orden en GECO" required>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-geco-ord-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar no. Orden</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-bill-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-bill-{{ .ReqID }}')"></button>
+        <h3>Factura para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <form
+        method="PATCH"
+        action="/meta/purchase/{{ .ReqID }}"
+      >
+        <input type="text" value="{{ .PurchaseBill }}" name="purchase_patch_bill" placeholder="Factura" aria-label="Factura" required>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-bill-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar no. Factura</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-transfer-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-transfer-{{ .ReqID }}')"></button>
+        <h3>Transferencia para la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <form
+        method="PATCH"
+        action="/meta/purchase/{{ .ReqID }}"
+      >
+        <input type="text" value="{{ .PurchaseTransfer }}" name="purchase_patch_transfer" placeholder="Transferencia" aria-label="Transferencia" required>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-transfer-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar no. Transferencia</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  <dialog id="modal-purchase-status-{{ .ReqID }}">
+    <article>
+      <header>
+        <button rel="prev" type="button" onclick="toggleModal('modal-purchase-status-{{ .ReqID }}')"></button>
+        <h3>Estado de la solicitud #{{ .ReqID }}</h3>
+      </header>
+      <form
+        method="PATCH"
+        action="/meta/purchase/{{ .ReqID }}"
+      >
+        <input type="text" value="{{ .PurchaseStatus }}" name="purchase_patch_status" placeholder="Estado" aria-label="Estado" required>
+        <div style="display:flex;justify-content:right">
+          <button
+            type="submit"
+            onclick="fetchAndSwap(event)"
+            target="#purchase-status-{{ .ReqID }}"
+            swap="innerHTML"
+            loading-state
+          >Actualizar Estado</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+  {{ end }}
+</div>
+{{ end }}

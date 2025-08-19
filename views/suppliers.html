@@ -1,0 +1,28 @@
+{{ define "providers" }}
+<h1>Proveedores</h1>
+<details>
+  <summary>Ver Trámites</summary>
+  <form
+    id="supplier-summary"
+    method="POST"
+    action="/proveedores"
+  >
+
+    <div class="grid">
+      <input type="text"
+             name="email"
+             placeholder="Correo"
+             aria-label="Correo"
+             required>
+      <button
+        type="submit"
+        onclick="fetchAndSwap(event)"
+        target="#supplier-summary"
+        swap="outerHTML"
+        loading-state
+      >Ver</button>
+    </div>
+
+  </form>
+</details>
+{{ end }}

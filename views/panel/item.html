@@ -1,0 +1,13 @@
+{{ define "item" }}
+<tr>
+  <td>{{ .CatalogGrouping }}</td>
+  <td class="clickable" onclick="toggleModal('modal-item-{{ .ItemID }}')">{{ .ItemNumber }}</td>
+  <td tags="{{ .SupplierID }} {{ formatID .SupplierID }}">{{ .SupplierName }}</td>
+  <td>{{ summary .ItemSummary 30 }}</td>
+  <td>{{ summary .ItemDescription 30 }}</td>
+  <td style="text-align:right;">{{ currency .ItemAmount }}</td>
+  <!-- if .AddItemForm -->
+  <!-- ... -->
+  <!-- end -->
+</tr>
+{{ end }}

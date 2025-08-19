@@ -1,0 +1,20 @@
+{{ define "period-update-form" }}
+<form
+  id="form-period-{{ .PeriodID }}"
+  method="PUT"
+  action="/panel/period/update/{{ .PeriodID }}"
+>
+  <input type="text" value="{{ .PeriodName }}"                name="name"  placeholder="Identificador" aria-label="Identificador" required>
+  <input type="date" value="{{ unixDateToStr .PeriodStart }}" name="start" placeholder="Inicio"        aria-label="Inicio"        required>
+  <input type="date" value="{{ unixDateToStr .PeriodEnd }}"   name="end"   placeholder="Fin"           aria-label="Fin"           required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#form-period-{{ .PeriodID }}"
+      swap="outerHTML"
+      loading-state
+    >Actualizar Período</button>
+  </div>
+</form>
+{{ end }}

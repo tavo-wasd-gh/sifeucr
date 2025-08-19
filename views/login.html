@@ -1,17 +1,56 @@
 {{ define "login" }}
-<main>
-  <h1>Inicio de sesión</h1>
-  <div class="login">
-    <form hx-post="/api/dashboard" hx-target="closest main" hx-swap="outerHTML">
-      <input type="text" id="correo" name="correo" placeholder="Correo electrónico" required>
-      <br>
-      <input type="password" id="passwd" name="passwd" placeholder="Contraseña" required>
-      <br>
-      <div class="htmx-button-div">
-        <button type="submit">Iniciar</button>
-        <span class="spinner htmx-indicator" style="font-size: 0.8em;"/>
-      </div>
-    </form>
+<h1>Iniciar Sesión</h1>
+{{ if .ExternalEmail }}
+<article>
+  <header class="pico-background-amber-150">
+    Error iniciando sesión
+  </header>
+  Si es una entidad proveedora, visita la pestaña <a href="/proveedores">Proveedores</a>
+  para ingresar o generar un código de autenticación para revisar el estado de sus solicitudes.
+</article>
+{{ end }}
+{{ if .Error }}
+<article>
+  <header class="pico-background-amber-150">
+    Error iniciando sesión
+  </header>
+  Verifica que estás digitando el correo y contraseña institucional
+  o consulta con Secretaría de Finanzas si tienes un usuario habilitado.
+</article>
+{{ end }}
+<form method="POST">
+  <input
+    type="email"
+    name="email"
+    placeholder="Correo Institucional"
+    aria-label="Correo Institucional"
+    autocomplete="email"
+    required
+  >
+  <input
+    type="password"
+    name="password"
+    placeholder="Contraseña"
+    aria-label="Contraseña"
+    required
+  >
+  {{ if .MultipleAccounts }}
+  <select name="account" aria-label="Cuenta" required>
+    <option selected disabled value="">Cuenta</option>
+    {{ range .Permissions }}
+    <option value="{{ .AccountID }}">[{{ .AccountAbbr }}] {{ .AccountName }}</option>
+    {{ end }}
+  </select>
+  {{ end }}
+  <div style="display:flex;justify-content:flex-end;">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="main"
+      loading-state
+    >
+      Iniciar
+    </button>
   </div>
-</main>
-{{end}}
+</form>
+{{ end }}

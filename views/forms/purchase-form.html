@@ -1,0 +1,230 @@
+{{ define "purchase-form" }}
+<h1>Solicitud de Compra</h1>
+<form id="addpurchase"
+  method="POST"
+  action="/request/purchase"
+>
+  <label for="#purchase-form-date">Fecha y hora para la que se requiere:</label>
+  <input
+    id="purchase-form-date"
+    type="datetime-local"
+    name="purchase_required"
+    placeholder="Requerido"
+    required
+  >
+  <input
+    type="text"
+    name="purchase_desc"
+    placeholder="Detalle"
+    required
+  >
+  <textarea
+    name="purchase_justif"
+    placeholder="Justificación"
+    required
+  ></textarea>
+  <select name="purchase_type" id="fields-purchase-type" required>
+    <option value="" selected disabled>Tipo</option>
+    <option value="catering">Alimentación</option>
+    <option value="generic">Servicios</option>
+    <option value="supplies">Suministros</option>
+    <option value="goods" disabled>Bienes</option>
+  </select>
+  <div class="form-section" id="field-generic" style="display:none;">
+    {{ template "purchase-form-generic" . }}
+  </div>
+  <div class="form-section" id="field-catering" style="display:none;">
+    {{ template "purchase-form-catering" . }}
+  </div>
+  <div class="form-section" id="field-supplies" style="display:none;">
+    {{ template "purchase-form-supplies" . }}
+  </div>
+  <script>
+   // Show form fields depending on selected form type
+   const formSections = document.querySelectorAll('.form-section');
+
+   function updateSectionVisibility(selected) {
+       formSections.forEach(section => {
+           section.style.display = 'none';
+           // Disable all fields in hidden section
+           section.querySelectorAll('input, select, textarea').forEach(input => {
+               input.disabled = true;
+           });
+       });
+
+       const selectedSection = document.getElementById(`field-${selected}`);
+       if (selectedSection) {
+           selectedSection.style.display = 'block';
+           // Enable fields in the visible section
+           selectedSection.querySelectorAll('input, select, textarea').forEach(input => {
+               input.disabled = false;
+           });
+       }
+   }
+
+   document.getElementById('fields-purchase-type').addEventListener('change', (e) => {
+       updateSectionVisibility(e.target.value);
+   });
+
+   // Run on page load in case of pre-selected value
+   document.addEventListener('DOMContentLoaded', () => {
+       const selected = document.getElementById('fields-purchase-type').value;
+       if (selected) {
+           updateSectionVisibility(selected);
+       }
+   });
+  </script>
+
+  <label>Firma:</label>
+  <div class="canvas-wrap">
+      <canvas class="canvas-signature" id="purchase-signature-canvas"></canvas>
+  </div>
+  <input type="hidden" name="purchase_signature" id="purchase_signature">
+  <div style="display:flex;justify-content:center">
+    <button type="button" id="purchase-signature-clear" class="outline">Limpiar</button>
+  </div>
+  <script>
+   (() => {
+       const canvas = document.getElementById('purchase-signature-canvas');
+       const ctx = canvas.getContext('2d');
+       const hidden = document.getElementById('purchase_signature');
+
+       const aspect = 3/4;
+       const strokeWidth = 3;
+       const paths = [];
+       let currentPath = null;
+       let drawing = false;
+
+       function cssSize() {
+           const cssW = canvas.clientWidth;
+           const cssH = Math.round(cssW * aspect);
+           canvas.style.height = cssH + 'px';
+           return { cssW, cssH };
+       }
+
+       function resizeCanvas() {
+           const { cssW, cssH } = cssSize();
+           const dpr = Math.max(1, window.devicePixelRatio || 1);
+           canvas.width  = Math.floor(cssW * dpr);
+           canvas.height = Math.floor(cssH * dpr);
+           ctx.setTransform(1,0,0,1,0,0);
+           ctx.scale(dpr, dpr);
+           redraw();
+       }
+
+       function getStrokeColor() {
+           const color = getComputedStyle(document.documentElement)
+               .getPropertyValue('--axiom-color')
+               .trim();
+           return color || 'black';
+       }
+
+       function redraw() {
+           const { cssW, cssH } = cssSize();
+           ctx.clearRect(0, 0, cssW, cssH);
+           ctx.lineJoin = 'round';
+           ctx.lineWidth = strokeWidth;
+           ctx.strokeStyle = getStrokeColor();
+
+           for (const path of paths) {
+               if (path.length < 2) continue;
+               ctx.beginPath();
+               ctx.moveTo(path[0].xN * cssW, path[0].yN * cssH);
+               for (let i = 1; i < path.length; i++) {
+                   ctx.lineTo(path[i].xN * cssW, path[i].yN * cssH);
+               }
+               ctx.stroke();
+           }
+       }
+
+       function toNorm(x, y) {
+           const { cssW, cssH } = cssSize();
+           return { xN: x / cssW, yN: y / cssH };
+       }
+
+       function getPos(evt) {
+           const r = canvas.getBoundingClientRect();
+           const p = evt.touches ? evt.touches[0] : evt;
+           return { x: p.clientX - r.left, y: p.clientY - r.top };
+       }
+
+       function serializePaths(decimals = 3) {
+           return paths.map(path => path.map(p => [
+      +p.xN.toFixed(decimals),
+      +p.yN.toFixed(decimals)
+           ]));
+       }
+
+       function syncHidden() {
+           hidden.value = JSON.stringify(serializePaths(3));
+       }
+
+       // Drawing events (only place we update the hidden input)
+       canvas.addEventListener('pointerdown', (e) => {
+           e.preventDefault();
+           canvas.setPointerCapture(e.pointerId);
+           const { x, y } = getPos(e);
+           drawing = true;
+           currentPath = [toNorm(x, y)];
+           paths.push(currentPath);
+
+           ctx.beginPath();
+           ctx.moveTo(x, y);
+           ctx.lineTo(x + 0.01, y + 0.01);
+           ctx.lineWidth = strokeWidth;
+           ctx.strokeStyle = getStrokeColor();
+           ctx.lineJoin = 'round';
+           ctx.stroke();
+
+           syncHidden();
+       });
+
+       canvas.addEventListener('pointermove', (e) => {
+           if (!drawing) return;
+           const { x, y } = getPos(e);
+           const { cssW, cssH } = cssSize();
+           const last = currentPath[currentPath.length - 1];
+
+           ctx.beginPath();
+           ctx.moveTo(last.xN * cssW, last.yN * cssH);
+           ctx.lineTo(x, y);
+           ctx.lineWidth = strokeWidth;
+           ctx.strokeStyle = getStrokeColor();
+           ctx.lineJoin = 'round';
+           ctx.stroke();
+
+           currentPath.push(toNorm(x, y));
+           syncHidden();
+       });
+
+       function endDraw(e) {
+           if (!drawing) return;
+           drawing = false;
+           currentPath = null;
+           canvas.releasePointerCapture?.(e.pointerId);
+           syncHidden();
+       }
+       canvas.addEventListener('pointerup', endDraw);
+       canvas.addEventListener('pointercancel', endDraw);
+       canvas.addEventListener('pointerleave', endDraw);
+
+       // Clear button leaves hidden input untouched (per your request)
+       document.getElementById('purchase-signature-clear')
+               .addEventListener('click', () => { paths.length = 0; redraw(); });
+
+       // Init + resize (does not touch hidden input)
+       resizeCanvas();
+       window.addEventListener('resize', resizeCanvas);
+   })();
+  </script>
+
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#addpurchase"
+      loading-state
+    >Solicitar Compra</button>
+  </div>
+</form>
+{{ end }}

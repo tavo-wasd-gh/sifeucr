@@ -1,0 +1,54 @@
+{{ define "setup" }}
+<form
+  method="POST"
+  action="/panel/setup"
+>
+  <label for="userEmail">Correo Institucional</label>
+  <input
+    type="email"
+    name="userEmail"
+    id="userEmail"
+    placeholder="usuario@ucr.ac.cr"
+    aria-label="Correo Institucional"
+    required
+  />
+  <label for="userName">Nombre de Usuario</label>
+  <input
+    type="text"
+    name="userName"
+    id="userName"
+    placeholder="Nombre de Usuario"
+    aria-label="Nombre de Usuario"
+    required
+  />
+  <label for="accountName">Nombre de la Cuenta</label>
+  <input
+    type="text"
+    name="accountName"
+    id="accountName"
+    value="Secretaría de Finanzas"
+    placeholder="Nombre de la Cuenta"
+    aria-label="Nombre de la Cuenta"
+    required
+  />
+  <label for="accountAbbr">Siglas de la Cuenta</label>
+  <input
+    type="text"
+    name="accountAbbr"
+    id="accountAbbr"
+    value="SF"
+    placeholder="Siglas de la Cuenta"
+    aria-label="Siglas de la Cuenta"
+    required
+  />
+  <button
+    type="submit"
+    onclick="fetchAndSwap(event)"
+    target="main"
+    swap="innerHTML"
+    loading-state
+  >
+    Configurar
+  </button>
+</form>
+{{ end }}

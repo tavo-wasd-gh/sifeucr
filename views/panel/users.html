@@ -1,0 +1,43 @@
+{{ define "users" }}
+<div class="body-width">
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th><input type="text" placeholder="Usuario" onkeyup="filterTable(this)"></th>
+          <th><input type="text" placeholder="Nombre"  onkeyup="filterTable(this)"></th>
+          <th>Activo</th>
+        </tr>
+      </thead>
+      <tbody id="user-rows">
+        {{ range .Users }}
+        {{ template "user" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "UserActive" .UserActive "AddUserForm" $.AddUserForm) }}
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</div>
+<label for="adduser">Agregar Usuario</label>
+<form
+  id="adduser"
+  method="POST"
+  action="/panel/user/add"
+>
+  <input type="email" name="email" placeholder="Correo institucional" aria-label="Correo institucional" autocomplete="email" required>
+  <input type="text"  name="name"  placeholder="Nombre completo"      aria-label="Nombre completo"                           required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#user-rows"
+      swap="beforeend"
+      loading-state
+    >Agregar Usuario</button>
+  </div>
+</form>
+<div id="panel-modals-users">
+  {{ range .Users }}
+  {{ template "user-modal" (dict "UserID" .UserID "UserEmail" .UserEmail "UserName" .UserName "UserActive" .UserActive "Permissions" $.Permissions "PermissionTypes" $.PermissionTypes "Users" $.Users "Accounts" $.Accounts) }}
+  {{ end }}
+</div>
+{{ end }}

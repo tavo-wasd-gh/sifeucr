@@ -1,0 +1,34 @@
+{{ define "user-permissions" }}
+<div id="user-{{ .UserID }}-perms">
+  {{ $userPerms := filterPermissionsByUser .Permissions .UserID }}
+  {{ range $userPerms }}
+  {{ template "permission" (dict "Permission" . "PermissionTypes" $.PermissionTypes) }}
+  {{ end }}
+</div>
+<label for="addpermission">Agregar Permiso</label>
+<form
+  id="addpermission"
+  method="POST"
+  action="/panel/perm/add"
+>
+  <select name="user">
+    <option value="{{ .UserID }}" selected>[{{ .UserEmail }}] {{ .UserName }}</option>
+  </select>
+  <select name="account">
+    <option value="" selected disabled>Cuenta</option>
+    {{ range .Accounts }}
+    <option value="{{ .AccountID }}">[{{ .AccountAbbr }}] {{ .AccountName }}</option>
+    {{ end }}
+  </select>
+  <input type="number" name="integer" placeholder="Permiso (3=regular)" aria-label="Permiso" required>
+  <div style="display:flex;justify-content:right">
+    <button
+      type="submit"
+      onclick="fetchAndSwap(event)"
+      target="#user-{{ .UserID }}-perms"
+      swap="beforeend"
+      loading-state
+    >Agregar Permiso</button>
+  </div>
+</form>
+{{ end }}

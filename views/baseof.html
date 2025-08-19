@@ -1,0 +1,19 @@
+{{ define "baseof" }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {{ template "head" . }}
+  </head>
+  <body>
+    <header class="container">
+      {{ template "header" . }}
+    </header>
+    <main class="container">
+      {{ block "content" . }}{{ end }}
+    </main>
+    <footer class="container">
+      {{ template "footer" . }}
+    </footer>
+  </body>
+</html>
+{{ end }}
