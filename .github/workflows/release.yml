@@ -1,0 +1,42 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Run release script
+        run: |
+          chmod +x ./scripts/release.sh
+          ./scripts/release.sh
+
+      - name: Verify artifacts
+        run: |
+          test -d dist && test "$(ls -1 dist | wc -l)" -gt 0 || \
+          (echo "No files in dist/ — did release.sh build outputs there?" && exit 1)
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: "dist/*"
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
