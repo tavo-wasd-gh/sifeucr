@@ -17,12 +17,12 @@ _latest_remote() {
 }
 
 if [ "$(whoami)" != "root" ]; then
-	echo "error: must be root user."
+	echo "error: must be root user"
 	exit 1
 fi
 
 if ! command -v curl >/dev/null 2>&1; then
-	echo "error: curl not installed."
+	echo "error: curl not installed"
 	exit 1
 fi
 
@@ -70,7 +70,7 @@ fi
 if ! [ -f "$SIFEUCR_CONFIG_HOME"/config.env ]; then
 	echo "downloading $download_url/config.env into $SIFEUCR_CONFIG_HOME/config.env ..."
 
-	if ! curl -Lo "$SIFEUCR_CONFIG_HOME"/config.env "$download_url"/config.env; then
+	if ! curl -sLo "$SIFEUCR_CONFIG_HOME"/config.env "$download_url"/config.env; then
 		echo "error downloading"
 	fi
 fi
@@ -84,6 +84,7 @@ fi
 # Custom binary
 #cp /path/to/sifeucrbinary /usr/local/bin/sifeucr
 
+echo "setting up permissions ..."
 for d in "$SIFEUCR_HOME" "$SIFEUCR_CONFIG_HOME"; do
 	chown -R sifeucr:sifeucr "$d"
 	find "$d" -type d -exec chmod 700 {} \;
