@@ -7,3 +7,4 @@ sifeucr
 .env
 .air.toml
 local/
+dist/
