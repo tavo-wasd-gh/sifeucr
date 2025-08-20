@@ -8,3 +8,4 @@ sifeucr
 .air.toml
 local/
 dist/
+config/schema_embed.go
