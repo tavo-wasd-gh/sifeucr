@@ -66,7 +66,6 @@ echo "downloading $download_url/sifeucr.service into $SYSTEMD_PREFIX/sifeucr.ser
 if ! curl -sLo "$SYSTEMD_PREFIX"/sifeucr.service "$download_url"/sifeucr.service; then
 	echo "error downloading"
 fi
-systemctl daemon-reload 2>/dev/null
 
 if ! [ -f "$SIFEUCR_CONFIG_HOME"/config.env ]; then
 	echo "downloading $download_url/config.env into $SIFEUCR_CONFIG_HOME/config.env ..."
@@ -94,3 +93,4 @@ done
 unset d
 
 echo "done!"
+echo "run 'systemctl daemon-reload' to reload unit"
