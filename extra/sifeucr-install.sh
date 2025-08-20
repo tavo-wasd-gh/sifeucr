@@ -32,20 +32,20 @@ if systemctl is-active --quiet sifeucr; then
 fi
 
 if ! id sifeucr >/dev/null 2>&1; then
-	echo "adding user 'sifeucr' with home directory '$SIFEUCR_HOME'"
+	echo "adding user 'sifeucr' with home directory '$SIFEUCR_HOME' ..."
 
 	if ! useradd -m -d "$SIFEUCR_HOME" sifeucr; then
-		echo "error adding user 'sifeucr' with home directory '$SIFEUCR_HOME'"
+		echo "error adding user 'sifeucr' with home directory '$SIFEUCR_HOME' ..."
 		exit 1
 	fi
 fi
 
 for d in "$SIFEUCR_HOME" "$SIFEUCR_CONFIG_HOME"; do
 	if ! [ -d "$d" ]; then
-		echo "creating directory '$d'"
+		echo "creating directory '$d' ..."
 
 		if ! mkdir -p "$d"; then
-			echo "error creating directory '$d'"
+			echo "error creating directory '$d' ..."
 		fi
 	fi
 done
