@@ -4,13 +4,13 @@ After=syslog.target
 After=network.target
 
 [Service]
-RestartSec=2s
+RestartSec=10s
 Type=simple
 User=sifeucr
 Group=sifeucr
 WorkingDirectory=/var/lib/sifeucr/
 ExecStart=/usr/local/bin/sifeucr
-Restart=always
+Restart=on-abnormal
 EnvironmentFile=/etc/sifeucr/config.env
 
 [Install]
