@@ -4,6 +4,7 @@ SYSTEMD_PREFIX="/etc/systemd/system"
 
 SIFEUCR_GITHUB="https://github.com/tavo-wasd-gh/sifeucr"
 SIFEUCR_HOME="/var/lib/sifeucr"
+SIFEUCR_DATA_HOME="$SIFEUCR_HOME/data"
 SIFEUCR_CONFIG_HOME="/etc/sifeucr"
 SIFEUCR_BIN="sifeucr-amd64-linux"
 
@@ -40,7 +41,7 @@ if ! id sifeucr >/dev/null 2>&1; then
 	fi
 fi
 
-for d in "$SIFEUCR_HOME" "$SIFEUCR_CONFIG_HOME"; do
+for d in "$SIFEUCR_HOME" "$SIFEUCR_DATA_HOME" "$SIFEUCR_CONFIG_HOME"; do
 	if ! [ -d "$d" ]; then
 		echo "creating directory '$d' ..."
 
