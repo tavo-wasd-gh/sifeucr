@@ -4,6 +4,7 @@ DIST_FOLDER="${DIST_FOLDER:-dist}"
 GOARCH_LIST="${GOARCH_LIST:-amd64 arm64}"
 GOOS_LIST="${GOOS_LIST:-linux windows}"
 COPY_FILES="${COPY_FILES:-extra/sifeucr.service extra/config.env}"
+GO_RUN_SCRIPTS="scripts/create_schema.go scripts/download_static.go"
 
 if [ "${DIST_FOLDER%/*}" != "." ]; then
 	mkdir -p "${DIST_FOLDER%/*}" || exit 1
@@ -13,6 +14,10 @@ for f in $COPY_FILES; do
 	if ! [ -f "${DIST_FOLDER%/}/$f" ]; then
 		cp "$f" "${DIST_FOLDER%/}/" || exit 1
 	fi
+done
+
+for s in $GO_RUN_SCRIPTS; do
+	go run "$s"
 done
 
 for GOARCH in $GOARCH_LIST; do
