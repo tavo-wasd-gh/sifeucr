@@ -94,3 +94,4 @@ unset d
 
 echo "done!"
 echo "run 'systemctl daemon-reload' to reload unit"
+echo "run 'systemctl start sifeucr' to start the service"
