@@ -3,7 +3,7 @@ BIN_PREFIX="${BIN_PREFIX:-sifeucr}"
 DIST_FOLDER="${DIST_FOLDER:-dist}"
 GOARCH_LIST="${GOARCH_LIST:-amd64 arm64}"
 GOOS_LIST="${GOOS_LIST:-linux windows}"
-COPY_FILES="${COPY_FILES:-scripts/sifeucr-install.sh extra/sifeucr.service extra/config.env}"
+COPY_FILES="${COPY_FILES:-extra/sifeucr.service extra/config.env}"
 
 if [ "${DIST_FOLDER%/*}" != "." ]; then
 	mkdir -p "${DIST_FOLDER%/*}" || exit 1
