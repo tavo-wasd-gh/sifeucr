@@ -11,6 +11,7 @@
         <thead>
           <tr>
             <th><input type="number" step="1"   placeholder="Solicitud"     onkeyup="filterTable(this)"></th>
+            <th><input type="text"              placeholder="Aprobación"     onkeyup="filterTable(this)"></th>
             <th><input type="text"              placeholder="Requerido"     onkeyup="filterTable(this)"></th>
             <th><input type="text"              placeholder="Detalle"       onkeyup="filterTable(this)"></th>
             <th><input type="text"              placeholder="Justificación" onkeyup="filterTable(this)"></th>
@@ -27,6 +28,11 @@
               <span style="margin:0 0.3rem">{{ .ReqID }}</span>
               <a style="margin:0 0.3rem" href="/doc/p/{{ .ReqID }}" target="_blank">Proforma</a>
               <a style="margin:0 0.3rem" href="/doc/j/{{ .ReqID }}" target="_blank">Justificación</a>
+            </td>
+            <td>
+              {{ if .PurchaseGecoSol }}
+              <span style="margin:0 0.3rem;color:green">Aprobada</span>
+              {{ end }}
             </td>
             <td id="purchase-required-{{ .ReqID }}" class="clickable" onclick="toggleModal('modal-purchase-date-{{ .ReqID }}')">{{ unixDateLong .PurchaseRequired }}</td>
             <td id="purchase-descr-{{ .ReqID }}" class="clickable" onclick="toggleModal('modal-purchase-descr-{{ .ReqID }}')">{{ summary .ReqDescr 40 }}</td>
