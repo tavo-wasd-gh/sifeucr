@@ -33,7 +33,7 @@ type itemIDAndQuantity struct {
 
 var (
 	ServicesEntryObject = "servicios"
-	SuppliesEntryObject = "suministros"
+	SuppliesEntryObject = "materiales y suministros"
 	GoodsEntryObject    = "bienes"
 )
 
@@ -156,7 +156,7 @@ func (h *Handler) newSuppliesPurchase(r *http.Request) error {
 	ctx := r.Context()
 	queries := db.New(h.DB())
 
-	supplier, err := queries.SupplierByName(ctx, "OSUM")
+	supplier, err := queries.SupplierByName(ctx, "Oficina de Suministros")
 	if err != nil {
 		return fmt.Errorf("failed to query supplier by Name: %v", err)
 	}
