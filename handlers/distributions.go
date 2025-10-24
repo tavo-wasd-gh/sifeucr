@@ -152,7 +152,7 @@ func (h *Handler) validDistributionsByAccountID(ctx context.Context, accountID i
 	validDists := []db.FullDistribution{}
 
 	for i := range dd {
-		if now >= dd[i].PeriodStart && now <= dd[i].PeriodEnd {
+		if now >= dd[i].PeriodStart && now <= dd[i].PeriodEnd && dd[i].PeriodActive {
 			validDists = append(validDists, dd[i])
 		}
 	}
