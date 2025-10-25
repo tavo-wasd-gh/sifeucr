@@ -1,0 +1,62 @@
+{{ define "budget-summary" }}
+<details>
+  <summary><big><strong>Presupuesto</strong></big></summary>
+  <div class="body-width">
+    <div class="overflow-auto" style="max-height:60vh;">
+      <table class="striped">
+        <thead>
+          <tr>
+            <!-- <th><input type="number" step="1"        placeholder="Solicitud"     onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="date"   filter="after"  placeholder="Emitido"       onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="date"   filter="before" placeholder="Requerido"     onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Detalle"       onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Justificación" onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Cuenta"        onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Período"       onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Usuario"       onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="number" step="any"      placeholder="Monto Bruto"   onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Partida"       onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Proveedor"     onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Solicitud"     onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Orden"         onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="number" step="1"        placeholder="Factura"       onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Transferencia" onkeyup="filterTable(this)"></th> -->
+            <!-- <th><input type="text"                   placeholder="Estado"        onkeyup="filterTable(this)"></th> -->
+            <th><input type="text" placeholder="Cuenta" onkeyup="filterTable(this)"></th>
+            <th>Presupuesto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range .AllAccounts }}
+          <tr>
+            <td>{{ .AccountAbbr }}</td>
+            <td>
+              {{ range .Distributions }}
+              <span>
+                <small>
+                  {{ .EntryObject }}
+                </small>
+              </span>
+              <div class="progress">
+                {{ $percent := opMult (opDiv .Remaining .DistAmount) 100 }}
+                {{ if lt $percent 0.00 }}
+                <div class="progress-bar negative" style="width:{{ opMult $percent -1 }}%"></div>
+                {{ else }}
+                <div class="progress-bar" style="width:{{ $percent }}%"></div>
+                {{ end }}
+              </div>
+              <span style="display:block;text-align:right;">
+                <small style="opacity: 0.5;">
+                  {{ currency .Remaining }} / {{ currency .DistAmount }}
+                </small>
+              </span>
+              {{ end }}
+            </td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</details>
+{{ end }}

@@ -45,11 +45,13 @@ var ViewMap = map[string][]string{
 		base,
 		"views/dashboard/dashboard.html",
 		"views/dashboard/dashboard-page.html",
+		"views/dashboard/budget-summary.html",
 		"views/dashboard/main-report.html",
 		"views/dashboard/purchases.html",
 	),
 	"dashboard": {
 		"views/dashboard/dashboard.html",
+		"views/dashboard/budget-summary.html",
 		"views/dashboard/main-report.html",
 		"views/dashboard/purchases.html",
 	},
@@ -174,6 +176,9 @@ var ViewMap = map[string][]string{
 var ViewFormatters = map[string]any{
 	"opMult": func(a, b float64) float64 {
 		return a * b
+	},
+	"opDiv": func(a, b float64) float64 {
+		return a / b
 	},
 	"opSum": func(nums ...float64) float64 {
 		var total float64
