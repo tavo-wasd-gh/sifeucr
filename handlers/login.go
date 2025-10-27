@@ -81,11 +81,20 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check available accounts
-	perms, err := queries.ActivePermissionsByUserID(ctx, userID)
+	tmpPerms, err := queries.ActivePermissionsByUserID(ctx, userID)
 	if err != nil {
 		h.Log().Error("error querying allowed_accounts by user_id: %v", err)
 		views.RenderHTML(w, r, "login", map[string]any{"Error": true})
 		return
+	}
+
+	var perms []db.ActivePermissionsByUserIDRow
+
+	// Perms should have read permission
+	for _, p := range tmpPerms {
+		if config.HasPermission(p.PermissionInteger, config.Read) {
+			perms = append(perms, p)
+		}
 	}
 
 	var chosenAccountID int64 = 0
@@ -139,7 +148,6 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 		UserID:    userID,
 		AccountID: chosenAccountID,
 	})
-
 	if err != nil {
 		h.Log().Error("error querying permissions: %v", err)
 		http.Error(w, "", http.StatusUnauthorized)
