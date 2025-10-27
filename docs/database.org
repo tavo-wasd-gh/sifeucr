@@ -135,6 +135,11 @@ CREATE TABLE IF NOT EXISTS "requests" (
     "req_justif"  TEXT    NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS "requests_deleted" (
+    "req_id"      INTEGER PRIMARY KEY NOT NULL REFERENCES "requests"("req_id"),
+    "req_deleted" BOOLEAN NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "request_docs" (
     "doc_id"       INTEGER PRIMARY KEY NOT NULL,
     "doc_purchase" INTEGER NOT NULL REFERENCES "requests"("req_id"),
