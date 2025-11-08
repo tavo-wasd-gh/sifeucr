@@ -17,13 +17,24 @@ type dashboard struct {
 	CSRFToken string
 	Purchases []db.FullPurchaseSubscription
 	// Advanced
+	AllAccounts  []FullAccount
 	AllPurchases []db.FullPurchaseSubscription
 	ReadAdvanced bool
 }
 
+type FullAccount struct {
+	db.Account
+	Distributions []FullDistribution
+	Purchases     []db.FullPurchaseSubscription
+}
+
+type FullDistribution struct {
+	db.FullDistribution
+	Remaining float64
+}
+
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	dashboard, err := h.loadDashboard(r.Context())
-
 	if err != nil {
 		h.Log().Error("error loading dashboard: %v", err)
 		views.RenderHTML(w, r, "login-page", nil)
@@ -82,10 +93,55 @@ func (h *Handler) loadDashboard(ctx context.Context) (*dashboard, error) {
 
 	if dashboard.ReadAdvanced {
 		dashboard.AllPurchases, err = queries.AllPurchaseSubscriptions(ctx)
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to query all purchases subscriptions: %v", err)
 		}
+
+		allAccounts, err := queries.AllAccounts(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query all accounts: %v", err)
+		}
+
+		allDistributions, err := queries.AllDistributions(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query purchases by account: %v", err)
+		}
+
+		var fullAccounts []FullAccount
+		for _, acc := range allAccounts {
+			fa := FullAccount{
+				Account: acc,
+			}
+
+			for _, d := range allDistributions {
+				dRemain := d.DistAmount
+
+				for _, p := range dashboard.AllPurchases {
+					if p.DistID == d.DistID {
+						dRemain -= p.PurchaseGrossAmount
+					}
+				}
+
+				fdist := FullDistribution{
+					FullDistribution: d,
+					Remaining:        dRemain,
+				}
+
+				if d.AccountID == acc.AccountID {
+					fa.Distributions = append(fa.Distributions, fdist)
+				}
+			}
+
+			for _, p := range dashboard.AllPurchases {
+				if p.AccountID == acc.AccountID {
+					fa.Purchases = append(fa.Purchases, p)
+				}
+			}
+
+			fullAccounts = append(fullAccounts, fa)
+		}
+
+		dashboard.AllAccounts = fullAccounts
 	}
 
 	csrfToken := getCSRFTokenFromContext(ctx)

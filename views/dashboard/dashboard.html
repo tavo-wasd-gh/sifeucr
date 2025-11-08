@@ -17,6 +17,7 @@
 </nav>
 <br>
 {{ if .ReadAdvanced }}
+{{ template "budget-summary" . }}
 {{ template "main-report" . }}
 {{ end }}
 {{ template "purchases" . }}
