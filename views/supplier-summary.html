@@ -6,6 +6,7 @@
         <tr>
           <th><input type="number" step="1"   placeholder="Solicitud"     onkeyup="filterTable(this)"></th>
           <th><input type="text"              placeholder="Requerido"     onkeyup="filterTable(this)"></th>
+          <th><input type="text"              placeholder="Cuenta"       onkeyup="filterTable(this)"></th>
           <th><input type="text"              placeholder="Detalle"       onkeyup="filterTable(this)"></th>
           <th><input type="number" step="any" placeholder="Monto Bruto"   onkeyup="filterTable(this)"></th>
           <th><input type="number" step="any" placeholder="Monto Total"   onkeyup="filterTable(this)"></th>
@@ -20,6 +21,7 @@
             <!-- <a style="margin:0 0.3rem" href="/doc/p/{{ .ReqID }}?supplier_token={{ $.SupplierToken }}" target="_blank">Proforma</a> -->
           </td>
           <td>{{ unixDateLong .PurchaseRequired }}</td>
+          <td>{{ .AccountName }}</td>
           <td>{{ summary .ReqDescr 40 }}</td>
           <td style="text-align:right;">{{ currency .PurchaseGrossAmount }}</td>
           <td style="text-align:right;">{{ currency (opSum .PurchaseGrossAmount (opMult .PurchaseTaxRate .PurchaseGrossAmount)) }}</td>

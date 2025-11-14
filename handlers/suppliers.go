@@ -220,6 +220,7 @@ func (h *Handler) LoadSupplierSummary(w http.ResponseWriter, r *http.Request) {
 		PurchaseRequired    int64
 		PurchaseTaxRate     float64
 		PurchaseGrossAmount float64
+		AccountName         string
 	}
 
 	type supplierSummary struct {
@@ -234,12 +235,20 @@ func (h *Handler) LoadSupplierSummary(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, p := range allPurchasesBySupplierEmail {
+		acc, err := queries.AccountByID(ctx, p.ReqAccount)
+		if err != nil {
+			h.Log().Error("error loading purchase account: %v", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
 		summary.Purchases[i] = supplierPurchase{
 			ReqID:               p.ReqID,
 			ReqDescr:            p.ReqDescr,
 			PurchaseRequired:    p.PurchaseRequired,
 			PurchaseTaxRate:     p.PurchaseTaxRate,
 			PurchaseGrossAmount: p.PurchaseGrossAmount,
+			AccountName:         acc.AccountName,
 		}
 	}
 
